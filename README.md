@@ -106,7 +106,10 @@ dotnet build .\PlustekBCR.csproj
 注意：
 
 - Tag 請使用可被 .NET `Version` 解析的格式，例如 `v1.0.3.0` 或 `1.0.3.0`。
-- 請在 GitHub Repository 設定中啟用 **Pages**（Source: GitHub Actions）。
+- 目前流程不需要啟用 GitHub Pages（`update.json` 會直接回寫到 repo）。
+- Release 資產 workflow 會把 tag 轉成 App 版本：
+  - `v1.2.3` 會轉成 `1.2.3.0`
+  - `v1.2.3.4` 會維持 `1.2.3.4`
 
 ## 已知限制
 

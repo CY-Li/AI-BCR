@@ -123,7 +123,7 @@ namespace PlustekBCR.Helpers
                 image.SetSource(stream);
                 return image;
             }
-            return new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri("ms-appx:///Assets/placeholder_card.png"));
+            return new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri("ms-appx:///Assets/scanner_illustration.png"));
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
