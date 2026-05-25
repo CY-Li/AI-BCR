@@ -1,6 +1,8 @@
 name: Publish Update Manifest
 
 on:
+  release:
+    types: [published]
   workflow_run:
     workflows: ["Build And Attach Release Assets"]
     types: [completed]
@@ -11,7 +13,7 @@ permissions:
 
 jobs:
   update-manifest:
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'release' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
