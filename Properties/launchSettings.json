@@ -1,0 +1,14 @@
+{
+  "profiles": {
+    "PlustekBCR (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "PlustekBCR (Unpackaged)": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

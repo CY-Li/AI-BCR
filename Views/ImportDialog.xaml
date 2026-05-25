@@ -1,0 +1,170 @@
+<ContentDialog
+    x:Class="PlustekBCR.Views.ImportDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Style="{StaticResource DefaultContentDialogStyle}">
+
+    <ContentDialog.Resources>
+        <Thickness x:Key="ContentDialogPadding">0</Thickness>
+        <Thickness x:Key="ContentDialogBorderWidth">0</Thickness>
+        <SolidColorBrush x:Key="ContentDialogBackground" Color="Transparent"/>
+        <SolidColorBrush x:Key="ContentDialogBorderBrush" Color="Transparent"/>
+        <CornerRadius x:Key="ContentDialogCornerRadius">8</CornerRadius>
+        <x:Double x:Key="ContentDialogMaxWidth">1200</x:Double>
+        <x:Double x:Key="ContentDialogMaxHeight">850</x:Double>
+    </ContentDialog.Resources>
+
+    <Border Background="{ThemeResource AppBackgroundBrush}"
+            BorderBrush="{ThemeResource BorderBrush}"
+            BorderThickness="1"
+            CornerRadius="8"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch">
+
+        <Grid x:Name="DialogRootGrid" Width="660" Margin="0" Padding="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Grid.RowDefinitions>
+                <!-- Header -->
+                <RowDefinition Height="Auto"/>
+                <!-- Content -->
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- HEADER SECTION -->
+            <Grid Grid.Row="0" Margin="24,20,24,12">
+                <TextBlock x:Name="DialogTitleText" Text="Import Business Cards" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Center"/>
+            </Grid>
+
+            <!-- CONTENT SECTION -->
+            <Grid Grid.Row="1" Margin="16,0,16,16" Height="400">
+                <!-- Overlay Loading Shield -->
+                <Grid x:Name="LoadingShield" Canvas.ZIndex="10" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Opacity="0.85" Visibility="Collapsed" CornerRadius="12">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="16">
+                        <ProgressRing x:Name="LoadingProgressRing" Width="48" Height="48" IsActive="True" Foreground="{StaticResource BrandBlueBrush}"/>
+                        <TextBlock x:Name="LoadingStatusText" Text="Parsing document..." FontSize="15" FontWeight="Medium" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- PANEL 1: LANDING & DROP ZONE (SPLIT INTO TWO COLUMNS) -->
+                <Grid x:Name="LandingStatePanel" Visibility="Visible">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <!-- Empty Spacing placeholder instead of a line -->
+                        <ColumnDefinition Width="16"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Left Column: Spreadsheet -->
+                    <Border Grid.Column="0"
+                            x:Name="SpreadsheetDropBorder" 
+                            Background="{ThemeResource LayerFillColorDefaultBrush}" 
+                            BorderBrush="{ThemeResource BorderBrush}" 
+                            BorderThickness="1.5" 
+                            CornerRadius="12" 
+                            Margin="4,8" 
+                            AllowDrop="True" 
+                            DragOver="OnSpreadsheetDragOver" 
+                            DragLeave="OnSpreadsheetDragLeave"
+                            Drop="OnSpreadsheetDrop"
+                            RenderTransformOrigin="0.5,0.5">
+                        <Border.RenderTransform>
+                            <ScaleTransform x:Name="SpreadsheetScale" ScaleX="1" ScaleY="1"/>
+                        </Border.RenderTransform>
+                        <Grid Padding="20">
+                            <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center" Spacing="16" Margin="0,56,0,0">
+                                <Grid Width="64" Height="64" HorizontalAlignment="Center">
+                                    <Ellipse Fill="{ThemeResource SecondaryBackgroundBrush}" Width="64" Height="64"/>
+                                    <Path Data="M7 12.25a.75.75 0 1 1 1.5 0 .75.75 0 0 1-1.5 0Zm.75 2.25a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM7 18.25a.75.75 0 1 1 1.5 0 .75.75 0 0 1-1.5 0Zm3.75-6.75a.75.75 0 0 0 0 1.5h5.5a.75.75 0 0 0 0-1.5h-5.5ZM10 15.25a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 0 1.5h-5.5a.75.75 0 0 1-.75-.75Zm.75 2.25a.75.75 0 0 0 0 1.5h5.5a.75.75 0 0 0 0-1.5h-5.5Zm8.664-9.086-5.829-5.828a.493.493 0 0 0-.049-.04.626.626 0 0 1-.036-.03 2.072 2.072 0 0 0-.219-.18.652.652 0 0 0-.08-.044l-.048-.024-.05-.029c-.054-.031-.109-.063-.166-.087a1.977 1.977 0 0 0-.624-.138c-.02-.001-.04-.004-.059-.007A.605.605 0 0 0 12.172 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9.828a2 2 0 0 0-.586-1.414ZM18.5 20a.5.5 0 0 1-.5.5H6a.5.5 0 0 1-.5-.5V4a.5.5 0 0 1 .5-.5h6V8a2 2 0 0 0 2 2h4.5v10Zm-5-15.379L17.378 8.5H14a.5.5 0 0 1-.5-.5V4.621Z" 
+                                          Fill="{StaticResource BrandBlueBrush}" Stretch="Uniform" Width="28" Height="28" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Grid>
+                                <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                    <TextBlock Text="Excel/CSV" FontSize="15" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="Drop .xlsx or .csv files here" FontSize="12" Foreground="{ThemeResource SecondaryTextBrush}" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                                <Button Content="Select Excel/CSV" Style="{StaticResource PrimaryActionStyle}" HorizontalAlignment="Center" Width="160" Click="OnSelectExcelCsvClick"/>
+                                <Button x:Name="DownloadTemplateButton"
+                                        Width="Auto" 
+                                        Height="Auto" 
+                                        Padding="12,6" 
+                                        CornerRadius="6" 
+                                        HorizontalAlignment="Center" 
+                                        Click="OnDownloadTemplateClick"
+                                        Margin="0,4,0,0">
+                                    <Button.Resources>
+                                        <!-- Background transitions -->
+                                        <SolidColorBrush x:Key="ButtonBackground" Color="Transparent"/>
+                                        <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#120078D4"/> <!-- 7% brand accent blue -->
+                                        <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#240078D4"/> <!-- 14% brand accent blue -->
+                                        
+                                        <!-- Foreground transitions using theme resource system brushes for perfect dark/light/contrast mode support -->
+                                        <StaticResource x:Key="ButtonForeground" ResourceKey="SecondaryTextBrush"/>
+                                        <StaticResource x:Key="ButtonForegroundPointerOver" ResourceKey="BrandBlueBrush"/>
+                                        <StaticResource x:Key="ButtonForegroundPressed" ResourceKey="BrandBlueBrush"/>
+
+                                        <!-- Border transitions -->
+                                        <SolidColorBrush x:Key="ButtonBorderBrush" Color="Transparent"/>
+                                        <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="Transparent"/>
+                                        <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="Transparent"/>
+                                    </Button.Resources>
+                                    
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <Path Data="M18.25 20.5a.75.75 0 1 1 0 1.5l-13 .004a.75.75 0 1 1 0-1.5l13-.004ZM11.648 2.012l.102-.007a.75.75 0 0 1 .743.648l.007.102-.001 13.685 3.722-3.72a.75.75 0 0 1 .976-.073l.085.073a.75.75 0 0 1 .072.976l-.073.084-4.997 4.997a.75.75 0 0 1-.976.073l-.085-.073-5.003-4.996a.75.75 0 0 1 .976-1.134l.084.072 3.719 3.714L11 2.755a.75.75 0 0 1 .648-.743l.102-.007-.102.007Z" 
+                                              Fill="{Binding Foreground, ElementName=DownloadTemplateButton}" 
+                                              Stretch="Uniform" 
+                                              Width="14" 
+                                              Height="14" 
+                                              VerticalAlignment="Center"/>
+                                        <TextBlock Text="Get CSV Template" 
+                                                   FontSize="12" 
+                                                   Foreground="{Binding Foreground, ElementName=DownloadTemplateButton}" 
+                                                   FontWeight="Medium" 
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Right Column: Images -->
+                    <Border Grid.Column="2"
+                            x:Name="ImagesDropBorder" 
+                            Background="{ThemeResource LayerFillColorDefaultBrush}" 
+                            BorderBrush="{ThemeResource BorderBrush}" 
+                            BorderThickness="1.5" 
+                            CornerRadius="12" 
+                            Margin="4,8" 
+                            AllowDrop="True" 
+                            DragOver="OnImagesDragOver" 
+                            DragLeave="OnImagesDragLeave"
+                            Drop="OnImagesDrop"
+                            RenderTransformOrigin="0.5,0.5">
+                        <Border.RenderTransform>
+                            <ScaleTransform x:Name="ImagesScale" ScaleX="1" ScaleY="1"/>
+                        </Border.RenderTransform>
+                        <Grid Padding="20">
+                            <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center" Spacing="16" Margin="0,56,0,0">
+                                <Grid Width="64" Height="64" HorizontalAlignment="Center">
+                                    <Ellipse Fill="{ThemeResource SecondaryBackgroundBrush}" Width="64" Height="64"/>
+                                    <Path Data="M13.748 8.996a1.248 1.248 0 1 0 0-2.496 1.248 1.248 0 0 0 0 2.496ZM6.25 3A3.25 3.25 0 0 0 3 6.25v9a3.25 3.25 0 0 0 3.25 3.25h9a3.25 3.25 0 0 0 3.25-3.25v-9A3.25 3.25 0 0 0 15.25 3h-9ZM4.5 6.25c0-.966.784-1.75 1.75-1.75h9c.966 0 1.75.784 1.75 1.75v9c0 .231-.045.452-.126.654l-4.587-4.291a2.25 2.25 0 0 0-3.074 0l-4.587 4.29a1.745 1.745 0 0 1-.126-.653v-9Zm6.762 6.458 4.505 4.214c-.163.05-.337.078-.517.078h-9c-.18 0-.354-.027-.517-.078l4.504-4.214a.75.75 0 0 1 1.025 0ZM8.75 21a3.247 3.247 0 0 1-2.74-1.5h9.74a3.75 3.75 0 0 0 3.75-3.75V6.011a3.248 3.248 0 0 1 1.5 2.74v7C21 18.65 18.65 21 15.75 21h-7Z" 
+                                          Fill="{ThemeResource SecondaryTextBrush}" 
+                                          Stretch="Uniform" 
+                                          Width="28" 
+                                          Height="28" 
+                                          HorizontalAlignment="Center" 
+                                          VerticalAlignment="Center"/>
+                                </Grid>
+                                <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                    <TextBlock Text="Card Images" FontSize="15" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="Drop .jpg, .png files here" FontSize="12" Foreground="{ThemeResource SecondaryTextBrush}" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                                <Button Content="Select Card Images" Style="{StaticResource SecondaryActionStyle}" Height="40" HorizontalAlignment="Center" Width="160" Click="OnSelectImagesClick"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Grid>
+        </Grid>
+    </Border>
+</ContentDialog>

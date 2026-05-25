@@ -1,0 +1,64 @@
+# Build output
+[Bb]in/
+[Oo]bj/
+out/
+
+# User-specific files
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+
+# IDE folders
+.vs/
+.vscode/
+.idea/
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+
+# Logs and diagnostics
+*.log
+*.tlog
+*.tmp
+*.cache
+*.pid
+
+# Test results
+[Tt]est[Rr]esult*/
+*.trx
+*.coverage
+*.coveragexml
+
+# Publish and packaging artifacts
+publish/
+AppPackages/
+BundleArtifacts/
+MsixContent/
+*.appx
+*.appxbundle
+*.msix
+*.msixbundle
+*.msixupload
+*.appxupload
+
+# Generated files
+Generated Files/
+*.g.cs
+*.g.i.cs
+
+# Rider / ReSharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Local project-specific artifacts
+crash_log.txt
+*.zip
