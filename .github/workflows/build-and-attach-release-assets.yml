@@ -1,0 +1,42 @@
+name: Build And Attach Release Assets
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows-x64:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Publish (Release, win-x64)
+        run: dotnet publish .\PlustekBCR.csproj -c Release -p:PublishProfile=win-x64.pubxml
+
+      - name: Package publish folder
+        shell: pwsh
+        run: |
+          $publishDir = "bin\Release\net8.0-windows10.0.19041.0\win-x64\publish"
+          if (!(Test-Path $publishDir)) {
+            throw "Publish directory not found: $publishDir"
+          }
+          $version = "${{ github.event.release.tag_name }}"
+          $safeVersion = $version -replace '[^0-9A-Za-z\.\-_]', '_'
+          $zipName = "PlustekBCR-$safeVersion-win-x64.zip"
+          Compress-Archive -Path "$publishDir\*" -DestinationPath $zipName -Force
+          "ZIP_PATH=$zipName" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Upload asset to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.ZIP_PATH }}
