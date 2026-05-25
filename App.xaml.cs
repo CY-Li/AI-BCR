@@ -4,6 +4,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using PlustekBCR.Services;
 using PlustekBCR.ViewModels;
 using PlustekBCR.Views;
 using WinUIEx;
@@ -28,7 +29,7 @@ namespace PlustekBCR
                 services.AddTransient<CardDetailViewModel>();
                 
                 // Register Services
-
+                services.AddSingleton<IUpdateService, UpdateService>();
             })
             .Build();
 

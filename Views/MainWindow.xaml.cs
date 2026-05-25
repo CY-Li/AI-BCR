@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml;
+using PlustekBCR.Services;
 using PlustekBCR.ViewModels;
 using CommunityToolkit.Mvvm.Messaging;
 using PlustekBCR.Models;
@@ -9,6 +10,7 @@ namespace PlustekBCR.Views
     public sealed partial class MainWindow : Window
     {
         public MainViewModel ViewModel { get; }
+        private bool _hasCheckedForUpdates;
 
         public MainWindow()
         {
@@ -170,6 +172,14 @@ namespace PlustekBCR.Views
                     }
                 });
             });
+
+            Activated += async (_, _) =>
+            {
+                if (_hasCheckedForUpdates) return;
+                _hasCheckedForUpdates = true;
+                var updateService = App.GetService<IUpdateService>();
+                await updateService.CheckForUpdatesAsync(this.Content?.XamlRoot);
+            };
         }
 
         private bool _isInitialized = false;

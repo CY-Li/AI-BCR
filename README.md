@@ -63,6 +63,51 @@ dotnet build .\PlustekBCR.csproj
 
 若建置出現 `MSB3021/MSB3027`（exe 被占用），請先關閉執行中的 `PlustekBCR.exe` 再重建。
 
+## 自動更新（已實作）
+
+啟動時會讀取 `appsettings.json` 的 `Update` 設定並檢查更新：
+
+```json
+{
+  "Update": {
+    "Enabled": true,
+    "ManifestUrl": "https://your-domain.com/plustekbcr/update.json",
+    "CheckTimeoutSeconds": 5
+  }
+}
+```
+
+`ManifestUrl` 回傳格式：
+
+```json
+{
+  "version": "1.0.3.0",
+  "downloadUrl": "https://your-domain.com/plustekbcr/PlustekBCR-1.0.3-setup.exe",
+  "notes": "修正匯入流程與穩定性問題"
+}
+```
+
+當遠端 `version` 大於目前版本時，程式會跳出提示並開啟 `downloadUrl`。
+
+### GitHub 整合（已配置）
+
+專案已內建：
+
+- 應用程式更新來源：`https://cy-li.github.io/AI-BCR/update.json`
+- Workflow：`.github/workflows/publish-update-manifest.yml`
+
+流程如下：
+
+1. 在 GitHub 建立並發佈一個 Release（`published`）。
+2. Release 內上傳安裝檔（建議 `.exe` / `.msix` / `.zip`）。
+3. Workflow 會自動產生最新 `update.json` 並部署到 GitHub Pages。
+4. App 啟動時會檢查該 manifest，有新版本即提示更新。
+
+注意：
+
+- Tag 請使用可被 .NET `Version` 解析的格式，例如 `v1.0.3.0` 或 `1.0.3.0`。
+- 請在 GitHub Repository 設定中啟用 **Pages**（Source: GitHub Actions）。
+
 ## 已知限制
 
 1. 資料預設儲存在記憶體，重開程式會遺失。

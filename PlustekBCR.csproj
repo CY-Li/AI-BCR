@@ -55,6 +55,12 @@
     <ItemGroup>
         <None Remove="PlustekBCR.slnx" />
     </ItemGroup>
+    
+    <ItemGroup>
+        <None Update="appsettings.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.1" />

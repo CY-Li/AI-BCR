@@ -1,0 +1,65 @@
+name: Publish Update Manifest
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build-manifest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build update.json from release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs");
+
+            const release = context.payload.release;
+            if (!release) {
+              core.setFailed("No release payload found. Run this workflow from a published release event.");
+              return;
+            }
+
+            const assets = release.assets || [];
+            const preferred = assets.find(a => /\.(exe|msix|msixbundle|zip)$/i.test(a.name));
+            const fallback = assets[0];
+            const asset = preferred || fallback;
+
+            const downloadUrl = asset
+              ? asset.browser_download_url
+              : `https://github.com/${context.repo.owner}/${context.repo.repo}/releases/tag/${release.tag_name}`;
+
+            const body = (release.body || "").trim();
+            const notes = body.length > 0 ? body : `Release ${release.tag_name}`;
+
+            const version = String(release.tag_name).replace(/^v/i, "");
+            const manifest = {
+              version,
+              downloadUrl,
+              notes
+            };
+
+            fs.mkdirSync("site", { recursive: true });
+            fs.writeFileSync("site/update.json", JSON.stringify(manifest, null, 2));
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build-manifest
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
