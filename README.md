@@ -71,8 +71,8 @@ dotnet build .\PlustekBCR.csproj
 {
   "Update": {
     "Enabled": true,
-    "ManifestUrl": "https://your-domain.com/plustekbcr/update.json",
-    "CheckTimeoutSeconds": 5
+    "ManifestUrl": "https://raw.githubusercontent.com/CY-Li/AI-BCR/main/update.json",
+    "CheckTimeoutSeconds": 3
   }
 }
 ```
@@ -81,9 +81,9 @@ dotnet build .\PlustekBCR.csproj
 
 ```json
 {
-  "version": "1.0.3.0",
-  "downloadUrl": "https://your-domain.com/plustekbcr/PlustekBCR-1.0.3-setup.exe",
-  "notes": "修正匯入流程與穩定性問題"
+  "version": "1.0.4",
+  "downloadUrl": "https://github.com/CY-Li/AI-BCR/releases/download/v1.0.4/PlustekBCR-v1.0.4-win-x64.zip",
+  "notes": "Release v1.0.4"
 }
 ```
 
@@ -93,23 +93,27 @@ dotnet build .\PlustekBCR.csproj
 
 專案已內建：
 
-- 應用程式更新來源：`https://cy-li.github.io/AI-BCR/update.json`
+- 應用程式更新來源：`https://raw.githubusercontent.com/CY-Li/AI-BCR/main/update.json`
+- Workflow：`.github/workflows/build-and-attach-release-assets.yml`
 - Workflow：`.github/workflows/publish-update-manifest.yml`
 
 流程如下：
 
 1. 在 GitHub 建立並發佈一個 Release（`published`）。
-2. Release 內上傳安裝檔（建議 `.exe` / `.msix` / `.zip`）。
-3. Workflow 會自動產生最新 `update.json` 並部署到 GitHub Pages。
+2. `build-and-attach-release-assets.yml` 會自動 `dotnet publish` 並上傳 zip 到該 Release。
+3. `publish-update-manifest.yml` 會在 build workflow 成功後，自動更新 repo 根目錄 `update.json`。
 4. App 啟動時會檢查該 manifest，有新版本即提示更新。
+
+> `update.json` 不需要手動修改。
 
 注意：
 
-- Tag 請使用可被 .NET `Version` 解析的格式，例如 `v1.0.3.0` 或 `1.0.3.0`。
+- Tag 請使用可被 .NET `Version` 解析的格式，例如 `v1.0.4` 或 `v1.0.4.0`。
 - 目前流程不需要啟用 GitHub Pages（`update.json` 會直接回寫到 repo）。
 - Release 資產 workflow 會把 tag 轉成 App 版本：
   - `v1.2.3` 會轉成 `1.2.3.0`
   - `v1.2.3.4` 會維持 `1.2.3.4`
+- 更新通知通常會在啟動後 1-3 秒出現（最慢約 4 秒，視網路情況而定）。
 
 ## 已知限制
 
