@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml.Controls;
+﻿using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml;
 using PlustekBCR.Services;
 using PlustekBCR.ViewModels;
@@ -130,7 +130,7 @@ namespace PlustekBCR.Views
             };
 
             // WinUIEx can be used here for window customization if needed
-            Title = "Plustek Ai 名片管理";
+            Title = "Plustek Ai ??蝞∠?";
 
             // Set initial state of AI button visuals without animation
             if (ViewModel.IsAiEnabled)
@@ -188,7 +188,7 @@ namespace PlustekBCR.Views
             try
             {
                 // XamlRoot may not be ready on first activation. Retry briefly.
-                const int maxAttempts = 10;
+                const int maxAttempts = 5;
                 for (var i = 0; i < maxAttempts; i++)
                 {
                     var xamlRoot = this.Content?.XamlRoot;
@@ -200,7 +200,7 @@ namespace PlustekBCR.Views
                         return;
                     }
 
-                    await Task.Delay(500);
+                    await Task.Delay(200);
                 }
             }
             finally

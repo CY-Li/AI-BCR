@@ -57,18 +57,18 @@ public class UpdateService : IUpdateService
                 return;
             }
 
-            var content = $"目前版本：{currentVersion}\n最新版本：{latestVersion}";
+            var content = $"Current version: {currentVersion}\nLatest version: {latestVersion}";
             if (!string.IsNullOrWhiteSpace(manifest.Notes))
             {
-                content += $"\n\n更新內容：\n{manifest.Notes}";
+                content += $"\n\nRelease notes:\n{manifest.Notes}";
             }
 
             var dialog = new ContentDialog
             {
-                Title = "有可用更新",
+                Title = "Update available",
                 Content = content,
-                PrimaryButtonText = "前往更新",
-                CloseButtonText = "稍後",
+                PrimaryButtonText = "Update now",
+                CloseButtonText = "Later",
                 DefaultButton = ContentDialogButton.Primary,
                 XamlRoot = xamlRoot
             };
