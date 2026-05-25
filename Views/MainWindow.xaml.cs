@@ -176,6 +176,7 @@ namespace PlustekBCR.Views
             Activated += async (_, _) =>
             {
                 if (_hasCheckedForUpdates) return;
+                if (this.Content?.XamlRoot == null) return;
                 _hasCheckedForUpdates = true;
                 var updateService = App.GetService<IUpdateService>();
                 await updateService.CheckForUpdatesAsync(this.Content?.XamlRoot);
