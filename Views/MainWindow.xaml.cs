@@ -11,6 +11,7 @@ namespace PlustekBCR.Views
     {
         public MainViewModel ViewModel { get; }
         private bool _hasCheckedForUpdates;
+        private bool _isUpdateCheckRunning;
 
         public MainWindow()
         {
@@ -173,14 +174,39 @@ namespace PlustekBCR.Views
                 });
             });
 
-            Activated += async (_, _) =>
+            Activated += async (_, _) => await EnsureUpdateCheckAsync();
+        }
+
+        private async Task EnsureUpdateCheckAsync()
+        {
+            if (_hasCheckedForUpdates || _isUpdateCheckRunning)
             {
-                if (_hasCheckedForUpdates) return;
-                if (this.Content?.XamlRoot == null) return;
-                _hasCheckedForUpdates = true;
-                var updateService = App.GetService<IUpdateService>();
-                await updateService.CheckForUpdatesAsync(this.Content?.XamlRoot);
-            };
+                return;
+            }
+
+            _isUpdateCheckRunning = true;
+            try
+            {
+                // XamlRoot may not be ready on first activation. Retry briefly.
+                const int maxAttempts = 10;
+                for (var i = 0; i < maxAttempts; i++)
+                {
+                    var xamlRoot = this.Content?.XamlRoot;
+                    if (xamlRoot != null)
+                    {
+                        var updateService = App.GetService<IUpdateService>();
+                        await updateService.CheckForUpdatesAsync(xamlRoot);
+                        _hasCheckedForUpdates = true;
+                        return;
+                    }
+
+                    await Task.Delay(500);
+                }
+            }
+            finally
+            {
+                _isUpdateCheckRunning = false;
+            }
         }
 
         private bool _isInitialized = false;

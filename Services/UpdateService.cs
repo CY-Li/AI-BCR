@@ -1,4 +1,4 @@
-using System.Reflection;
+ï»¿using System.Reflection;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using Microsoft.UI.Xaml;
@@ -25,6 +25,7 @@ public class UpdateService : IUpdateService
     {
         if (!_options.Enabled || string.IsNullOrWhiteSpace(_options.ManifestUrl) || xamlRoot == null)
         {
+            WriteLog($"Skip check. Enabled={_options.Enabled}, ManifestUrlEmpty={string.IsNullOrWhiteSpace(_options.ManifestUrl)}, XamlRootNull={xamlRoot == null}");
             return;
         }
 
@@ -39,32 +40,35 @@ public class UpdateService : IUpdateService
 
             if (manifest == null || string.IsNullOrWhiteSpace(manifest.Version) || string.IsNullOrWhiteSpace(manifest.DownloadUrl))
             {
+                WriteLog("Manifest is null or missing required fields.");
                 return;
             }
 
             if (!Version.TryParse(manifest.Version, out var latestVersion))
             {
+                WriteLog($"Invalid manifest version: {manifest.Version}");
                 return;
             }
 
             var currentVersion = GetCurrentVersion();
+            WriteLog($"Check complete. Current={currentVersion}, Latest={latestVersion}, DownloadUrl={manifest.DownloadUrl}");
             if (latestVersion <= currentVersion)
             {
                 return;
             }
 
-            var content = $"¥Ø«eª©¥»¡G{currentVersion}\n³Ì·sª©¥»¡G{latestVersion}";
+            var content = $"ç›®å‰ç‰ˆæœ¬ï¼š{currentVersion}\næœ€æ–°ç‰ˆæœ¬ï¼š{latestVersion}";
             if (!string.IsNullOrWhiteSpace(manifest.Notes))
             {
-                content += $"\n\n§ó·s¤º®e¡G\n{manifest.Notes}";
+                content += $"\n\næ›´æ–°å…§å®¹ï¼š\n{manifest.Notes}";
             }
 
             var dialog = new ContentDialog
             {
-                Title = "¦³¥i¥Î§ó·s",
+                Title = "æœ‰å¯ç”¨æ›´æ–°",
                 Content = content,
-                PrimaryButtonText = "«e©¹§ó·s",
-                CloseButtonText = "µy«á",
+                PrimaryButtonText = "å‰å¾€æ›´æ–°",
+                CloseButtonText = "ç¨å¾Œ",
                 DefaultButton = ContentDialogButton.Primary,
                 XamlRoot = xamlRoot
             };
@@ -77,11 +81,7 @@ public class UpdateService : IUpdateService
         }
         catch (Exception ex)
         {
-            try
-            {
-                File.AppendAllText("update_check_log.txt", $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {ex}\n");
-            }
-            catch { }
+            WriteLog($"Exception: {ex}");
         }
     }
 
@@ -89,5 +89,17 @@ public class UpdateService : IUpdateService
     {
         var version = Assembly.GetExecutingAssembly().GetName().Version;
         return version ?? new Version(1, 0, 0, 0);
+    }
+
+    private static void WriteLog(string message)
+    {
+        try
+        {
+            File.AppendAllText("update_check_log.txt", $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}\n");
+        }
+        catch
+        {
+            // ignored
+        }
     }
 }
