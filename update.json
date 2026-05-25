@@ -1,5 +1,11 @@
 {
+<<<<<<< HEAD
   "version": "1.0.0",
   "downloadUrl": "https://github.com/CY-Li/AI-BCR/releases/tag/v0.0.5",
   "notes": "Release v1.0.0"
+=======
+  "version": "0.0.6",
+  "downloadUrl": "https://github.com/CY-Li/AI-BCR/releases/download/v0.0.6/PlustekBCR-v0.0.6-win-x64.zip",
+  "notes": "Release v0.0.6"
+>>>>>>> c4a0504817a4340e15d8010433d6a22ac0b73f35
 }
