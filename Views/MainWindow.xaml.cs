@@ -4,6 +4,8 @@ using PlustekBCR.Services;
 using PlustekBCR.ViewModels;
 using CommunityToolkit.Mvvm.Messaging;
 using PlustekBCR.Models;
+using System;
+using System.Diagnostics;
 
 namespace PlustekBCR.Views
 {
@@ -12,6 +14,7 @@ namespace PlustekBCR.Views
         public MainViewModel ViewModel { get; }
         private bool _hasCheckedForUpdates;
         private bool _isUpdateCheckRunning;
+        private readonly DispatcherTimer _mockPaperSensorTimer;
 
         public MainWindow()
         {
@@ -20,6 +23,9 @@ namespace PlustekBCR.Views
 
             this.InitializeComponent();
             RootGrid.AddHandler(UIElement.PointerPressedEvent, new Microsoft.UI.Xaml.Input.PointerEventHandler(OnRootPointerPressed), true);
+            ViewModel.ScanPulseRequested += OnScanPulseRequested;
+            _mockPaperSensorTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(1450) };
+            _mockPaperSensorTimer.Tick += OnMockPaperSensorTick;
 
             // Set minimum window size using WinUIEx to avoid flickering
             var manager = WinUIEx.WindowManager.Get(this);
@@ -31,7 +37,7 @@ namespace PlustekBCR.Views
                 var root = this.Content?.XamlRoot;
                 if (root == null)
                 {
-                    this.Title = "Error: XamlRoot is null!";
+                    Debug.WriteLine("ShowScanConfirmationDialogAsync: XamlRoot is null.");
                     return (false, false);
                 }
 
@@ -130,7 +136,7 @@ namespace PlustekBCR.Views
             };
 
             // WinUIEx can be used here for window customization if needed
-            Title = "Plustek Ai ??蝞∠?";
+            Title = "Plustek AI BCR";
 
             // Set initial state of AI button visuals without animation
             if (ViewModel.IsAiEnabled)
@@ -175,8 +181,17 @@ namespace PlustekBCR.Views
             });
 
             Activated += async (_, _) => await EnsureUpdateCheckAsync();
+            Closed += OnWindowClosed;
         }
 
+
+
+        private void OnWindowClosed(object sender, WindowEventArgs args)
+        {
+            ViewModel.ScanPulseRequested -= OnScanPulseRequested;
+            _mockPaperSensorTimer.Stop();
+            _mockPaperSensorTimer.Tick -= OnMockPaperSensorTick;
+        }
         private async Task EnsureUpdateCheckAsync()
         {
             if (_hasCheckedForUpdates || _isUpdateCheckRunning)
@@ -265,16 +280,45 @@ namespace PlustekBCR.Views
                 if (ViewModel.ScanCommand.CanExecute(null))
                 {
                     await ViewModel.ScanCommand.ExecuteAsync(null);
+                    if (ViewModel.IsAutoScanMode)
+                    {
+                        _mockPaperSensorTimer.Stop();
+                    }
+                    else
+                    {
+                        _mockPaperSensorTimer.Stop();
+                    }
                 }
             }
             catch (System.Exception ex)
             {
-                this.Title = $"Error ({ex.GetType().Name}): {ex.Message}";
+                Debug.WriteLine($"OnScanButtonClicked error ({ex.GetType().Name}): {ex.Message}");
             }
             finally
             {
                 _isDialogShowing = false;
             }
+        }
+
+        private async void OnMockPaperSensorTick(object? sender, object e)
+        {
+            await Task.CompletedTask;
+        }
+
+        private void OnScanPulseRequested()
+        {
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                try
+                {
+                    AutoScanPulseStoryboard?.Stop();
+                    AutoScanPulseStoryboard?.Begin();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"OnScanPulseRequested error ({ex.GetType().Name}): {ex.Message}");
+                }
+            });
         }
         private void OnGlobalDragOver(object sender, Microsoft.UI.Xaml.DragEventArgs e)
         {
@@ -301,7 +345,7 @@ namespace PlustekBCR.Views
             }
             catch (System.Exception ex)
             {
-                this.Title = $"Error opening Import Dialog: {ex.Message}";
+                Debug.WriteLine($"OnImportClicked error ({ex.GetType().Name}): {ex.Message}");
             }
         }
 
@@ -455,3 +499,10 @@ namespace PlustekBCR.Views
         private const int MinWindowHeight = 800;
     }
 }
+
+
+
+
+
+
+

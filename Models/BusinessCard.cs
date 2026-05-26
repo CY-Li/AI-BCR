@@ -66,6 +66,15 @@ namespace PlustekBCR.Models
         [ObservableProperty]
         public partial ProcessingStatus Status { get; set; }
 
+        public bool IsRecognizing => Status == ProcessingStatus.Recognizing;
+        public bool IsAiReprocessAvailable => !IsRecognizing;
+
+        partial void OnStatusChanged(ProcessingStatus value)
+        {
+            OnPropertyChanged(nameof(IsRecognizing));
+            OnPropertyChanged(nameof(IsAiReprocessAvailable));
+        }
+
         public BusinessCard()
         {
             Id = Guid.NewGuid();

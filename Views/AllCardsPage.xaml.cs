@@ -219,6 +219,11 @@ namespace PlustekBCR.Views
             }
 
             var card = ViewModel.SelectedCard;
+            if (card.Status == ProcessingStatus.Recognizing)
+            {
+                return;
+            }
+
             var prevStatus = card.Status;
             card.Status = ProcessingStatus.Recognizing;
 

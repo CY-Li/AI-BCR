@@ -7,7 +7,7 @@
     xmlns:local="using:PlustekBCR.Views"
     xmlns:models="using:PlustekBCR.Models"
     mc:Ignorable="d"
-    Title="Plustek Ai ??蝞∠?">
+    Title="Plustek AI BCR">
     <Grid x:Name="RootGrid" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" AllowDrop="True" DragEnter="OnGlobalDragOver" DragOver="OnGlobalDragOver">
         <Grid.Resources>
             <!-- AI Toggle Active Animation (Shaking flask, scaling bounce, and sliding text) -->
@@ -162,6 +162,13 @@
                     </EasingDoubleKeyFrame>
                 </DoubleAnimationUsingKeyFrames>
             </Storyboard>
+
+            <Storyboard x:Name="AutoScanPulseStoryboard">
+                <DoubleAnimation Storyboard.TargetName="AutoScanPulseFlash" Storyboard.TargetProperty="Opacity" From="0" To="0.65" Duration="0:0:0.12" AutoReverse="True"/>
+                <DoubleAnimation Storyboard.TargetName="AutoScanPulseLine" Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.1"/>
+                <DoubleAnimation Storyboard.TargetName="AutoScanPulseLineTranslate" Storyboard.TargetProperty="Y" From="-160" To="160" Duration="0:0:0.48"/>
+                <DoubleAnimation Storyboard.TargetName="AutoScanPulseLine" Storyboard.TargetProperty="Opacity" To="0" BeginTime="0:0:0.38" Duration="0:0:0.18"/>
+            </Storyboard>
         </Grid.Resources>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -185,7 +192,7 @@
                     <Button x:Name="HeaderScanButton" Grid.Column="0" Style="{StaticResource PrimaryActionStyle}" Click="OnScanClicked" HorizontalAlignment="Stretch" Margin="0,0,4,0" Height="52">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <Path Data="M2.747 15a.75.75 0 0 1 .743.648l.007.102v3.502l.007.128a1.25 1.25 0 0 0 1.115 1.116l.128.006h3.5l.102.007a.75.75 0 0 1 0 1.486l-.102.007h-3.5l-.167-.005a2.75 2.75 0 0 1-2.578-2.57l-.005-.175V15.75l.007-.102A.75.75 0 0 1 2.747 15Zm18.5 0a.75.75 0 0 1 .743.648l.007.102v3.502a2.75 2.75 0 0 1-2.582 2.745l-.168.005h-3.5a.75.75 0 0 1-.102-1.493l.102-.007h3.5a1.25 1.25 0 0 0 1.244-1.122l.006-.128V15.75a.75.75 0 0 1 .75-.75Zm-8.992.5a.75.75 0 0 1 .102 1.493l-.102.007H7.75a.75.75 0 0 1-.102-1.493l.102-.007h4.505Zm3.995-4.25a.75.75 0 0 1 .102 1.493l-.102.007h-8.5a.75.75 0 0 1-.102-1.493l.102-.007h8.5ZM8.247 2a.75.75 0 0 1 .102 1.493l-.102.007h-3.5a1.25 1.25 0 0 0-1.243 1.122l-.007.128v3.502a.75.75 0 0 1-1.493.102l-.007-.102V4.75A2.75 2.75 0 0 1 4.58 2.005L4.747 2h3.5Zm11 0 .168.005a2.75 2.75 0 0 1 2.577 2.57l.005.175v3.502l-.007.102a.75.75 0 0 1-1.486 0l-.007-.102V4.75l-.006-.128a1.25 1.25 0 0 0-1.116-1.116l-.128-.006h-3.5l-.102-.007a.75.75 0 0 1 0-1.486L15.747 2h3.5ZM16.25 7a.75.75 0 0 1 .102 1.493l-.102.007h-8.5a.75.75 0 0 1-.102-1.493L7.75 7h8.5Z" Stretch="Uniform" Width="20" Height="20" Fill="White"/>
-                            <TextBlock Text="Scan" FontSize="14"/>
+                            <TextBlock Text="Auto Scan" FontSize="14"/>
                         </StackPanel>
                     </Button>
 
@@ -233,7 +240,7 @@
                         Visibility="Collapsed"
                         VerticalAlignment="Center"
                         Height="36"
-                        PlaceholderText="所有資料夾"
+                        PlaceholderText="????冗"
                         DropDownOpened="OnSearchScopeDropDownOpened"
                         DropDownClosed="OnSearchScopeDropDownClosed"
                         ItemsSource="{x:Bind ViewModel.SearchScopes, Mode=OneWay}"
@@ -270,7 +277,7 @@
                                     TextChanged="OnHeaderSearchBoxTextChanged"
                                     GotFocus="OnHeaderSearchBoxGotFocus"
                                     KeyDown="OnHeaderSearchBoxKeyDown" />
-                                <Button Grid.Column="1" Style="{StaticResource SearchIconButtonStyle}" Click="OnOpenAdvancedSearchClicked" ToolTipService.ToolTip="進階搜尋">
+                                <Button Grid.Column="1" Style="{StaticResource SearchIconButtonStyle}" Click="OnOpenAdvancedSearchClicked" ToolTipService.ToolTip="?脤???">
                                     <FontIcon Glyph="&#xE71C;" FontSize="13" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                 </Button>
                             </Grid>
@@ -386,6 +393,150 @@
 
             <Frame x:Name="ContentFrame"/>
         </NavigationView>
+        <Grid
+            x:Name="AutoScanOverlayLayer"
+            Grid.Row="0"
+            Grid.RowSpan="2"
+            Canvas.ZIndex="29"
+            Visibility="{x:Bind ViewModel.AutoScanOverlayVisibility, Mode=OneWay}">
+            <Grid.Background>
+                <SolidColorBrush Color="#80212A36"/>
+            </Grid.Background>
+
+            <Border
+                Width="660"
+                MaxWidth="760"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Padding="0"
+                CornerRadius="8"
+                Background="{ThemeResource AppBackgroundBrush}"
+                BorderBrush="{ThemeResource BorderBrush}"
+                BorderThickness="1">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Margin="24,20,24,12">
+                        <TextBlock Text="Auto Scan Mode" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    </Grid>
+
+                    <Grid Grid.Row="1" Margin="16,0,16,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <Grid Grid.Row="0" Height="320" Margin="0,0,0,8">
+                            <Border Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                    CornerRadius="12"
+                                    BorderThickness="0"/>
+                            <Rectangle x:Name="AutoScanPulseFlash" Fill="#609CDCF8" Opacity="0" RadiusX="12" RadiusY="12"/>
+                            <Rectangle x:Name="AutoScanPulseLine" Height="8" Fill="#7AB8FF" VerticalAlignment="Top" Opacity="0" RadiusX="4" RadiusY="4" Margin="16,18,16,0">
+                                <Rectangle.RenderTransform>
+                                    <TranslateTransform x:Name="AutoScanPulseLineTranslate" Y="-180"/>
+                                </Rectangle.RenderTransform>
+                            </Rectangle>
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10">
+                                <Grid Width="240" Height="240">
+                                    <Ellipse Width="224"
+                                             Height="224"
+                                             Stroke="#E8EEF8"
+                                             StrokeThickness="8"/>
+                                    <Ellipse Width="220"
+                                             Height="220"
+                                             Stroke="{ThemeResource BorderBrush}"
+                                             StrokeThickness="1.5"/>
+                                    <ProgressRing Visibility="{x:Bind ViewModel.AutoScanLoadingVisibility, Mode=OneWay}"
+                                                  IsActive="True"
+                                                  Width="220"
+                                                  Height="220"
+                                                  Foreground="{StaticResource BrandBlueBrush}"/>
+                                    <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <TextBlock Text="{x:Bind ViewModel.AutoScanScannedCount, Mode=OneWay}"
+                                                   FontSize="116"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#0F2A53"
+                                                   TextAlignment="Center"
+                                                   HorizontalTextAlignment="Center"
+                                                   VerticalAlignment="Center"
+                                                   Margin="0,-10,0,0"/>
+                                    </Grid>
+                                </Grid>
+                                <TextBlock Text="{x:Bind ViewModel.AutoScanStateText, Mode=OneWay}" FontSize="14" Foreground="{StaticResource BrandBlueBrush}" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+
+                    <Grid Grid.Row="2" Margin="16,0,16,16">
+                        <Grid.Resources>
+                            <Style x:Key="StopAutoScanButtonStyle" TargetType="Button">
+                                <Setter Property="Foreground" Value="{ThemeResource SystemFillColorCriticalBrush}"/>
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Setter Property="BorderBrush" Value="{ThemeResource SystemFillColorCriticalBrush}"/>
+                                <Setter Property="BorderThickness" Value="1"/>
+                                <Setter Property="CornerRadius" Value="8"/>
+                                <Setter Property="Padding" Value="16,8"/>
+                                <Setter Property="MinWidth" Value="160"/>
+                                <Setter Property="MinHeight" Value="36"/>
+                                <Setter Property="FontSize" Value="14"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Grid x:Name="Root"
+                                                  Background="{TemplateBinding Background}"
+                                                  BorderBrush="{TemplateBinding BorderBrush}"
+                                                  BorderThickness="{TemplateBinding BorderThickness}"
+                                                  CornerRadius="{TemplateBinding CornerRadius}">
+                                                <VisualStateManager.VisualStateGroups>
+                                                    <VisualStateGroup x:Name="CommonStates">
+                                                        <VisualState x:Name="Normal"/>
+                                                        <VisualState x:Name="PointerOver">
+                                                            <Storyboard>
+                                                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="Background">
+                                                                    <DiscreteObjectKeyFrame KeyTime="0" Value="#12D92D20"/>
+                                                                </ObjectAnimationUsingKeyFrames>
+                                                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="BorderBrush">
+                                                                    <DiscreteObjectKeyFrame KeyTime="0" Value="#D92D20"/>
+                                                                </ObjectAnimationUsingKeyFrames>
+                                                            </Storyboard>
+                                                        </VisualState>
+                                                        <VisualState x:Name="Pressed">
+                                                            <Storyboard>
+                                                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="Background">
+                                                                    <DiscreteObjectKeyFrame KeyTime="0" Value="#22D92D20"/>
+                                                                </ObjectAnimationUsingKeyFrames>
+                                                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="BorderBrush">
+                                                                    <DiscreteObjectKeyFrame KeyTime="0" Value="#B42318"/>
+                                                                </ObjectAnimationUsingKeyFrames>
+                                                            </Storyboard>
+                                                        </VisualState>
+                                                        <VisualState x:Name="Disabled"/>
+                                                    </VisualStateGroup>
+                                                </VisualStateManager.VisualStateGroups>
+                                                <ContentPresenter HorizontalAlignment="Center"
+                                                                  VerticalAlignment="Center"
+                                                                  Margin="{TemplateBinding Padding}"
+                                                                  Content="{TemplateBinding Content}"
+                                                                  ContentTemplate="{TemplateBinding ContentTemplate}"/>
+                                            </Grid>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </Grid.Resources>
+                        <Button
+                            Content="Stop Auto Scan"
+                            Click="OnScanClicked"
+                            HorizontalAlignment="Center"
+                            Style="{StaticResource StopAutoScanButtonStyle}"/>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
 
         <Grid
             x:Name="SearchOverlayLayer"
@@ -464,3 +615,4 @@
         </Grid>
     </Grid>
 </Window>
+

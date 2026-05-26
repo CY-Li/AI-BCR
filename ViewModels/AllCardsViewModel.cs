@@ -203,6 +203,11 @@ namespace PlustekBCR.ViewModels
 
                         card.Notes.Add(new Note { Content = "Automatically recognized and parsed by AI BCR Engine." });
                         card.Status = ProcessingStatus.Done;
+                        if (!string.IsNullOrWhiteSpace(card.Tag)
+                            && card.Tag.Contains("AutoScanSession", StringComparison.OrdinalIgnoreCase))
+                        {
+                            MainViewModel.MarkRecognizingCompleted();
+                        }
                     });
                 }
                 catch (Exception ex)
