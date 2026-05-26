@@ -61,4 +61,5 @@ Desktop.ini
 
 # Local project-specific artifacts
 crash_log.txt
+update_check_log.txt
 *.zip
