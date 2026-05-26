@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using CommunityToolkit.Mvvm.Messaging;
@@ -16,6 +17,11 @@ namespace PlustekBCR.Views
 {
     public sealed partial class ImportDialog : ContentDialog
     {
+        private const string DropZoneActiveBrushKey = "BrandBlueBrush";
+        private const string DropZoneIdleBrushKey = "BorderBrush";
+        private static readonly Thickness DropZoneActiveBorderThickness = new(2);
+        private static readonly Thickness DropZoneIdleBorderThickness = new(1.5);
+
         private string? _excelCsvFilePath;
         private List<string> _csvHeaders = new();
 
@@ -79,19 +85,13 @@ namespace PlustekBCR.Views
         {
             System.Diagnostics.Debug.WriteLine("[DRAG] OnSpreadsheetDragOver fired.");
             e.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.Copy;
-            SpreadsheetDropBorder.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["BrandBlueBrush"];
-            SpreadsheetDropBorder.BorderThickness = new Thickness(2);
-            SpreadsheetScale.ScaleX = 1.01;
-            SpreadsheetScale.ScaleY = 1.01;
+            ApplyDropZoneActiveState(SpreadsheetDropBorder, SpreadsheetScale);
             e.Handled = true;
         }
 
         private void OnSpreadsheetDragLeave(object sender, DragEventArgs e)
         {
-            SpreadsheetDropBorder.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["BorderBrush"];
-            SpreadsheetDropBorder.BorderThickness = new Thickness(1.5);
-            SpreadsheetScale.ScaleX = 1;
-            SpreadsheetScale.ScaleY = 1;
+            ResetDropZoneState(SpreadsheetDropBorder, SpreadsheetScale);
         }
 
         private async void OnSpreadsheetDrop(object sender, DragEventArgs e)
@@ -138,19 +138,13 @@ namespace PlustekBCR.Views
         private void OnImagesDragOver(object sender, DragEventArgs e)
         {
             e.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.Copy;
-            ImagesDropBorder.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["BrandBlueBrush"];
-            ImagesDropBorder.BorderThickness = new Thickness(2);
-            ImagesScale.ScaleX = 1.01;
-            ImagesScale.ScaleY = 1.01;
+            ApplyDropZoneActiveState(ImagesDropBorder, ImagesScale);
             e.Handled = true;
         }
 
         private void OnImagesDragLeave(object sender, DragEventArgs e)
         {
-            ImagesDropBorder.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["BorderBrush"];
-            ImagesDropBorder.BorderThickness = new Thickness(1.5);
-            ImagesScale.ScaleX = 1;
-            ImagesScale.ScaleY = 1.01; // wait this should be 1, let me fix it to 1
+            ResetDropZoneState(ImagesDropBorder, ImagesScale);
         }
 
         private async void OnImagesDrop(object sender, DragEventArgs e)
@@ -180,6 +174,27 @@ namespace PlustekBCR.Views
             }
         }
         #endregion
+
+        private static Brush GetAppBrush(string resourceKey)
+        {
+            return (Brush)Application.Current.Resources[resourceKey];
+        }
+
+        private static void ApplyDropZoneActiveState(Border dropZone, ScaleTransform scale)
+        {
+            dropZone.BorderBrush = GetAppBrush(DropZoneActiveBrushKey);
+            dropZone.BorderThickness = DropZoneActiveBorderThickness;
+            scale.ScaleX = 1.01;
+            scale.ScaleY = 1.01;
+        }
+
+        private static void ResetDropZoneState(Border dropZone, ScaleTransform scale)
+        {
+            dropZone.BorderBrush = GetAppBrush(DropZoneIdleBrushKey);
+            dropZone.BorderThickness = DropZoneIdleBorderThickness;
+            scale.ScaleX = 1;
+            scale.ScaleY = 1;
+        }
 
         #region FILE PICKERS & PARSING
         private async void OnSelectExcelCsvClick(object sender, RoutedEventArgs e)

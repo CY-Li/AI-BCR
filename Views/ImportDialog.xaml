@@ -17,12 +17,7 @@
         <x:Double x:Key="ContentDialogMaxHeight">850</x:Double>
     </ContentDialog.Resources>
 
-    <Border Background="{ThemeResource AppBackgroundBrush}"
-            BorderBrush="{ThemeResource BorderBrush}"
-            BorderThickness="1"
-            CornerRadius="8"
-            HorizontalAlignment="Stretch"
-            VerticalAlignment="Stretch">
+    <Border Style="{StaticResource BcrImportDialogPanelStyle}">
 
         <Grid x:Name="DialogRootGrid" Width="660" Margin="0" Padding="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <Grid.RowDefinitions>
@@ -40,7 +35,7 @@
             <!-- CONTENT SECTION -->
             <Grid Grid.Row="1" Margin="16,0,16,16" Height="400">
                 <!-- Overlay Loading Shield -->
-                <Grid x:Name="LoadingShield" Canvas.ZIndex="10" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Opacity="0.85" Visibility="Collapsed" CornerRadius="12">
+                <Grid x:Name="LoadingShield" Canvas.ZIndex="10" Style="{StaticResource BcrImportLoadingShieldStyle}">
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="16">
                         <ProgressRing x:Name="LoadingProgressRing" Width="48" Height="48" IsActive="True" Foreground="{StaticResource BrandBlueBrush}"/>
                         <TextBlock x:Name="LoadingStatusText" Text="Parsing document..." FontSize="15" FontWeight="Medium" HorizontalAlignment="Center"/>
@@ -59,16 +54,10 @@
                     <!-- Left Column: Spreadsheet -->
                     <Border Grid.Column="0"
                             x:Name="SpreadsheetDropBorder" 
-                            Background="{ThemeResource LayerFillColorDefaultBrush}" 
-                            BorderBrush="{ThemeResource BorderBrush}" 
-                            BorderThickness="1.5" 
-                            CornerRadius="12" 
-                            Margin="4,8" 
-                            AllowDrop="True" 
+                            Style="{StaticResource BcrImportDropZoneStyle}"
                             DragOver="OnSpreadsheetDragOver" 
                             DragLeave="OnSpreadsheetDragLeave"
-                            Drop="OnSpreadsheetDrop"
-                            RenderTransformOrigin="0.5,0.5">
+                            Drop="OnSpreadsheetDrop">
                         <Border.RenderTransform>
                             <ScaleTransform x:Name="SpreadsheetScale" ScaleX="1" ScaleY="1"/>
                         </Border.RenderTransform>
@@ -85,30 +74,19 @@
                                 </StackPanel>
                                 <Button Content="Select Excel/CSV" Style="{StaticResource PrimaryActionStyle}" HorizontalAlignment="Center" Width="160" Click="OnSelectExcelCsvClick"/>
                                 <Button x:Name="DownloadTemplateButton"
-                                        Width="Auto" 
-                                        Height="Auto" 
-                                        Padding="12,6" 
-                                        CornerRadius="6" 
-                                        HorizontalAlignment="Center" 
-                                        Click="OnDownloadTemplateClick"
-                                        Margin="0,4,0,0">
+                                        Style="{StaticResource ImportTemplateButtonStyle}"
+                                        Click="OnDownloadTemplateClick">
                                     <Button.Resources>
-                                        <!-- Background transitions -->
                                         <SolidColorBrush x:Key="ButtonBackground" Color="Transparent"/>
-                                        <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#120078D4"/> <!-- 7% brand accent blue -->
-                                        <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#240078D4"/> <!-- 14% brand accent blue -->
-                                        
-                                        <!-- Foreground transitions using theme resource system brushes for perfect dark/light/contrast mode support -->
+                                        <StaticResource x:Key="ButtonBackgroundPointerOver" ResourceKey="BcrBrush.BrandHoverSubtle"/>
+                                        <StaticResource x:Key="ButtonBackgroundPressed" ResourceKey="BcrBrush.BrandPressedSubtle"/>
                                         <StaticResource x:Key="ButtonForeground" ResourceKey="SecondaryTextBrush"/>
                                         <StaticResource x:Key="ButtonForegroundPointerOver" ResourceKey="BrandBlueBrush"/>
                                         <StaticResource x:Key="ButtonForegroundPressed" ResourceKey="BrandBlueBrush"/>
-
-                                        <!-- Border transitions -->
                                         <SolidColorBrush x:Key="ButtonBorderBrush" Color="Transparent"/>
                                         <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="Transparent"/>
                                         <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="Transparent"/>
                                     </Button.Resources>
-                                    
                                     <StackPanel Orientation="Horizontal" Spacing="6">
                                         <Path Data="M18.25 20.5a.75.75 0 1 1 0 1.5l-13 .004a.75.75 0 1 1 0-1.5l13-.004ZM11.648 2.012l.102-.007a.75.75 0 0 1 .743.648l.007.102-.001 13.685 3.722-3.72a.75.75 0 0 1 .976-.073l.085.073a.75.75 0 0 1 .072.976l-.073.084-4.997 4.997a.75.75 0 0 1-.976.073l-.085-.073-5.003-4.996a.75.75 0 0 1 .976-1.134l.084.072 3.719 3.714L11 2.755a.75.75 0 0 1 .648-.743l.102-.007-.102.007Z" 
                                               Fill="{Binding Foreground, ElementName=DownloadTemplateButton}" 
@@ -130,16 +108,10 @@
                     <!-- Right Column: Images -->
                     <Border Grid.Column="2"
                             x:Name="ImagesDropBorder" 
-                            Background="{ThemeResource LayerFillColorDefaultBrush}" 
-                            BorderBrush="{ThemeResource BorderBrush}" 
-                            BorderThickness="1.5" 
-                            CornerRadius="12" 
-                            Margin="4,8" 
-                            AllowDrop="True" 
+                            Style="{StaticResource BcrImportDropZoneStyle}"
                             DragOver="OnImagesDragOver" 
                             DragLeave="OnImagesDragLeave"
-                            Drop="OnImagesDrop"
-                            RenderTransformOrigin="0.5,0.5">
+                            Drop="OnImagesDrop">
                         <Border.RenderTransform>
                             <ScaleTransform x:Name="ImagesScale" ScaleX="1" ScaleY="1"/>
                         </Border.RenderTransform>

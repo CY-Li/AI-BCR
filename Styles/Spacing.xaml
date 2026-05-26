@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Corner Radius -->
+    <CornerRadius x:Key="ControlCornerRadius">8</CornerRadius>
+    <CornerRadius x:Key="PillCornerRadius">20</CornerRadius>
+    <CornerRadius x:Key="NavigationViewContentGridCornerRadius">0</CornerRadius>
+    <CornerRadius x:Key="OverlayCornerRadius">8</CornerRadius>
+
+    <!-- BCR Design System Spacing -->
+    <Thickness x:Key="BcrSpace.Xs">4</Thickness>
+    <Thickness x:Key="BcrSpace.Sm">8</Thickness>
+    <Thickness x:Key="BcrSpace.Md">12</Thickness>
+    <Thickness x:Key="BcrSpace.Lg">16</Thickness>
+    <Thickness x:Key="BcrSpace.Xl">24</Thickness>
+
+    <!-- BCR Design System Radius -->
+    <CornerRadius x:Key="BcrRadius.Control">6</CornerRadius>
+    <CornerRadius x:Key="BcrRadius.ActionIcon">10</CornerRadius>
+    <CornerRadius x:Key="BcrRadius.Badge">4</CornerRadius>
+    <CornerRadius x:Key="BcrRadius.Card">8</CornerRadius>
+    <CornerRadius x:Key="BcrRadius.Panel">8</CornerRadius>
+    <CornerRadius x:Key="BcrRadius.DropZone">12</CornerRadius>
+    <CornerRadius x:Key="BcrRadius.Overlay">8</CornerRadius>
+</ResourceDictionary>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <SolidColorBrush x:Key="BcrStatus.Ready" Color="#14804A" />
+    <SolidColorBrush x:Key="BcrStatus.DetectingPaper" Color="#B7791F" />
+    <SolidColorBrush x:Key="BcrStatus.Scanning" Color="#2563EB" />
+    <SolidColorBrush x:Key="BcrStatus.OcrProcessing" Color="#7C3AED" />
+    <SolidColorBrush x:Key="BcrStatus.Uploading" Color="#0E7490" />
+    <SolidColorBrush x:Key="BcrStatus.Success" Color="#14804A" />
+    <SolidColorBrush x:Key="BcrStatus.Error" Color="#D92D20" />
+    <SolidColorBrush x:Key="BcrStatus.Offline" Color="#6E7781" />
+
+    <Style x:Key="BcrStatusBadgeBorderStyle" TargetType="Border">
+        <Setter Property="CornerRadius" Value="{StaticResource BcrRadius.Badge}"/>
+    </Style>
+
+    <Style x:Key="BcrStatusPillBorderStyle" TargetType="Border">
+        <Setter Property="CornerRadius" Value="{StaticResource BcrRadius.Control}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style x:Key="BcrStatusBadgeContentStyle" TargetType="StackPanel">
+        <Setter Property="Orientation" Value="Horizontal"/>
+        <Setter Property="Spacing" Value="6"/>
+        <Setter Property="Margin" Value="8,4"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style x:Key="BcrStatusBadgeProgressRingStyle" TargetType="ProgressRing">
+        <Setter Property="Width" Value="10"/>
+        <Setter Property="Height" Value="10"/>
+        <Setter Property="IsActive" Value="True"/>
+        <Setter Property="MinHeight" Value="0"/>
+        <Setter Property="MinWidth" Value="0"/>
+        <Setter Property="BorderThickness" Value="1.5"/>
+    </Style>
+
+    <Style x:Key="BcrStatusBadgeTextSmallStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="{StaticResource BcrFontSize.Caption}"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style x:Key="BcrStatusBadgeTextStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="{StaticResource BcrFontSize.Label}"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style x:Key="BcrStatusPillTextStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="{StaticResource BcrFontSize.Label}"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Margin" Value="10,6"/>
+    </Style>
+</ResourceDictionary>

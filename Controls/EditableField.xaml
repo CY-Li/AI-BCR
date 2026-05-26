@@ -6,25 +6,17 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid PointerPressed="OnGridPointerPressed" Background="Transparent">
+    <Grid PointerPressed="OnGridPointerPressed" Style="{StaticResource BcrEditableFieldRootStyle}">
         <!-- Display Mode -->
         <TextBlock x:Name="DisplayBlock" 
                    Text="{x:Bind Text, Mode=OneWay}" 
                    Visibility="{x:Bind HasText(Text), Mode=OneWay}"
-                   TextWrapping="Wrap"
-                   VerticalAlignment="Center"
-                   IsTextSelectionEnabled="False"
-                   MinHeight="20" MinWidth="40"/>
+                   Style="{StaticResource BcrEditableFieldTextStyle}"/>
                    
         <TextBlock x:Name="PlaceholderBlock" 
                    Text="{x:Bind PlaceholderText, Mode=OneWay}" 
                    Visibility="{x:Bind HasNoText(Text), Mode=OneWay}"
-                   Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                   FontStyle="Italic"
-                   TextWrapping="Wrap"
-                   VerticalAlignment="Center"
-                   IsTextSelectionEnabled="False"
-                   MinHeight="20" MinWidth="40"/>
+                   Style="{StaticResource BcrEditableFieldPlaceholderTextStyle}"/>
         
         <!-- Edit Mode -->
         <TextBox x:Name="EditBox" 

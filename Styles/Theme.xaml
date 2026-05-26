@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+            <SolidColorBrush x:Key="AppBackgroundBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="HeaderBackgroundBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#F8F9FA" />
+            <SolidColorBrush x:Key="MainTextBrush" Color="#1F2328" />
+            <SolidColorBrush x:Key="SecondaryTextBrush" Color="#484F58" />
+            <SolidColorBrush x:Key="BorderBrush" Color="#D0D7DE" />
+            <SolidColorBrush x:Key="SecondaryBackgroundBrush" Color="#EBEEF1" />
+            <SolidColorBrush x:Key="HoverBackgroundBrush" Color="#D0D7DE" />
+            <SolidColorBrush x:Key="PressedBackgroundBrush" Color="#C1C9D1" />
+
+            <!-- NavigationView Overrides -->
+            <SolidColorBrush x:Key="NavigationViewContentGridBackground" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="#F8F9FA" />
+            <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="#F8F9FA" />
+        </ResourceDictionary>
+
+        <ResourceDictionary x:Key="Dark">
+            <SolidColorBrush x:Key="AppBackgroundBrush" Color="#0D1117" />
+            <SolidColorBrush x:Key="HeaderBackgroundBrush" Color="#0D1117" />
+            <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#0D1117" />
+            <SolidColorBrush x:Key="MainTextBrush" Color="#C9D1D9" />
+            <SolidColorBrush x:Key="SecondaryTextBrush" Color="#8B949E" />
+            <SolidColorBrush x:Key="BorderBrush" Color="#30363D" />
+            <SolidColorBrush x:Key="SecondaryBackgroundBrush" Color="#21262D" />
+            <SolidColorBrush x:Key="HoverBackgroundBrush" Color="#30363D" />
+            <SolidColorBrush x:Key="PressedBackgroundBrush" Color="#21262D" />
+
+            <!-- NavigationView Overrides -->
+            <SolidColorBrush x:Key="NavigationViewContentGridBackground" Color="#0D1117" />
+            <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="#0D1117" />
+            <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="#0D1117" />
+        </ResourceDictionary>
+    </ResourceDictionary.ThemeDictionaries>
+
+</ResourceDictionary>

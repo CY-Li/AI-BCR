@@ -6,93 +6,11 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:PlustekBCR.Models"
     xmlns:viewmodels="using:PlustekBCR.ViewModels"
-    xmlns:helpers="using:PlustekBCR.Helpers"
     xmlns:controls="using:PlustekBCR.Controls"
     mc:Ignorable="d"
     Background="Transparent">
 
     <Page.Resources>
-        <helpers:StatusToStringConverter x:Key="StatusToStringConverter"/>
-        <helpers:StatusToBrushConverter x:Key="StatusToBrushConverter"/>
-        <helpers:StatusToForegroundBrushConverter x:Key="StatusToForegroundBrushConverter"/>
-        <helpers:StatusToBackgroundBrushConverter x:Key="StatusToBackgroundBrushConverter"/>
-        <helpers:StatusToProgressVisibilityConverter x:Key="StatusToProgressVisibilityConverter"/>
-        <helpers:ByteArrayToImageSourceConverter x:Key="ByteArrayToImageSourceConverter"/>
-        <helpers:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
-        <helpers:DateTimeToStringConverter x:Key="DateTimeToStringConverter"/>
-        <helpers:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
-        <helpers:InvertedBoolToVisibilityConverter x:Key="InvertedBoolToVisibilityConverter"/>
-        <helpers:ByteArrayToVisibilityConverter x:Key="ByteArrayToVisibilityConverter"/>
-
-        <Style x:Key="SidebarActionIconButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="#F7F8FA"/>
-            <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}"/>
-            <Setter Property="BorderBrush" Value="#E3E6EA"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="10"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="Width" Value="40"/>
-            <Setter Property="Height" Value="40"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Grid x:Name="RootGrid"
-                              Background="{TemplateBinding Background}"
-                              BorderBrush="{TemplateBinding BorderBrush}"
-                              BorderThickness="{TemplateBinding BorderThickness}"
-                              CornerRadius="{TemplateBinding CornerRadius}">
-                            <VisualStateManager.VisualStateGroups>
-                                <VisualStateGroup x:Name="CommonStates">
-                                    <VisualState x:Name="Normal"/>
-                                    <VisualState x:Name="PointerOver">
-                                        <Storyboard>
-                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootGrid" Storyboard.TargetProperty="Background">
-                                                <DiscreteObjectKeyFrame KeyTime="0" Value="#EEF1F5"/>
-                                            </ObjectAnimationUsingKeyFrames>
-                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootGrid" Storyboard.TargetProperty="BorderBrush">
-                                                <DiscreteObjectKeyFrame KeyTime="0" Value="#D4D9E0"/>
-                                            </ObjectAnimationUsingKeyFrames>
-                                        </Storyboard>
-                                    </VisualState>
-                                    <VisualState x:Name="Pressed">
-                                        <Storyboard>
-                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootGrid" Storyboard.TargetProperty="Background">
-                                                <DiscreteObjectKeyFrame KeyTime="0" Value="#E4E8EE"/>
-                                            </ObjectAnimationUsingKeyFrames>
-                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootGrid" Storyboard.TargetProperty="BorderBrush">
-                                                <DiscreteObjectKeyFrame KeyTime="0" Value="#C7CED8"/>
-                                            </ObjectAnimationUsingKeyFrames>
-                                        </Storyboard>
-                                    </VisualState>
-                                    <VisualState x:Name="Disabled"/>
-                                </VisualStateGroup>
-                            </VisualStateManager.VisualStateGroups>
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Grid>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="BusinessCardItemStyle" TargetType="GridViewItem">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Margin" Value="0"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-            <Setter Property="VerticalContentAlignment" Value="Stretch"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="GridViewItem">
-                        <Grid>
-                            <ContentPresenter 
-                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" 
-                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
-                        </Grid>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
         <CollectionViewSource x:Name="GroupedCardsSource" 
                               IsSourceGrouped="True" 
                               Source="{x:Bind ViewModel.GroupedCards, Mode=OneWay}"/>
@@ -175,16 +93,15 @@
 
                             <!-- Status Badge -->
                             <Grid HorizontalAlignment="Left">
-                                <Border Background="{x:Bind Status, Converter={StaticResource StatusToBackgroundBrushConverter}, Mode=OneWay}" CornerRadius="4"/>
-                                <StackPanel Orientation="Horizontal" Spacing="6" Margin="8,4" VerticalAlignment="Center">
-                                    <ProgressRing Width="10" Height="10" IsActive="True" 
+                                <Border Style="{StaticResource BcrStatusBadgeBorderStyle}" Background="{x:Bind Status, Converter={StaticResource StatusToBackgroundBrushConverter}, Mode=OneWay}"/>
+                                <StackPanel Style="{StaticResource BcrStatusBadgeContentStyle}">
+                                    <ProgressRing Style="{StaticResource BcrStatusBadgeProgressRingStyle}"
                                                   Foreground="{x:Bind Status, Converter={StaticResource StatusToForegroundBrushConverter}, Mode=OneWay}" 
-                                                  Visibility="{x:Bind Status, Converter={StaticResource StatusToProgressVisibilityConverter}, Mode=OneWay}"
-                                                  MinHeight="0" MinWidth="0" BorderThickness="1.5"/>
+                                                  Visibility="{x:Bind Status, Converter={StaticResource StatusToProgressVisibilityConverter}, Mode=OneWay}"/>
                                     <TextBlock Text="{x:Bind Status, Converter={StaticResource StatusToStringConverter}, Mode=OneWay}" 
-                                               FontSize="11" FontWeight="SemiBold" 
+                                               Style="{StaticResource BcrStatusBadgeTextSmallStyle}"
                                                Foreground="{x:Bind Status, Converter={StaticResource StatusToForegroundBrushConverter}, Mode=OneWay}"
-                                               VerticalAlignment="Center"/>
+                                               />
                                 </StackPanel>
                             </Grid>
                         </StackPanel>
@@ -195,22 +112,7 @@
             <GridView.GroupStyle>
                 <GroupStyle>
                     <GroupStyle.HeaderContainerStyle>
-                        <Style TargetType="GridViewHeaderItem">
-                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                            <Setter Property="Padding" Value="0"/>
-                            <Setter Property="MinHeight" Value="0"/>
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="GridViewHeaderItem">
-                                        <ContentPresenter Content="{TemplateBinding Content}"
-                                                        ContentTemplate="{TemplateBinding ContentTemplate}"
-                                                        Margin="{TemplateBinding Padding}"
-                                                        HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                                        VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
+                        <StaticResource ResourceKey="BusinessCardGridGroupHeaderItemStyle"/>
                     </GroupStyle.HeaderContainerStyle>
                     <GroupStyle.HeaderTemplate>
                         <DataTemplate x:DataType="viewmodels:CardGroup">
@@ -240,11 +142,7 @@
             Canvas.ZIndex="10">
 
             <ListView.ItemContainerStyle>
-                <Style TargetType="ListViewItem">
-                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                    <Setter Property="Margin" Value="12,2,12,2"/>
-                    <Setter Property="Padding" Value="0"/>
-                </Style>
+                <StaticResource ResourceKey="BusinessCardListItemStyle"/>
             </ListView.ItemContainerStyle>
 
             <ListView.ItemTemplate>
@@ -304,16 +202,15 @@
                         <StackPanel Grid.Column="2" VerticalAlignment="Center">
                             <!-- Status Badge -->
                             <Grid HorizontalAlignment="Right">
-                                <Border Background="{x:Bind Status, Converter={StaticResource StatusToBackgroundBrushConverter}, Mode=OneWay}" CornerRadius="4"/>
-                                <StackPanel Orientation="Horizontal" Spacing="6" Margin="8,4" VerticalAlignment="Center">
-                                    <ProgressRing Width="10" Height="10" IsActive="True" 
+                                <Border Style="{StaticResource BcrStatusBadgeBorderStyle}" Background="{x:Bind Status, Converter={StaticResource StatusToBackgroundBrushConverter}, Mode=OneWay}"/>
+                                <StackPanel Style="{StaticResource BcrStatusBadgeContentStyle}">
+                                    <ProgressRing Style="{StaticResource BcrStatusBadgeProgressRingStyle}"
                                                   Foreground="{x:Bind Status, Converter={StaticResource StatusToForegroundBrushConverter}, Mode=OneWay}" 
-                                                  Visibility="{x:Bind Status, Converter={StaticResource StatusToProgressVisibilityConverter}, Mode=OneWay}"
-                                                  MinHeight="0" MinWidth="0" BorderThickness="1.5"/>
+                                                  Visibility="{x:Bind Status, Converter={StaticResource StatusToProgressVisibilityConverter}, Mode=OneWay}"/>
                                     <TextBlock Text="{x:Bind Status, Converter={StaticResource StatusToStringConverter}, Mode=OneWay}" 
-                                               FontSize="12" FontWeight="SemiBold" 
+                                               Style="{StaticResource BcrStatusBadgeTextStyle}"
                                                Foreground="{x:Bind Status, Converter={StaticResource StatusToForegroundBrushConverter}, Mode=OneWay}"
-                                               VerticalAlignment="Center"/>
+                                               />
                                 </StackPanel>
                             </Grid>
                         </StackPanel>
@@ -325,22 +222,7 @@
             <ListView.GroupStyle>
                 <GroupStyle>
                     <GroupStyle.HeaderContainerStyle>
-                        <Style TargetType="ListViewHeaderItem">
-                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                            <Setter Property="Padding" Value="0"/>
-                            <Setter Property="MinHeight" Value="0"/>
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="ListViewHeaderItem">
-                                        <ContentPresenter Content="{TemplateBinding Content}"
-                                                        ContentTemplate="{TemplateBinding ContentTemplate}"
-                                                        Margin="{TemplateBinding Padding}"
-                                                        HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                                        VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
+                        <StaticResource ResourceKey="BusinessCardListGroupHeaderItemStyle"/>
                     </GroupStyle.HeaderContainerStyle>
                     <GroupStyle.HeaderTemplate>
                         <DataTemplate x:DataType="viewmodels:CardGroup">

@@ -1,5 +1,35 @@
 # UI Design System Specification
 
+## Design System Purpose
+
+本設計系統的主要目的，是作為未來大規模 UI 風格置換的前置基礎。
+
+現階段不是立即進行視覺改版，也不是重新設計主操作流程，而是先建立穩定、可替換、可維護的樣式層。未來若要切換到新的工業風、品牌色、字體、按鈕風格、卡片風格或狀態視覺，應優先透過 `Styles/` 內的 token 與共用樣式完成。
+
+## Non-Disruptive Adoption Rules
+
+導入設計系統時必須遵守以下規則：
+
+- 不改變現有 UI layout，除非另有明確需求。
+- 不新增 top bar 下方狀態列。
+- 不重排既有 navigation、search、Auto Scan、Import、AI toggle。
+- 不改變 Auto Scan overlay 的操作行為。
+- 不因樣式整理修改掃描、OCR、ERP upload 流程。
+- 不移除既有 style key，除非所有引用都已安全替換。
+- 新增 token 時應保持向後相容。
+- 頁面 XAML 應逐步減少本地 `Style` 與 `ControlTemplate`，但不應為了抽象而重寫 layout。
+
+## Future Visual Replacement Rules
+
+若未來正式進入大規模 UI 風格置換，應先確認：
+
+- 新視覺方向。
+- 是否允許調整主畫面資訊架構。
+- 是否允許新增 workflow status area。
+- 是否允許修改 ViewModel 顯示屬性。
+- 是否需要保留原操作員工作流程。
+- 是否需要與硬體 Auto Scan 流程同步驗證。
+
 ## 文件目的
 
 本文件定義 AI-BCR Scanner Management System 的 UI 設計系統規格。
@@ -75,6 +105,7 @@ AI-BCR 是企業內部掃描、OCR 與名片資料管理工具。UI 應服務長
 ```text
 Styles/
   Theme.xaml
+  Converters.xaml
   Brushes.xaml
   Typography.xaml
   Spacing.xaml
@@ -99,6 +130,16 @@ Styles/
 - 單一頁面樣式。
 - business card item template。
 - scanner workflow layout。
+
+### Converters.xaml
+
+用途：
+
+- visibility converters。
+- status converters。
+- image/date converters。
+
+所有跨頁使用的 XAML converter resource 應集中於此檔案。
 
 ### Brushes.xaml
 
@@ -580,4 +621,3 @@ dotnet build .\PlustekBCR.csproj
 - 主要頁面不再大量重複 control template。
 - `dotnet build` 通過。
 - 主畫面、All Cards、Card Detail 基本流程人工檢查通過。
-

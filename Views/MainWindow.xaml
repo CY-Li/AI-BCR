@@ -205,28 +205,6 @@
                 </Grid>
 
                 <Grid x:Name="SearchRoot" Grid.Column="1" Width="480" MaxWidth="640" Height="36" Canvas.ZIndex="40" HorizontalAlignment="Left" Margin="16,0">
-                    <Grid.Resources>
-                        <Style x:Key="SearchIconButtonStyle" TargetType="Button">
-                            <Setter Property="Width" Value="32" />
-                            <Setter Property="Height" Value="32" />
-                            <Setter Property="Padding" Value="0" />
-                            <Setter Property="Margin" Value="0" />
-                            <Setter Property="Background" Value="Transparent" />
-                            <Setter Property="BorderThickness" Value="0" />
-                            <Setter Property="CornerRadius" Value="4" />
-                            <Setter Property="HorizontalAlignment" Value="Center" />
-                            <Setter Property="VerticalAlignment" Value="Center" />
-                        </Style>
-                        <Style x:Key="InlineSearchTextBoxStyle" TargetType="TextBox">
-                            <Setter Property="BorderThickness" Value="0" />
-                            <Setter Property="Background" Value="Transparent" />
-                            <Setter Property="Padding" Value="12,8,12,6" />
-                            <Setter Property="VerticalAlignment" Value="Center" />
-                            <Setter Property="VerticalContentAlignment" Value="Center" />
-                            <Setter Property="TextAlignment" Value="Left" />
-                            <Setter Property="MinHeight" Value="36" />
-                        </Style>
-                    </Grid.Resources>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -398,21 +376,11 @@
             Grid.Row="0"
             Grid.RowSpan="2"
             Canvas.ZIndex="29"
+            Style="{StaticResource BcrOverlayScrimStyle}"
             Visibility="{x:Bind ViewModel.AutoScanOverlayVisibility, Mode=OneWay}">
-            <Grid.Background>
-                <SolidColorBrush Color="#80212A36"/>
-            </Grid.Background>
 
             <Border
-                Width="660"
-                MaxWidth="760"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                Padding="0"
-                CornerRadius="8"
-                Background="{ThemeResource AppBackgroundBrush}"
-                BorderBrush="{ThemeResource BorderBrush}"
-                BorderThickness="1">
+                Style="{StaticResource BcrAutoScanOverlayPanelStyle}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -472,62 +440,6 @@
                     </Grid>
 
                     <Grid Grid.Row="2" Margin="16,0,16,16">
-                        <Grid.Resources>
-                            <Style x:Key="StopAutoScanButtonStyle" TargetType="Button">
-                                <Setter Property="Foreground" Value="{ThemeResource SystemFillColorCriticalBrush}"/>
-                                <Setter Property="Background" Value="Transparent"/>
-                                <Setter Property="BorderBrush" Value="{ThemeResource SystemFillColorCriticalBrush}"/>
-                                <Setter Property="BorderThickness" Value="1"/>
-                                <Setter Property="CornerRadius" Value="8"/>
-                                <Setter Property="Padding" Value="16,8"/>
-                                <Setter Property="MinWidth" Value="160"/>
-                                <Setter Property="MinHeight" Value="36"/>
-                                <Setter Property="FontSize" Value="14"/>
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="Button">
-                                            <Grid x:Name="Root"
-                                                  Background="{TemplateBinding Background}"
-                                                  BorderBrush="{TemplateBinding BorderBrush}"
-                                                  BorderThickness="{TemplateBinding BorderThickness}"
-                                                  CornerRadius="{TemplateBinding CornerRadius}">
-                                                <VisualStateManager.VisualStateGroups>
-                                                    <VisualStateGroup x:Name="CommonStates">
-                                                        <VisualState x:Name="Normal"/>
-                                                        <VisualState x:Name="PointerOver">
-                                                            <Storyboard>
-                                                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="Background">
-                                                                    <DiscreteObjectKeyFrame KeyTime="0" Value="#12D92D20"/>
-                                                                </ObjectAnimationUsingKeyFrames>
-                                                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="BorderBrush">
-                                                                    <DiscreteObjectKeyFrame KeyTime="0" Value="#D92D20"/>
-                                                                </ObjectAnimationUsingKeyFrames>
-                                                            </Storyboard>
-                                                        </VisualState>
-                                                        <VisualState x:Name="Pressed">
-                                                            <Storyboard>
-                                                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="Background">
-                                                                    <DiscreteObjectKeyFrame KeyTime="0" Value="#22D92D20"/>
-                                                                </ObjectAnimationUsingKeyFrames>
-                                                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="BorderBrush">
-                                                                    <DiscreteObjectKeyFrame KeyTime="0" Value="#B42318"/>
-                                                                </ObjectAnimationUsingKeyFrames>
-                                                            </Storyboard>
-                                                        </VisualState>
-                                                        <VisualState x:Name="Disabled"/>
-                                                    </VisualStateGroup>
-                                                </VisualStateManager.VisualStateGroups>
-                                                <ContentPresenter HorizontalAlignment="Center"
-                                                                  VerticalAlignment="Center"
-                                                                  Margin="{TemplateBinding Padding}"
-                                                                  Content="{TemplateBinding Content}"
-                                                                  ContentTemplate="{TemplateBinding ContentTemplate}"/>
-                                            </Grid>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                            </Style>
-                        </Grid.Resources>
                         <Button
                             Content="Stop Auto Scan"
                             Click="OnScanClicked"
@@ -548,13 +460,7 @@
             <Border
                 x:Name="SearchDropdownPanel"
                 Width="{Binding ActualWidth, ElementName=SearchInputAnchor}"
-                Padding="14"
-                CornerRadius="6"
-                BorderThickness="1"
-                HorizontalAlignment="Left"
-                VerticalAlignment="Top"
-                Background="{ThemeResource LayerFillColorAltBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                Style="{StaticResource BcrSearchDropdownPanelStyle}"
                 PointerPressed="OnSearchDropdownPanelPointerPressed">
                 <Grid>
                     <Grid x:Name="DefaultSearchPanel">
@@ -574,10 +480,7 @@
                             ItemClick="OnRecentSearchItemClick"
                             ItemsSource="{x:Bind ViewModel.RecentSearches, Mode=OneWay}">
                             <ListView.ItemContainerStyle>
-                                <Style TargetType="ListViewItem">
-                                    <Setter Property="MinHeight" Value="34" />
-                                    <Setter Property="Padding" Value="8,0" />
-                                </Style>
+                                <StaticResource ResourceKey="RecentSearchListViewItemStyle"/>
                             </ListView.ItemContainerStyle>
                         </ListView>
                     </Grid>
