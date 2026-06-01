@@ -4,6 +4,11 @@
 
 Enterprise scanner management and AI OCR platform.
 
+Current delivery strategy is **Prototype/Mock-first**:
+- prioritize validating workflow stability and operability first
+- preserve reliability and backward compatibility while iterating
+- avoid large architectural rewrites before workflow proof is complete
+
 This application is designed for:
 - enterprise intranet environments
 - unattended scanning workflows
@@ -19,12 +24,16 @@ Reliability and workflow stability are more important than aggressive refactorin
 
 - C#
 - .NET 8
-- WPF
+- WPF (must-use UI framework)
 - MVVM
 - TWAIN/WIA
 - OCR Service
 - REST API
 - Windows Desktop
+
+UI framework policy:
+- WPF is the only target UI architecture for ongoing/new development.
+- WinUI 3 code currently in this repository is transitional prototype code only, not the target architecture baseline.
 
 ---
 
@@ -38,6 +47,11 @@ Rules:
 - Avoid code-behind unless absolutely necessary
 - Prefer dependency injection
 - Use async/await consistently
+- New features and refactoring must preserve WPF/MVVM migration compatibility for backend handoff.
+
+Transitional status note:
+- The current repository still contains WinUI 3 prototype implementation.
+- Implementation decisions and future direction must follow this AGENTS.md policy (WPF + MVVM as target baseline).
 
 Folder responsibilities:
 
