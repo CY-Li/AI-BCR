@@ -26,8 +26,18 @@ jobs:
             const fs = require("fs");
             const owner = context.repo.owner;
             const repo = context.repo.repo;
-
-            const { data: release } = await github.rest.repos.getLatestRelease({ owner, repo });
+            // Root cause: getLatestRelease excludes pre-release, so manifest may stay on older stable version.
+            // Use latest non-draft release to keep auto-update manifest aligned with newly published releases.
+            const { data: releases } = await github.rest.repos.listReleases({
+              owner,
+              repo,
+              per_page: 20
+            });
+            const release = releases.find(r => !r.draft);
+            if (!release) {
+              core.setFailed("No non-draft release found.");
+              return;
+            }
 
             const assets = release.assets || [];
             const preferred = assets.find(a => /\.(exe|msix|msixbundle|zip)$/i.test(a.name));
@@ -53,5 +63,5 @@ jobs:
       - name: Commit updated manifest
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "chore: update update.json for ${{ github.event.release.tag_name }}"
+          commit_message: "chore: update update.json from latest release"
           file_pattern: update.json
