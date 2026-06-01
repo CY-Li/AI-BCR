@@ -220,6 +220,7 @@ namespace PlustekBCR.ViewModels
         private static readonly TimeSpan PaperDebounceInterval = TimeSpan.FromMilliseconds(800);
         private CancellationTokenSource? _autoScanSimulationCts;
         private Task? _autoScanSimulationTask;
+        private CancellationTokenSource? _autoScanInstructionCts;
 
         public string ScanButtonText => IsAutoScanMode ? "Stop Auto Scan" : "Start Auto Scan";
 
@@ -228,6 +229,26 @@ namespace PlustekBCR.ViewModels
 
         public Microsoft.UI.Xaml.Visibility AutoScanActiveVisibility =>
             IsAutoScanMode ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
+
+        private bool _isAutoScanInstructionVisible = true;
+        public bool IsAutoScanInstructionVisible
+        {
+            get => _isAutoScanInstructionVisible;
+            private set
+            {
+                if (SetProperty(ref _isAutoScanInstructionVisible, value))
+                {
+                    OnPropertyChanged(nameof(AutoScanInstructionVisibility));
+                    OnPropertyChanged(nameof(AutoScanCounterVisibility));
+                }
+            }
+        }
+
+        public Microsoft.UI.Xaml.Visibility AutoScanInstructionVisibility =>
+            IsAutoScanInstructionVisible ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
+
+        public Microsoft.UI.Xaml.Visibility AutoScanCounterVisibility =>
+            IsAutoScanInstructionVisible ? Microsoft.UI.Xaml.Visibility.Collapsed : Microsoft.UI.Xaml.Visibility.Visible;
 
         public bool IsAutoScanReady => IsAutoScanMode && AutoScanState == AutoScanState.Ready;
         public bool IsAutoScanScanning => IsAutoScanMode && AutoScanState == AutoScanState.Scanning;
@@ -285,19 +306,16 @@ namespace PlustekBCR.ViewModels
                 }
             }
 
-            if (!SkipScanDialog && ShowScanConfirmationDialogAsync != null)
-            {
-                var result = await ShowScanConfirmationDialogAsync();
-                if (!result.proceed) return;
-                if (result.skip) SkipScanDialog = true;
-            }
+            // Prototype flow: enter Auto Scan modal directly without pre-confirmation dialog.
 
             IsAutoScanMode = true;
+            IsAutoScanInstructionVisible = true;
             AutoScanScannedCount = 0;
             AutoScanRecognizingCount = 0;
             AutoScanFailedCount = 0;
 
             AutoScanState = AutoScanState.Ready;
+            StartAutoScanInstructionTimer();
             StartAutoScanSimulationLoop();
         }
 
@@ -309,10 +327,50 @@ namespace PlustekBCR.ViewModels
             }
 
             StopAutoScanSimulationLoop();
+            StopAutoScanInstructionTimer();
             AutoScanState = AutoScanState.Stopping;
             await Task.Delay(200);
             AutoScanState = AutoScanState.Idle;
             IsAutoScanMode = false;
+            IsAutoScanInstructionVisible = true;
+        }
+
+        private void StartAutoScanInstructionTimer()
+        {
+            StopAutoScanInstructionTimer();
+            _autoScanInstructionCts = new CancellationTokenSource();
+            _ = RunAutoScanInstructionTimerAsync(_autoScanInstructionCts.Token);
+        }
+
+        private void StopAutoScanInstructionTimer()
+        {
+            try
+            {
+                _autoScanInstructionCts?.Cancel();
+            }
+            catch
+            {
+            }
+            finally
+            {
+                _autoScanInstructionCts?.Dispose();
+                _autoScanInstructionCts = null;
+            }
+        }
+
+        private async Task RunAutoScanInstructionTimerAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
+                if (!cancellationToken.IsCancellationRequested && IsAutoScanMode)
+                {
+                    IsAutoScanInstructionVisible = false;
+                }
+            }
+            catch (OperationCanceledException)
+            {
+            }
         }
 
         private void StartAutoScanSimulationLoop()

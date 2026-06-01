@@ -402,40 +402,54 @@
                             <Border Background="{ThemeResource LayerFillColorDefaultBrush}"
                                     CornerRadius="12"
                                     BorderThickness="0"/>
-                            <Rectangle x:Name="AutoScanPulseFlash" Fill="#609CDCF8" Opacity="0" RadiusX="12" RadiusY="12"/>
-                            <Rectangle x:Name="AutoScanPulseLine" Height="8" Fill="#7AB8FF" VerticalAlignment="Top" Opacity="0" RadiusX="4" RadiusY="4" Margin="16,18,16,0">
-                                <Rectangle.RenderTransform>
-                                    <TranslateTransform x:Name="AutoScanPulseLineTranslate" Y="-180"/>
-                                </Rectangle.RenderTransform>
-                            </Rectangle>
-                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10">
-                                <Grid Width="240" Height="240">
-                                    <Ellipse Width="224"
-                                             Height="224"
-                                             Stroke="#E8EEF8"
-                                             StrokeThickness="8"/>
-                                    <Ellipse Width="220"
-                                             Height="220"
-                                             Stroke="{ThemeResource BorderBrush}"
-                                             StrokeThickness="1.5"/>
-                                    <ProgressRing Visibility="{x:Bind ViewModel.AutoScanLoadingVisibility, Mode=OneWay}"
-                                                  IsActive="True"
-                                                  Width="220"
-                                                  Height="220"
-                                                  Foreground="{StaticResource BrandBlueBrush}"/>
-                                    <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <TextBlock Text="{x:Bind ViewModel.AutoScanScannedCount, Mode=OneWay}"
-                                                   FontSize="116"
-                                                   FontWeight="SemiBold"
-                                                   Foreground="#0F2A53"
-                                                   TextAlignment="Center"
-                                                   HorizontalTextAlignment="Center"
-                                                   VerticalAlignment="Center"
-                                                   Margin="0,-10,0,0"/>
+
+                            <Grid Visibility="{x:Bind ViewModel.AutoScanInstructionVisibility, Mode=OneWay}">
+                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="16">
+                                    <TextBlock Text="Please place the business card face up in the scanner."
+                                               FontSize="16"
+                                               TextAlignment="Center"/>
+                                    <Image Source="ms-appx:///Assets/scanner_illustration.png"
+                                           Height="180"
+                                           Stretch="Uniform"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <Grid Visibility="{x:Bind ViewModel.AutoScanCounterVisibility, Mode=OneWay}">
+                                <Rectangle x:Name="AutoScanPulseFlash" Fill="#609CDCF8" Opacity="0" RadiusX="12" RadiusY="12"/>
+                                <Rectangle x:Name="AutoScanPulseLine" Height="8" Fill="#7AB8FF" VerticalAlignment="Top" Opacity="0" RadiusX="4" RadiusY="4" Margin="16,18,16,0">
+                                    <Rectangle.RenderTransform>
+                                        <TranslateTransform x:Name="AutoScanPulseLineTranslate" Y="-180"/>
+                                    </Rectangle.RenderTransform>
+                                </Rectangle>
+                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10">
+                                    <Grid Width="240" Height="240">
+                                        <Ellipse Width="224"
+                                                 Height="224"
+                                                 Stroke="#E8EEF8"
+                                                 StrokeThickness="8"/>
+                                        <Ellipse Width="220"
+                                                 Height="220"
+                                                 Stroke="{ThemeResource BorderBrush}"
+                                                 StrokeThickness="1.5"/>
+                                        <ProgressRing Visibility="{x:Bind ViewModel.AutoScanLoadingVisibility, Mode=OneWay}"
+                                                      IsActive="True"
+                                                      Width="220"
+                                                      Height="220"
+                                                      Foreground="{StaticResource BrandBlueBrush}"/>
+                                        <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <TextBlock Text="{x:Bind ViewModel.AutoScanScannedCount, Mode=OneWay}"
+                                                       FontSize="116"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="#0F2A53"
+                                                       TextAlignment="Center"
+                                                       HorizontalTextAlignment="Center"
+                                                       VerticalAlignment="Center"
+                                                       Margin="0,-10,0,0"/>
+                                        </Grid>
                                     </Grid>
-                                </Grid>
-                                <TextBlock Text="{x:Bind ViewModel.AutoScanStateText, Mode=OneWay}" FontSize="14" Foreground="{StaticResource BrandBlueBrush}" HorizontalAlignment="Center"/>
-                            </StackPanel>
+                                    <TextBlock Text="{x:Bind ViewModel.AutoScanStateText, Mode=OneWay}" FontSize="14" Foreground="{StaticResource BrandBlueBrush}" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Grid>
                         </Grid>
                     </Grid>
 
