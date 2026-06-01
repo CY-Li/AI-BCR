@@ -1,5 +1,5 @@
 {
   "version": "1.0.6",
   "downloadUrl": "https://github.com/CY-Li/AI-BCR/releases/download/v1.0.6/PlustekBCR-v1.0.6-win-x64.zip",
-  "notes": "Release v1.0.6"
+  "notes": "1.新增Auto Scan流程模擬示意\r\n2.優化AI按鈕，處理檔案時會顯示loading"
 }
