@@ -391,7 +391,7 @@ namespace PlustekBCR.Views
 
             var dialog = new ContentDialog
             {
-                Title = "Add Tag",
+                Title = "Add tag",
                 Content = input,
                 PrimaryButtonText = "Add",
                 CloseButtonText = "Cancel",

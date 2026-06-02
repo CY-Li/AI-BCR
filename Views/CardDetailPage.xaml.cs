@@ -284,7 +284,7 @@ namespace PlustekBCR.Views
                 var input = new TextBox { PlaceholderText = "Enter a new tag" };
                 var dialog = new ContentDialog
                 {
-                    Title = "Add Tag",
+                    Title = "Add tag",
                     Content = input,
                     PrimaryButtonText = "Add",
                     CloseButtonText = "Cancel",
