@@ -5,6 +5,7 @@ using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PlustekBCR.Models;
+using PlustekBCR.Services;
 
 namespace PlustekBCR.ViewModels
 {
@@ -20,8 +21,15 @@ namespace PlustekBCR.ViewModels
         public partial string NewNoteContent { get; set; }
 
         public MainViewModel MainViewModel { get; }
+        private readonly ITagCatalogService _tagCatalogService;
 
         private ObservableCollection<BusinessCard>? _originalCards;
+
+        [ObservableProperty]
+        public partial ObservableCollection<string> AvailableTags { get; set; }
+
+        [ObservableProperty]
+        public partial ObservableCollection<string> SelectedTags { get; set; }
 
         public Func<BusinessCard, Task<bool>>? ConfirmDeleteCardAsync { get; set; }
         public Action? NavigateBackRequested { get; set; }
@@ -29,8 +37,12 @@ namespace PlustekBCR.ViewModels
         public CardDetailViewModel()
         {
             MainViewModel = App.GetService<MainViewModel>();
+            _tagCatalogService = App.GetService<ITagCatalogService>();
             AllCards = new ObservableCollection<BusinessCard>();
             NewNoteContent = string.Empty;
+            AvailableTags = new ObservableCollection<string>(_tagCatalogService.GetAllTags());
+            SelectedTags = new ObservableCollection<string>();
+            _tagCatalogService.TagsChanged += OnTagCatalogChanged;
         }
 
         public void Initialize(ObservableCollection<BusinessCard> allCards, BusinessCard? selectedCard)
@@ -38,6 +50,12 @@ namespace PlustekBCR.ViewModels
             _originalCards = allCards;
             AllCards = new ObservableCollection<BusinessCard>(allCards.OrderByDescending(c => c.ScanDate));
             SelectedCard = selectedCard ?? AllCards.FirstOrDefault();
+            SyncSelectedTagsFromCard(SelectedCard);
+        }
+
+        partial void OnSelectedCardChanged(BusinessCard? value)
+        {
+            SyncSelectedTagsFromCard(value);
         }
 
         [RelayCommand]
@@ -109,6 +127,103 @@ namespace PlustekBCR.ViewModels
         private void GoBack()
         {
             // This will be handled in the View or via a NavigationService if available
+        }
+
+        public async Task AddSelectedTagAsync(string? tag)
+        {
+            var normalized = NormalizeTag(tag);
+            if (string.IsNullOrEmpty(normalized) || SelectedCard == null)
+            {
+                return;
+            }
+
+            if (SelectedTags.Any(x => string.Equals(x, normalized, StringComparison.OrdinalIgnoreCase)))
+            {
+                return;
+            }
+
+            SelectedTags.Add(normalized);
+            UpdateCardTagString();
+
+            if (_tagCatalogService.AddTag(normalized))
+            {
+                await _tagCatalogService.SaveAsync();
+            }
+        }
+
+        public void RemoveSelectedTag(string? tag)
+        {
+            var normalized = NormalizeTag(tag);
+            if (string.IsNullOrEmpty(normalized))
+            {
+                return;
+            }
+
+            var target = SelectedTags.FirstOrDefault(x => string.Equals(x, normalized, StringComparison.OrdinalIgnoreCase));
+            if (target == null)
+            {
+                return;
+            }
+
+            SelectedTags.Remove(target);
+            UpdateCardTagString();
+        }
+
+        private async void SyncSelectedTagsFromCard(BusinessCard? card)
+        {
+            SelectedTags.Clear();
+            if (card == null)
+            {
+                return;
+            }
+
+            foreach (var tag in SplitTags(card.Tag))
+            {
+                if (SelectedTags.Any(x => string.Equals(x, tag, StringComparison.OrdinalIgnoreCase)))
+                {
+                    continue;
+                }
+
+                SelectedTags.Add(tag);
+                if (_tagCatalogService.AddTag(tag))
+                {
+                    await _tagCatalogService.SaveAsync();
+                }
+            }
+        }
+
+        private void UpdateCardTagString()
+        {
+            if (SelectedCard == null)
+            {
+                return;
+            }
+
+            SelectedCard.Tag = string.Join(", ", SelectedTags);
+        }
+
+        private void OnTagCatalogChanged()
+        {
+            AvailableTags.Clear();
+            foreach (var tag in _tagCatalogService.GetAllTags())
+            {
+                AvailableTags.Add(tag);
+            }
+        }
+
+        private static List<string> SplitTags(string? rawTags)
+        {
+            return (rawTags ?? string.Empty)
+                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(NormalizeTag)
+                .Where(x => !string.IsNullOrEmpty(x))
+                .Cast<string>()
+                .ToList();
+        }
+
+        private static string NormalizeTag(string? value)
+        {
+            return (value ?? string.Empty).Trim();
         }
     }
 }

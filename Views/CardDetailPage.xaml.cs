@@ -7,17 +7,22 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.UI.Xaml.Media.Animation;
+using Windows.System;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
 using PlustekBCR.ViewModels;
 using PlustekBCR.Models;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.Linq;
 
 namespace PlustekBCR.Views
 {
     public sealed partial class CardDetailPage : Page
     {
         public CardDetailViewModel ViewModel { get; }
+        public ObservableCollection<TagFlowItem> EditTagFlowItems { get; } = new();
 
         public CardDetailPage()
         {
@@ -46,6 +51,9 @@ namespace PlustekBCR.Views
                     Frame.GoBack();
                 }
             };
+
+            ViewModel.SelectedTags.CollectionChanged += OnSelectedTagsCollectionChanged;
+            RebuildEditTagFlowItems();
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -71,6 +79,20 @@ namespace PlustekBCR.Views
             if (ViewModel?.MainViewModel != null)
             {
                 ViewModel.MainViewModel.IsPaneVisible = true;
+            }
+        }
+
+        private void OnSelectedTagsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            RebuildEditTagFlowItems();
+        }
+
+        private void RebuildEditTagFlowItems()
+        {
+            EditTagFlowItems.Clear();
+            foreach (var tag in ViewModel.SelectedTags)
+            {
+                EditTagFlowItems.Add(new TagFlowItem { Text = tag, IsAddButton = false });
             }
         }
 
@@ -234,6 +256,57 @@ namespace PlustekBCR.Views
             {
                 card.Status = prevStatus;
                 throw;
+            }
+        }
+
+        private async void OnAddTagClicked(object sender, RoutedEventArgs e)
+        {
+            var flyout = new MenuFlyout();
+            var available = ViewModel.AvailableTags
+                .Where(tag => !ViewModel.SelectedTags.Any(x => string.Equals(x, tag, StringComparison.OrdinalIgnoreCase)))
+                .ToList();
+
+            foreach (var tag in available)
+            {
+                var item = new MenuFlyoutItem { Text = tag, Tag = tag };
+                item.Click += async (_, __) => { await ViewModel.AddSelectedTagAsync(tag); };
+                flyout.Items.Add(item);
+            }
+
+            if (available.Count > 0)
+            {
+                flyout.Items.Add(new MenuFlyoutSeparator());
+            }
+
+            var newTagItem = new MenuFlyoutItem { Text = "+ New tag" };
+            newTagItem.Click += async (_, __) =>
+            {
+                var input = new TextBox { PlaceholderText = "Enter a new tag" };
+                var dialog = new ContentDialog
+                {
+                    Title = "Add Tag",
+                    Content = input,
+                    PrimaryButtonText = "Add",
+                    CloseButtonText = "Cancel",
+                    DefaultButton = ContentDialogButton.Primary,
+                    XamlRoot = this.XamlRoot
+                };
+
+                var result = await dialog.ShowAsync();
+                if (result == ContentDialogResult.Primary)
+                {
+                    await ViewModel.AddSelectedTagAsync(input.Text);
+                }
+            };
+            flyout.Items.Add(newTagItem);
+            flyout.ShowAt((FrameworkElement)sender);
+        }
+
+        private void OnRemoveTagClicked(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is string tag)
+            {
+                ViewModel.RemoveSelectedTag(tag);
             }
         }
 

@@ -1,4 +1,5 @@
 #nullable enable
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,6 +8,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using PlustekBCR.Models;
+using PlustekBCR.Services;
 
 namespace PlustekBCR.ViewModels
 {
@@ -22,13 +24,17 @@ namespace PlustekBCR.ViewModels
 
     public partial class MainViewModel : ObservableObject
     {
+        private readonly ITagCatalogService _tagCatalogService;
         private ObservableCollection<NavItemModel> _navItems = new();
         public ObservableCollection<NavItemModel> NavItems { get => _navItems; set => SetProperty(ref _navItems, value); }
 
         public MainViewModel()
         {
+            _tagCatalogService = App.GetService<ITagCatalogService>();
             InitializeNavigation();
             InitializeSearch();
+            _tagCatalogService.TagsChanged += OnTagCatalogChanged;
+            RefreshTagFilters();
         }
 
         private void InitializeNavigation()
@@ -80,6 +86,40 @@ namespace PlustekBCR.ViewModels
             get => _isPaneVisible;
             set => SetProperty(ref _isPaneVisible, value);
         }
+
+        private bool _isScannerConnected = true;
+        public bool IsScannerConnected
+        {
+            get => _isScannerConnected;
+            set
+            {
+                if (SetProperty(ref _isScannerConnected, value))
+                {
+                    OnPropertyChanged(nameof(ScannerStatusText));
+                    OnPropertyChanged(nameof(ScannerNameVisibility));
+                    OnPropertyChanged(nameof(ScannerReadyIndicatorVisibility));
+                    OnPropertyChanged(nameof(ScannerOfflineIndicatorVisibility));
+                }
+            }
+        }
+
+        public string ScannerName => "Plustek SmartOffice S410+";
+
+        public string ScannerStatusText => IsScannerConnected
+            ? "Scanner Status : Ready"
+            : "Scanner Status : Offline";
+
+        public Microsoft.UI.Xaml.Visibility ScannerNameVisibility =>
+            IsScannerConnected ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
+
+        public Microsoft.UI.Xaml.Visibility ScannerReadyIndicatorVisibility =>
+            IsScannerConnected ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
+
+        public Microsoft.UI.Xaml.Visibility ScannerOfflineIndicatorVisibility =>
+            IsScannerConnected ? Microsoft.UI.Xaml.Visibility.Collapsed : Microsoft.UI.Xaml.Visibility.Visible;
+
+        private IRelayCommand? _toggleScannerStatusCommand;
+        public IRelayCommand ToggleScannerStatusCommand => _toggleScannerStatusCommand ??= new RelayCommand(() => IsScannerConnected = !IsScannerConnected);
 
         private bool _isAiEnabled = true; // Default to ON as per UI
         public bool IsAiEnabled
@@ -135,6 +175,28 @@ namespace PlustekBCR.ViewModels
             set => SetProperty(ref _recentSearches, value);
         }
 
+        private ObservableCollection<string> _tagFilters = new();
+        public ObservableCollection<string> TagFilters
+        {
+            get => _tagFilters;
+            set => SetProperty(ref _tagFilters, value);
+        }
+
+        private string? _selectedTagFilter;
+        public string? SelectedTagFilter
+        {
+            get => _selectedTagFilter;
+            set
+            {
+                if (SetProperty(ref _selectedTagFilter, value))
+                {
+                    TagFilterChanged?.Invoke();
+                }
+            }
+        }
+
+        public event Action? TagFilterChanged;
+
         public void AddRecentSearch(string query)
         {
             if (string.IsNullOrWhiteSpace(query))
@@ -153,6 +215,21 @@ namespace PlustekBCR.ViewModels
             {
                 RecentSearches.RemoveAt(RecentSearches.Count - 1);
             }
+        }
+
+        public void ApplyTagFilter(string? tag)
+        {
+            SelectedTagFilter = string.IsNullOrWhiteSpace(tag) ? null : tag.Trim();
+        }
+
+        private void RefreshTagFilters()
+        {
+            TagFilters = new ObservableCollection<string>(_tagCatalogService.GetAllTags());
+        }
+
+        private void OnTagCatalogChanged()
+        {
+            RefreshTagFilters();
         }
 
         public System.Func<System.Threading.Tasks.Task<(bool proceed, bool skip)>>? ShowScanConfirmationDialogAsync { get; set; }

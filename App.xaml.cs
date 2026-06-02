@@ -30,6 +30,7 @@ namespace PlustekBCR
                 
                 // Register Services
                 services.AddSingleton<IUpdateService, UpdateService>();
+                services.AddSingleton<ITagCatalogService, TagCatalogService>();
             })
             .Build();
 

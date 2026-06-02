@@ -1,5 +1,6 @@
 ﻿using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Media;
 using PlustekBCR.Services;
 using PlustekBCR.ViewModels;
 using CommunityToolkit.Mvvm.Messaging;
@@ -15,11 +16,13 @@ namespace PlustekBCR.Views
         private bool _hasCheckedForUpdates;
         private bool _isUpdateCheckRunning;
         private readonly DispatcherTimer _mockPaperSensorTimer;
+        private readonly ITagCatalogService _tagCatalogService;
 
         public MainWindow()
         {
             // Assign ViewModel BEFORE InitializeComponent for x:Bind to work
             ViewModel = App.GetService<MainViewModel>();
+            _tagCatalogService = App.GetService<ITagCatalogService>();
 
             this.InitializeComponent();
             RootGrid.AddHandler(UIElement.PointerPressedEvent, new Microsoft.UI.Xaml.Input.PointerEventHandler(OnRootPointerPressed), true);
@@ -156,10 +159,12 @@ namespace PlustekBCR.Views
                 AiOffTextTranslate.Y = 0;
             }
             _isInitialized = true;
+            ScannerReadyPulseStoryboard?.Begin();
 
             // Set default page
             RootNavigationView.SelectedItem = DashboardItem;
             ContentFrame.Navigate(typeof(EmptyPage));
+            RebuildTagFilterMenu();
 
             // Navigate to AllCards when cards are imported or scanned
             WeakReferenceMessenger.Default.Register<CardsImportedMessage>(this, (r, m) =>
@@ -182,15 +187,18 @@ namespace PlustekBCR.Views
 
             Activated += async (_, _) => await EnsureUpdateCheckAsync();
             Closed += OnWindowClosed;
+            _tagCatalogService.TagsChanged += OnTagCatalogChanged;
         }
 
 
 
         private void OnWindowClosed(object sender, WindowEventArgs args)
         {
+            ScannerReadyPulseStoryboard?.Stop();
             ViewModel.ScanPulseRequested -= OnScanPulseRequested;
             _mockPaperSensorTimer.Stop();
             _mockPaperSensorTimer.Tick -= OnMockPaperSensorTick;
+            _tagCatalogService.TagsChanged -= OnTagCatalogChanged;
         }
         private async Task EnsureUpdateCheckAsync()
         {
@@ -265,7 +273,148 @@ namespace PlustekBCR.Views
                     case "AllCards":
                         ContentFrame.Navigate(typeof(AllCardsPage));
                         break;
+                    case "TagsRoot":
+                        ContentFrame.Navigate(typeof(AllCardsPage));
+                        break;
+                    case "TagAction:Add":
+                        _ = AddTagFromSidebarAsync();
+                        ContentFrame.Navigate(typeof(AllCardsPage));
+                        break;
+                    default:
+                        if (tag.StartsWith("TagFilter:", StringComparison.Ordinal))
+                        {
+                            var selectedTag = tag["TagFilter:".Length..];
+                            ViewModel.ApplyTagFilter(selectedTag);
+                            ContentFrame.Navigate(typeof(AllCardsPage));
+                        }
+                        break;
                 }
+            }
+        }
+
+        private void OnTagCatalogChanged()
+        {
+            DispatcherQueue.TryEnqueue(RebuildTagFilterMenu);
+        }
+
+        private void RebuildTagFilterMenu()
+        {
+            TagsItem.MenuItems.Clear();
+            TagsItem.MenuItems.Add(new NavigationViewItem { Content = "+ Add tag", Tag = "TagAction:Add" });
+            TagsItem.MenuItems.Add(new NavigationViewItem { Content = "All tags", Tag = "TagFilter:" });
+
+            foreach (var tag in _tagCatalogService.GetAllTags())
+            {
+                var item = new NavigationViewItem
+                {
+                    Tag = $"TagFilter:{tag}"
+                };
+
+                var contentGrid = new Grid();
+                contentGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                contentGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+                var textBlock = new TextBlock
+                {
+                    Text = tag,
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+
+                                var deleteButton = new Button
+                {
+                    Tag = tag,
+                    Width = 24,
+                    Height = 24,
+                    Margin = new Thickness(8, 0, 0, 0),
+                    VerticalAlignment = VerticalAlignment.Center,
+                    HorizontalAlignment = HorizontalAlignment.Right,
+                    Padding = new Thickness(0),
+                    Content = new FontIcon
+                    {
+                        Glyph = "\uE74D",
+                        FontSize = 12,
+                        Foreground = new SolidColorBrush(Microsoft.UI.Colors.Gray)
+                    }
+                };
+                deleteButton.Click += OnSidebarTagDeleteClicked;
+
+                contentGrid.Children.Add(textBlock);
+                Grid.SetColumn(deleteButton, 1);
+                contentGrid.Children.Add(deleteButton);
+
+                item.Content = contentGrid;
+                TagsItem.MenuItems.Add(item);
+            }
+        }
+
+        private async void OnSidebarTagDeleteClicked(object sender, RoutedEventArgs e)
+        {
+            if (sender is not Button button || button.Tag is not string tag)
+            {
+                return;
+            }
+
+            if (_tagCatalogService.RemoveTag(tag))
+            {
+                RemoveTagFromAllCards(tag);
+                await _tagCatalogService.SaveAsync();
+                if (string.Equals(ViewModel.SelectedTagFilter, tag, StringComparison.OrdinalIgnoreCase))
+                {
+                    ViewModel.ApplyTagFilter(null);
+                    ContentFrame.Navigate(typeof(AllCardsPage));
+                }
+            }
+        }
+
+        private static void RemoveTagFromAllCards(string tagToRemove)
+        {
+            var allCardsViewModel = App.GetService<AllCardsViewModel>();
+            foreach (var card in allCardsViewModel.AllCards)
+            {
+                var tags = (card.Tag ?? string.Empty)
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(x => x.Trim())
+                    .Where(x => !string.IsNullOrWhiteSpace(x))
+                    .Where(x => !string.Equals(x, tagToRemove, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+                card.Tag = string.Join(", ", tags);
+            }
+        }
+
+        private async Task AddTagFromSidebarAsync()
+        {
+            var input = new TextBox
+            {
+                PlaceholderText = "Enter a new tag"
+            };
+
+            var dialog = new ContentDialog
+            {
+                Title = "Add Tag",
+                Content = input,
+                PrimaryButtonText = "Add",
+                CloseButtonText = "Cancel",
+                DefaultButton = ContentDialogButton.Primary,
+                XamlRoot = this.Content?.XamlRoot
+            };
+
+            var result = await dialog.ShowAsync();
+            if (result != ContentDialogResult.Primary)
+            {
+                return;
+            }
+
+            var value = input.Text?.Trim();
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return;
+            }
+
+            if (_tagCatalogService.AddTag(value))
+            {
+                await _tagCatalogService.SaveAsync();
+                ContentFrame.Navigate(typeof(AllCardsPage));
             }
         }
 
@@ -499,6 +648,11 @@ namespace PlustekBCR.Views
         private const int MinWindowHeight = 800;
     }
 }
+
+
+
+
+
 
 
 

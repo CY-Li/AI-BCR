@@ -1,4 +1,4 @@
-<Page
+﻿<Page
     x:Class="PlustekBCR.Views.CardDetailPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -431,8 +431,65 @@
                                             <ColumnDefinition Width="Auto" MinWidth="110"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Scan Date" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                                        <CalendarDatePicker Grid.Column="1" Date="{x:Bind ViewModel.SelectedCard.ScanDate, Converter={StaticResource DateTimeToDateTimeOffsetConverter}, Mode=TwoWay}" HorizontalAlignment="Stretch"/>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Grid.Row="0" Text="Scan Date" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                        <CalendarDatePicker Grid.Row="0" Grid.Column="1" Date="{x:Bind ViewModel.SelectedCard.ScanDate, Converter={StaticResource DateTimeToDateTimeOffsetConverter}, Mode=TwoWay}" HorizontalAlignment="Stretch"/>
+
+                                        <TextBlock Grid.Row="1" Text="Tag" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                        <StackPanel Grid.Row="1" Grid.Column="1" Spacing="8">
+                                            <Border Background="Transparent" Padding="0,0,24,0">
+                                                <ItemsRepeater ItemsSource="{x:Bind EditTagFlowItems, Mode=OneWay}" VerticalAlignment="Top">
+                                                    <ItemsRepeater.Layout>
+                                                        <LinedFlowLayout MinItemSpacing="8" LineSpacing="8" ItemsStretch="None"/>
+                                                    </ItemsRepeater.Layout>
+                                                    <ItemsRepeater.ItemTemplate>
+                                                        <DataTemplate x:DataType="models:TagFlowItem">
+                                                            <Grid HorizontalAlignment="Left">
+                                                                <Border Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                                                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                                                        BorderThickness="1"
+                                                                        CornerRadius="10"
+                                                                        Height="34"
+                                                                        Padding="10,0"
+                                                                        Visibility="{x:Bind IsAddButton, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}">
+                                                                    <Grid ColumnSpacing="8">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="*"/>
+                                                                            <ColumnDefinition Width="Auto"/>
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <TextBlock Grid.Column="0"
+                                                                                   Text="{x:Bind Text}"
+                                                                                   VerticalAlignment="Center"
+                                                                                   TextTrimming="CharacterEllipsis"
+                                                                                   MaxWidth="140"/>
+                                                                        <Button Grid.Column="1"
+                                                                                Tag="{x:Bind Text}"
+                                                                                MinWidth="20"
+                                                                                Height="20"
+                                                                                VerticalAlignment="Center"
+                                                                                Padding="0"
+                                                                                Click="OnRemoveTagClicked">
+                                                                            <FontIcon Glyph="&#xE711;" FontSize="10"/>
+                                                                        </Button>
+                                                                    </Grid>
+                                                                </Border>
+                                                            </Grid>
+                                                        </DataTemplate>
+                                                    </ItemsRepeater.ItemTemplate>
+                                                </ItemsRepeater>
+                                            </Border>
+                                            <Button Content="+ Add tag"
+                                                    Click="OnAddTagClicked"
+                                                    Style="{StaticResource AccentButtonStyle}"
+                                                    Height="34"
+                                                    MinWidth="100"
+                                                    HorizontalAlignment="Left"
+                                                    Padding="12,4"/>
+                                        </StackPanel>
                                     </Grid>
                                 </StackPanel>
                             </StackPanel>

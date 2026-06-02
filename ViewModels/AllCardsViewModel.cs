@@ -28,6 +28,7 @@ namespace PlustekBCR.ViewModels
         {
             MainViewModel = App.GetService<MainViewModel>();
             AllCards = new ObservableCollection<BusinessCard>();
+            MainViewModel.TagFilterChanged += OnTagFilterChanged;
             LoadSampleData();
 
             // Register for cards imported message
@@ -91,8 +92,13 @@ namespace PlustekBCR.ViewModels
             }
         }
 
+        public IEnumerable<BusinessCard> FilteredCards =>
+            string.IsNullOrWhiteSpace(MainViewModel.SelectedTagFilter)
+                ? AllCards
+                : AllCards.Where(ContainsSelectedTag);
+
         public List<CardGroup> GroupedCards => 
-            AllCards.OrderByDescending(c => c.ScanDate)
+            FilteredCards.OrderByDescending(c => c.ScanDate)
                    .GroupBy(c => c.ScanDate.Date)
                    .Select(g => new CardGroup(g.Key.ToString("MMMM dd, yyyy", System.Globalization.CultureInfo.InvariantCulture), g))
                    .ToList();
@@ -115,6 +121,7 @@ namespace PlustekBCR.ViewModels
                 if (confirm)
                 {
                     AllCards.Remove(card);
+                    OnPropertyChanged(nameof(FilteredCards));
                     OnPropertyChanged(nameof(GroupedCards));
                     if (SelectedCard == card)
                     {
@@ -154,11 +161,32 @@ namespace PlustekBCR.ViewModels
             }
 
             OnPropertyChanged(nameof(GroupedCards));
+            OnPropertyChanged(nameof(FilteredCards));
 
             if (cardsToProcess.Count > 0)
             {
                 Task.Run(() => ProcessOcrQueueAsync(cardsToProcess));
             }
+        }
+
+        private bool ContainsSelectedTag(BusinessCard card)
+        {
+            var target = MainViewModel.SelectedTagFilter;
+            if (string.IsNullOrWhiteSpace(target))
+            {
+                return true;
+            }
+
+            return (card.Tag ?? string.Empty)
+                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => x.Trim())
+                .Any(x => string.Equals(x, target, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private void OnTagFilterChanged()
+        {
+            OnPropertyChanged(nameof(FilteredCards));
+            OnPropertyChanged(nameof(GroupedCards));
         }
 
         private async Task ProcessOcrQueueAsync(List<BusinessCard> cardsToProcess)

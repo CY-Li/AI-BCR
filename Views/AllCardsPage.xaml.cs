@@ -1,12 +1,15 @@
-#nullable enable
+﻿#nullable enable
 using Microsoft.UI.Xaml.Controls;
 using System.Numerics;
 using System.Threading.Tasks;
 using System.Text;
 using System.IO;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using Microsoft.UI.Xaml.Media.Animation;
 using PlustekBCR.ViewModels;
 using PlustekBCR.Models;
+using PlustekBCR.Services;
 using Windows.Storage.Pickers;
 using Windows.Storage;
 
@@ -15,12 +18,18 @@ namespace PlustekBCR.Views
     public sealed partial class AllCardsPage : Page
     {
         public AllCardsViewModel ViewModel { get; }
+        private readonly ITagCatalogService _tagCatalogService;
+        public ObservableCollection<string> SidebarSelectedTags { get; } = new();
+        public ObservableCollection<TagFlowItem> SidebarTagFlowItems { get; } = new();
 
         public AllCardsPage()
         {
             ViewModel = App.GetService<AllCardsViewModel>();
+            _tagCatalogService = App.GetService<ITagCatalogService>();
             this.InitializeComponent();
             this.NavigationCacheMode = Microsoft.UI.Xaml.Navigation.NavigationCacheMode.Required;
+            ViewModel.PropertyChanged += OnViewModelPropertyChanged;
+            _tagCatalogService.TagsChanged += OnTagCatalogChanged;
 
             ViewModel.ConfirmDeleteCardAsync = async (card) =>
             {
@@ -41,6 +50,7 @@ namespace PlustekBCR.Views
         protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
+            RefreshSidebarTagsFromCard();
 
             // Handle backward animation when returning from CardDetailPage
             var animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("BackwardConnectedAnimation");
@@ -50,12 +60,45 @@ namespace PlustekBCR.Views
             }
         }
 
+        protected override void OnNavigatedFrom(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
+        {
+            base.OnNavigatedFrom(e);
+        }
+
         private void OnCardClick(object sender, ItemClickEventArgs e)
         {
             if (e.ClickedItem is PlustekBCR.Models.BusinessCard card)
             {
                 ViewModel.SelectCardCommand.Execute(card);
             }
+        }
+
+        private void OnCardDoubleTapped(object sender, Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs e)
+        {
+            Microsoft.UI.Xaml.DependencyObject? visualParent = e.OriginalSource as Microsoft.UI.Xaml.DependencyObject;
+            while (visualParent != null)
+            {
+                if (visualParent is GridViewItem gridItem && gridItem.DataContext is BusinessCard gridCard)
+                {
+                    ViewModel.SelectedCard = gridCard;
+                    break;
+                }
+
+                if (visualParent is ListViewItem listItem && listItem.DataContext is BusinessCard listCard)
+                {
+                    ViewModel.SelectedCard = listCard;
+                    break;
+                }
+
+                visualParent = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(visualParent);
+            }
+
+            if (ViewModel.SelectedCard == null || this.Frame == null)
+            {
+                return;
+            }
+
+            OnEditInfoClicked(sender, e);
         }
 
         private void OnOverlayClicked(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
@@ -308,6 +351,159 @@ namespace PlustekBCR.Views
                 return $"\"{text.Replace("\"", "\"\"")}\"";
             }
             return text;
+        }
+
+        private async void OnAddSidebarTagClicked(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel.SelectedCard == null)
+            {
+                return;
+            }
+
+            var flyout = new MenuFlyout();
+            var available = _tagCatalogService.GetAllTags()
+                .Where(tag => !SidebarSelectedTags.Any(x => string.Equals(x, tag, StringComparison.OrdinalIgnoreCase)))
+                .ToList();
+
+            foreach (var tag in available)
+            {
+                var item = new MenuFlyoutItem { Text = tag, Tag = tag };
+                item.Click += async (_, __) =>
+                {
+                    SidebarSelectedTags.Add(tag);
+                    RebuildSidebarTagFlowItems();
+                    await PersistSidebarTagsAsync();
+                };
+                flyout.Items.Add(item);
+            }
+
+            if (available.Count > 0)
+            {
+                flyout.Items.Add(new MenuFlyoutSeparator());
+            }
+
+            var newTagItem = new MenuFlyoutItem { Text = "+ New tag" };
+            newTagItem.Click += async (_, __) =>
+            {
+                var input = new TextBox { PlaceholderText = "Enter a new tag" };
+                var dialog = new ContentDialog
+                {
+                    Title = "Add Tag",
+                    Content = input,
+                    PrimaryButtonText = "Add",
+                    CloseButtonText = "Cancel",
+                    DefaultButton = ContentDialogButton.Primary,
+                    XamlRoot = this.XamlRoot
+                };
+
+                var result = await dialog.ShowAsync();
+                if (result != ContentDialogResult.Primary)
+                {
+                    return;
+                }
+
+                var value = input.Text?.Trim();
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    return;
+                }
+
+                var existsInCard = SidebarSelectedTags.Any(x => string.Equals(x, value, StringComparison.OrdinalIgnoreCase));
+                if (!existsInCard)
+                {
+                    SidebarSelectedTags.Add(value);
+                    RebuildSidebarTagFlowItems();
+                }
+
+                _tagCatalogService.AddTag(value);
+                await PersistSidebarTagsAsync();
+                await _tagCatalogService.SaveAsync();
+            };
+
+            flyout.Items.Add(newTagItem);
+            flyout.ShowAt((FrameworkElement)sender);
+        }
+
+        private async void OnRemoveSidebarTagClicked(object sender, RoutedEventArgs e)
+        {
+            if (sender is not Button button || button.Tag is not string tag)
+            {
+                return;
+            }
+
+                var target = SidebarSelectedTags.FirstOrDefault(x => string.Equals(x, tag, StringComparison.OrdinalIgnoreCase));
+                if (target == null)
+                {
+                    return;
+                }
+
+                SidebarSelectedTags.Remove(target);
+                RebuildSidebarTagFlowItems();
+                await PersistSidebarTagsAsync();
+        }
+
+        private async Task PersistSidebarTagsAsync()
+        {
+            if (ViewModel.SelectedCard == null)
+            {
+                return;
+            }
+
+            ViewModel.SelectedCard.Tag = string.Join(", ", SidebarSelectedTags);
+
+            var hasNew = false;
+            foreach (var tag in SidebarSelectedTags)
+            {
+                if (_tagCatalogService.AddTag(tag))
+                {
+                    hasNew = true;
+                }
+            }
+
+            if (hasNew)
+            {
+                await _tagCatalogService.SaveAsync();
+            }
+        }
+
+        private void RefreshSidebarTagsFromCard()
+        {
+            SidebarSelectedTags.Clear();
+            var raw = ViewModel.SelectedCard?.Tag ?? string.Empty;
+            var tags = raw.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => x.Trim())
+                .Where(x => !string.IsNullOrWhiteSpace(x));
+
+            foreach (var tag in tags)
+            {
+                if (!SidebarSelectedTags.Any(x => string.Equals(x, tag, StringComparison.OrdinalIgnoreCase)))
+                {
+                    SidebarSelectedTags.Add(tag);
+                }
+            }
+            RebuildSidebarTagFlowItems();
+        }
+
+        private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(AllCardsViewModel.SelectedCard))
+            {
+                RefreshSidebarTagsFromCard();
+            }
+        }
+
+        private void OnTagCatalogChanged()
+        {
+            DispatcherQueue.TryEnqueue(RefreshSidebarTagsFromCard);
+        }
+
+        private void RebuildSidebarTagFlowItems()
+        {
+            SidebarTagFlowItems.Clear();
+            foreach (var tag in SidebarSelectedTags)
+            {
+                SidebarTagFlowItems.Add(new TagFlowItem { Text = tag, IsAddButton = false });
+            }
         }
     }
 }
