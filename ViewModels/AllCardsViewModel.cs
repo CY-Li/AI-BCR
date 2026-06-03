@@ -28,7 +28,7 @@ namespace PlustekBCR.ViewModels
         {
             MainViewModel = App.GetService<MainViewModel>();
             AllCards = new ObservableCollection<BusinessCard>();
-            MainViewModel.TagFilterChanged += OnTagFilterChanged;
+            MainViewModel.SearchChanged += OnSearchChanged;
             LoadSampleData();
 
             // Register for cards imported message
@@ -92,10 +92,15 @@ namespace PlustekBCR.ViewModels
             }
         }
 
-        public IEnumerable<BusinessCard> FilteredCards =>
-            string.IsNullOrWhiteSpace(MainViewModel.SelectedTagFilter)
-                ? AllCards
-                : AllCards.Where(ContainsSelectedTag);
+        public IEnumerable<BusinessCard> FilteredCards => AllCards.Where(MatchesSearch);
+
+        public int FilteredCardCount => FilteredCards.Count();
+
+        public string SearchResultSummary => MainViewModel.IsSearchActive
+            ? $"{FilteredCardCount} result{(FilteredCardCount == 1 ? string.Empty : "s")} | {MainViewModel.SearchSummaryText}"
+            : $"{AllCards.Count} cards";
+
+        public bool HasNoSearchResults => MainViewModel.IsSearchActive && FilteredCardCount == 0;
 
         public List<CardGroup> GroupedCards => 
             FilteredCards.OrderByDescending(c => c.ScanDate)
@@ -121,8 +126,7 @@ namespace PlustekBCR.ViewModels
                 if (confirm)
                 {
                     AllCards.Remove(card);
-                    OnPropertyChanged(nameof(FilteredCards));
-                    OnPropertyChanged(nameof(GroupedCards));
+                    RefreshSearchResults();
                     if (SelectedCard == card)
                     {
                         SelectedCard = null;
@@ -160,8 +164,7 @@ namespace PlustekBCR.ViewModels
                 }
             }
 
-            OnPropertyChanged(nameof(GroupedCards));
-            OnPropertyChanged(nameof(FilteredCards));
+            RefreshSearchResults();
 
             if (cardsToProcess.Count > 0)
             {
@@ -169,24 +172,114 @@ namespace PlustekBCR.ViewModels
             }
         }
 
-        private bool ContainsSelectedTag(BusinessCard card)
+        private bool MatchesSearch(BusinessCard card)
         {
-            var target = MainViewModel.SelectedTagFilter;
-            if (string.IsNullOrWhiteSpace(target))
+            if (!MatchesAdvancedFilters(card))
+            {
+                return false;
+            }
+
+            var keyword = MainViewModel.SearchKeyword;
+            if (string.IsNullOrWhiteSpace(keyword))
             {
                 return true;
             }
 
-            return (card.Tag ?? string.Empty)
-                .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(x => x.Trim())
-                .Any(x => string.Equals(x, target, StringComparison.OrdinalIgnoreCase));
+            return MainViewModel.SelectedSearchScope switch
+            {
+                "Company" => Contains(card.Company, keyword),
+                "Name" => Contains(card.Name, keyword),
+                "Tag" => ContainsTag(card, keyword, exact: false),
+                "Date" => true,
+                _ => ContainsAnyMainField(card, keyword)
+            };
         }
 
-        private void OnTagFilterChanged()
+        private bool MatchesAdvancedFilters(BusinessCard card)
+        {
+            if (!string.IsNullOrWhiteSpace(MainViewModel.CompanySearchKeyword)
+                && !Contains(card.Company, MainViewModel.CompanySearchKeyword))
+            {
+                return false;
+            }
+
+            if (!string.IsNullOrWhiteSpace(MainViewModel.NameSearchKeyword)
+                && !Contains(card.Name, MainViewModel.NameSearchKeyword))
+            {
+                return false;
+            }
+
+            if (!string.IsNullOrWhiteSpace(MainViewModel.SelectedTagFilter)
+                && !ContainsTag(card, MainViewModel.SelectedTagFilter, exact: true))
+            {
+                return false;
+            }
+
+            if (!string.IsNullOrWhiteSpace(MainViewModel.TagSearchKeyword)
+                && !ContainsTag(card, MainViewModel.TagSearchKeyword, exact: false))
+            {
+                return false;
+            }
+
+            var scanDate = card.ScanDate.Date;
+            if (MainViewModel.StartDate.HasValue && scanDate < MainViewModel.StartDate.Value.Date)
+            {
+                return false;
+            }
+
+            if (MainViewModel.EndDate.HasValue && scanDate > MainViewModel.EndDate.Value.Date)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool ContainsAnyMainField(BusinessCard card, string keyword)
+        {
+            return Contains(card.Name, keyword)
+                || Contains(card.Company, keyword)
+                || Contains(card.Title, keyword)
+                || Contains(card.Phone, keyword)
+                || Contains(card.Email, keyword)
+                || Contains(card.Address, keyword)
+                || Contains(card.Tag, keyword);
+        }
+
+        private static bool Contains(string? source, string? keyword)
+        {
+            return !string.IsNullOrWhiteSpace(keyword)
+                && (source ?? string.Empty).Contains(keyword, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool ContainsTag(BusinessCard card, string? keyword, bool exact)
+        {
+            if (string.IsNullOrWhiteSpace(keyword))
+            {
+                return false;
+            }
+
+            var tags = (card.Tag ?? string.Empty)
+                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => x.Trim());
+
+            return exact
+                ? tags.Any(x => string.Equals(x, keyword, StringComparison.OrdinalIgnoreCase))
+                : tags.Any(x => x.Contains(keyword, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private void OnSearchChanged()
+        {
+            RefreshSearchResults();
+        }
+
+        private void RefreshSearchResults()
         {
             OnPropertyChanged(nameof(FilteredCards));
             OnPropertyChanged(nameof(GroupedCards));
+            OnPropertyChanged(nameof(FilteredCardCount));
+            OnPropertyChanged(nameof(SearchResultSummary));
+            OnPropertyChanged(nameof(HasNoSearchResults));
         }
 
         private async Task ProcessOcrQueueAsync(List<BusinessCard> cardsToProcess)
@@ -226,16 +319,16 @@ namespace PlustekBCR.ViewModels
                         card.Phone = $"+1 (555) {rand.Next(100, 999)}-{rand.Next(1000, 9999)}";
                         card.Address = $"{rand.Next(100, 9999)} Silicon Valley Rd, Suite {rand.Next(10, 500)}, San Jose, CA";
                         card.Country = "United States";
-                        card.Tag = "Imported, AI";
                         card.Website = $"www.{card.Company.Replace(" ", "").ToLower()}.com";
 
                         card.Notes.Add(new Note { Content = "Automatically recognized and parsed by AI BCR Engine." });
                         card.Status = ProcessingStatus.Done;
-                        if (!string.IsNullOrWhiteSpace(card.Tag)
-                            && card.Tag.Contains("AutoScanSession", StringComparison.OrdinalIgnoreCase))
+                        if (card.IsAutoScanSession)
                         {
                             MainViewModel.MarkRecognizingCompleted();
                         }
+
+                        RefreshSearchResults();
                     });
                 }
                 catch (Exception ex)

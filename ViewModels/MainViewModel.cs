@@ -165,7 +165,13 @@ namespace PlustekBCR.ViewModels
         public string SelectedSearchScope
         {
             get => _selectedSearchScope;
-            set => SetProperty(ref _selectedSearchScope, value);
+            set
+            {
+                if (SetProperty(ref _selectedSearchScope, value))
+                {
+                    NotifySearchChanged();
+                }
+            }
         }
 
         private ObservableCollection<string> _recentSearches = new();
@@ -190,12 +196,137 @@ namespace PlustekBCR.ViewModels
             {
                 if (SetProperty(ref _selectedTagFilter, value))
                 {
-                    TagFilterChanged?.Invoke();
+                    NotifySearchChanged();
                 }
             }
         }
 
+        private string? _tagSearchKeyword;
+        public string? TagSearchKeyword
+        {
+            get => _tagSearchKeyword;
+            set
+            {
+                if (SetProperty(ref _tagSearchKeyword, string.IsNullOrWhiteSpace(value) ? null : value.Trim()))
+                {
+                    NotifySearchChanged();
+                }
+            }
+        }
+
+        private string? _searchKeyword;
+        public string? SearchKeyword
+        {
+            get => _searchKeyword;
+            private set
+            {
+                if (SetProperty(ref _searchKeyword, NormalizeSearchText(value)))
+                {
+                    NotifySearchChanged();
+                }
+            }
+        }
+
+        private string? _companySearchKeyword;
+        public string? CompanySearchKeyword
+        {
+            get => _companySearchKeyword;
+            private set
+            {
+                if (SetProperty(ref _companySearchKeyword, NormalizeSearchText(value)))
+                {
+                    NotifySearchChanged();
+                }
+            }
+        }
+
+        private string? _nameSearchKeyword;
+        public string? NameSearchKeyword
+        {
+            get => _nameSearchKeyword;
+            private set
+            {
+                if (SetProperty(ref _nameSearchKeyword, NormalizeSearchText(value)))
+                {
+                    NotifySearchChanged();
+                }
+            }
+        }
+
+        private DateTime? _startDate;
+        public DateTime? StartDate
+        {
+            get => _startDate;
+            private set
+            {
+                if (SetProperty(ref _startDate, value?.Date))
+                {
+                    NotifySearchChanged();
+                }
+            }
+        }
+
+        private DateTime? _endDate;
+        public DateTime? EndDate
+        {
+            get => _endDate;
+            private set
+            {
+                if (SetProperty(ref _endDate, value?.Date))
+                {
+                    NotifySearchChanged();
+                }
+            }
+        }
+
+        private string? _selectedRecentPreset;
+        public string? SelectedRecentPreset
+        {
+            get => _selectedRecentPreset;
+            private set
+            {
+                if (SetProperty(ref _selectedRecentPreset, NormalizeSearchText(value)))
+                {
+                    NotifySearchChanged();
+                }
+            }
+        }
+
+        public bool IsSearchActive =>
+            !string.IsNullOrWhiteSpace(SearchKeyword)
+            || !string.IsNullOrWhiteSpace(CompanySearchKeyword)
+            || !string.IsNullOrWhiteSpace(NameSearchKeyword)
+            || !string.IsNullOrWhiteSpace(TagSearchKeyword)
+            || !string.IsNullOrWhiteSpace(SelectedTagFilter)
+            || StartDate.HasValue
+            || EndDate.HasValue;
+
+        public string SearchSummaryText
+        {
+            get
+            {
+                var parts = new System.Collections.Generic.List<string>();
+                AddSummaryPart(parts, "All", SearchKeyword);
+                AddSummaryPart(parts, "Company", CompanySearchKeyword);
+                AddSummaryPart(parts, "Name", NameSearchKeyword);
+                AddSummaryPart(parts, "Tag", SelectedTagFilter ?? TagSearchKeyword);
+
+                if (StartDate.HasValue || EndDate.HasValue)
+                {
+                    var start = StartDate?.ToString("yyyy-MM-dd") ?? "Any";
+                    var end = EndDate?.ToString("yyyy-MM-dd") ?? "Any";
+                    var label = string.IsNullOrWhiteSpace(SelectedRecentPreset)
+                        ? $"{start} - {end}"
+                        : $"{SelectedRecentPreset} ({start} - {end})";
+                    parts.Add($"Date: {label}");
+                }
+
+                return parts.Count == 0 ? "All cards" : string.Join(" | ", parts);
+            }
+        }
+
         public event Action? TagFilterChanged;
+        public event Action? SearchChanged;
 
         public void AddRecentSearch(string query)
         {
@@ -219,7 +350,134 @@ namespace PlustekBCR.ViewModels
 
         public void ApplyTagFilter(string? tag)
         {
+            ClearKeywordFilters();
             SelectedTagFilter = string.IsNullOrWhiteSpace(tag) ? null : tag.Trim();
+        }
+
+        public void ApplyTagSearchKeyword(string? keyword)
+        {
+            ClearKeywordFilters();
+            SelectedTagFilter = null;
+            TagSearchKeyword = keyword;
+        }
+
+        public void ClearTagFilters()
+        {
+            SelectedTagFilter = null;
+            TagSearchKeyword = null;
+        }
+
+        public void ApplyHeaderSearch(string? scope, string? keyword)
+        {
+            ClearSearchCore();
+            SelectedSearchScope = string.IsNullOrWhiteSpace(scope) ? "All cards" : scope.Trim();
+
+            var normalized = NormalizeSearchText(keyword);
+            if (string.IsNullOrWhiteSpace(normalized))
+            {
+                NotifySearchChanged();
+                return;
+            }
+
+            switch (SelectedSearchScope)
+            {
+                case "Company":
+                    CompanySearchKeyword = normalized;
+                    break;
+                case "Name":
+                    NameSearchKeyword = normalized;
+                    break;
+                case "Tag":
+                    TagSearchKeyword = normalized;
+                    break;
+                default:
+                    SearchKeyword = normalized;
+                    break;
+            }
+        }
+
+        public void ApplyAdvancedSearch(string? company, string? name, string? tag, DateTime? startDate, DateTime? endDate)
+        {
+            ClearSearchCore();
+            SelectedSearchScope = "All cards";
+            CompanySearchKeyword = company;
+            NameSearchKeyword = name;
+            TagSearchKeyword = tag;
+            ApplyDateRange(startDate, endDate, null);
+        }
+
+        public void ApplyDateRange(DateTime? startDate, DateTime? endDate, string? preset)
+        {
+            StartDate = startDate?.Date;
+            EndDate = endDate?.Date;
+            SelectedRecentPreset = preset;
+        }
+
+        public void ApplyRecentPreset(string preset)
+        {
+            var today = DateTime.Today;
+            var start = preset switch
+            {
+                "Today" => today,
+                "Within 3 days" => today.AddDays(-2),
+                "Within 7 days" => today.AddDays(-6),
+                _ => today
+            };
+
+            ClearSearchCore();
+            SelectedSearchScope = "Date";
+            ApplyDateRange(start, today, preset);
+        }
+
+        public void ClearSearch()
+        {
+            ClearSearchCore();
+            SelectedSearchScope = "All cards";
+            NotifySearchChanged();
+        }
+
+        private void ClearKeywordFilters()
+        {
+            SearchKeyword = null;
+            CompanySearchKeyword = null;
+            NameSearchKeyword = null;
+            StartDate = null;
+            EndDate = null;
+            SelectedRecentPreset = null;
+        }
+
+        private void ClearSearchCore()
+        {
+            SearchKeyword = null;
+            CompanySearchKeyword = null;
+            NameSearchKeyword = null;
+            SelectedTagFilter = null;
+            TagSearchKeyword = null;
+            StartDate = null;
+            EndDate = null;
+            SelectedRecentPreset = null;
+        }
+
+        private void NotifySearchChanged()
+        {
+            OnPropertyChanged(nameof(IsSearchActive));
+            OnPropertyChanged(nameof(SearchSummaryText));
+            TagFilterChanged?.Invoke();
+            SearchChanged?.Invoke();
+        }
+
+        private static string? NormalizeSearchText(string? value)
+        {
+            var text = value?.Trim();
+            return string.IsNullOrWhiteSpace(text) ? null : text;
+        }
+
+        private static void AddSummaryPart(System.Collections.Generic.List<string> parts, string label, string? value)
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                parts.Add($"{label}: {value}");
+            }
         }
 
         private void RefreshTagFilters()
@@ -501,7 +759,7 @@ namespace PlustekBCR.ViewModels
                         Company = "Processing...",
                         Status = ProcessingStatus.Recognizing,
                         ScanDate = DateTime.Now,
-                        Tag = "AutoScanSession"
+                        IsAutoScanSession = true
                     };
 
                     AutoScanScannedCount++;
@@ -546,7 +804,7 @@ namespace PlustekBCR.ViewModels
                     Company = "Processing...",
                     Status = ProcessingStatus.Recognizing,
                     ScanDate = DateTime.Now,
-                    Tag = "AutoScanSession"
+                    IsAutoScanSession = true
                 };
 
                 AutoScanScannedCount++;
@@ -597,7 +855,7 @@ namespace PlustekBCR.ViewModels
                 Company = "Processing...",
                 Status = ProcessingStatus.Recognizing,
                 ScanDate = DateTime.Now,
-                Tag = "AutoScanSession"
+                IsAutoScanSession = true
             };
 
             WeakReferenceMessenger.Default.Send(new CardsImportedMessage(new System.Collections.Generic.List<BusinessCard> { scanningCard }));

@@ -73,6 +73,11 @@ namespace PlustekBCR.Views
             }
         }
 
+        private void OnClearSearchClicked(object sender, RoutedEventArgs e)
+        {
+            ViewModel.MainViewModel.ClearSearch();
+        }
+
         private void OnCardDoubleTapped(object sender, Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs e)
         {
             Microsoft.UI.Xaml.DependencyObject? visualParent = e.OriginalSource as Microsoft.UI.Xaml.DependencyObject;

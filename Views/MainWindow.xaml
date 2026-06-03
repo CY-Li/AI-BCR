@@ -227,6 +227,7 @@
                         PlaceholderText="????冗"
                         DropDownOpened="OnSearchScopeDropDownOpened"
                         DropDownClosed="OnSearchScopeDropDownClosed"
+                        SelectionChanged="OnSearchScopeSelectionChanged"
                         ItemsSource="{x:Bind ViewModel.SearchScopes, Mode=OneWay}"
                         SelectedItem="{x:Bind ViewModel.SelectedSearchScope, Mode=TwoWay}" />
 
@@ -262,6 +263,59 @@
                                     GotFocus="OnHeaderSearchBoxGotFocus"
                                     KeyDown="OnHeaderSearchBoxKeyDown" />
                                 <Button Grid.Column="1" Style="{StaticResource SearchIconButtonStyle}" Click="OnOpenAdvancedSearchClicked" ToolTipService.ToolTip="?脤???">
+                                    <FontIcon Glyph="&#xE71C;" FontSize="13" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </Button>
+                            </Grid>
+                        </Border>
+
+                        <Border
+                            x:Name="DateSearchBoxHost"
+                            Height="36"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            Background="{ThemeResource LayerFillColorDefaultBrush}"
+                            Visibility="Collapsed">
+                            <Grid ColumnSpacing="4" Padding="4,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="32" />
+                                    <ColumnDefinition Width="32" />
+                                </Grid.ColumnDefinitions>
+
+                                <Button
+                                    Grid.Column="0"
+                                    Height="28"
+                                    MinWidth="36"
+                                    Padding="8,0"
+                                    FontSize="12"
+                                    Content="Recent">
+                                    <Button.Flyout>
+                                        <MenuFlyout>
+                                            <MenuFlyoutItem Text="Today" Tag="Today" Click="OnRecentPresetClicked" />
+                                            <MenuFlyoutItem Text="Within 3 days" Tag="Within 3 days" Click="OnRecentPresetClicked" />
+                                            <MenuFlyoutItem Text="Within 7 days" Tag="Within 7 days" Click="OnRecentPresetClicked" />
+                                        </MenuFlyout>
+                                    </Button.Flyout>
+                                </Button>
+                                <CalendarDatePicker
+                                    x:Name="HeaderStartDatePicker"
+                                    Grid.Column="1"
+                                    Height="28"
+                                    PlaceholderText="Start"
+                                    HorizontalAlignment="Stretch" />
+                                <CalendarDatePicker
+                                    x:Name="HeaderEndDatePicker"
+                                    Grid.Column="2"
+                                    Height="28"
+                                    PlaceholderText="End"
+                                    HorizontalAlignment="Stretch" />
+                                <Button Grid.Column="3" Style="{StaticResource SearchIconButtonStyle}" Click="OnHeaderDateSearchClicked" ToolTipService.ToolTip="Search date range">
+                                    <FontIcon Glyph="&#xE721;" FontSize="13" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </Button>
+                                <Button Grid.Column="4" Style="{StaticResource SearchIconButtonStyle}" Click="OnOpenAdvancedSearchClicked" ToolTipService.ToolTip="Advanced search">
                                     <FontIcon Glyph="&#xE71C;" FontSize="13" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                 </Button>
                             </Grid>
@@ -353,9 +407,9 @@
                         <PathIcon Data="M12 2c5.523 0 10 4.478 10 10s-4.477 10-10 10S2 17.522 2 12 6.477 2 12 2Zm0 1.667c-4.595 0-8.333 3.738-8.333 8.333 0 4.595 3.738 8.333 8.333 8.333 4.595 0 8.333-3.738 8.333-8.333 0-4.595-3.738-8.333-8.333-8.333ZM11.25 6a.75.75 0 0 1 .743.648L12 6.75V12h3.25a.75.75 0 0 1 .102 1.493l-.102.007h-4a.75.75 0 0 1-.743-.648l-.007-.102v-6a.75.75 0 0 1 .75-.75Z"/>
                     </NavigationViewItem.Icon>
                     <NavigationViewItem.MenuItems>
-                        <NavigationViewItem Content="Today"/>
-                        <NavigationViewItem Content="Within 3 days"/>
-                        <NavigationViewItem Content="Within 7 days"/>
+                        <NavigationViewItem Content="Today" Tag="RecentPreset:Today"/>
+                        <NavigationViewItem Content="Within 3 days" Tag="RecentPreset:Within 3 days"/>
+                        <NavigationViewItem Content="Within 7 days" Tag="RecentPreset:Within 7 days"/>
                     </NavigationViewItem.MenuItems>
                 </NavigationViewItem>
                 <NavigationViewItem Content="By Company">
@@ -372,9 +426,6 @@
                     <NavigationViewItem.Icon>
                         <PathIcon Data="M19.75 2A2.25 2.25 0 0 1 22 4.25v5.462a3.25 3.25 0 0 1-.952 2.298l-8.5 8.503a3.255 3.255 0 0 1-4.597.001L3.489 16.06a3.25 3.25 0 0 1-.003-4.596l8.5-8.51A3.25 3.25 0 0 1 14.284 2h5.465Zm0 1.5h-5.465c-.465 0-.91.185-1.239.513l-8.512 8.523a1.75 1.75 0 0 0 .015 2.462l4.461 4.454a1.755 1.755 0 0 0 2.477 0l8.5-8.503a1.75 1.75 0 0 0 .513-1.237V4.25a.75.75 0 0 0-.75-.75ZM17 5.502a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Z"/>
                     </NavigationViewItem.Icon>
-                    <NavigationViewItem.MenuItems>
-                        <NavigationViewItem Content="All tags" Tag="TagFilter:"/>
-                    </NavigationViewItem.MenuItems>
                 </NavigationViewItem>
             </NavigationView.MenuItems>
 
@@ -602,16 +653,22 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
-                            <TextBox Grid.Row="0" Header="Company" />
-                            <TextBox Grid.Row="1" Header="Name" />
-                            <TextBox Grid.Row="2" Header="Tag" PlaceholderText="Enter tags, separated by commas" />
-                            <CalendarDatePicker Grid.Row="3" Header="Start Date" HorizontalAlignment="Stretch" />
-                            <CalendarDatePicker Grid.Row="4" Header="End Date" HorizontalAlignment="Stretch" />
+                            <TextBox x:Name="AdvancedCompanyTextBox" Grid.Row="0" Header="Company" />
+                            <TextBox x:Name="AdvancedNameTextBox" Grid.Row="1" Header="Name" />
+                            <TextBox x:Name="AdvancedTagTextBox" Grid.Row="2" Header="Tag" PlaceholderText="Enter tags, separated by commas" />
+                            <CalendarDatePicker x:Name="AdvancedStartDatePicker" Grid.Row="3" Header="Start Date" HorizontalAlignment="Stretch" />
+                            <CalendarDatePicker x:Name="AdvancedEndDatePicker" Grid.Row="4" Header="End Date" HorizontalAlignment="Stretch" />
+                            <StackPanel Grid.Row="5" Orientation="Horizontal" Spacing="8">
+                                <Button Content="Today" Tag="Today" Height="30" Padding="10,2" Click="OnAdvancedRecentPresetClicked" />
+                                <Button Content="Within 3 days" Tag="Within 3 days" Height="30" Padding="10,2" Click="OnAdvancedRecentPresetClicked" />
+                                <Button Content="Within 7 days" Tag="Within 7 days" Height="30" Padding="10,2" Click="OnAdvancedRecentPresetClicked" />
+                            </StackPanel>
                         </Grid>
                         <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-                            <Button Content="Clear" Height="32" Padding="16,4,16,4" FontSize="14" FontWeight="Normal" />
-                            <Button Content="Search" Style="{StaticResource PrimaryActionStyle}" Height="32" Padding="16,4,16,4" FontSize="14" FontWeight="Normal" />
+                            <Button Content="Clear" Height="32" Padding="16,4,16,4" FontSize="14" FontWeight="Normal" Click="OnAdvancedSearchClearClicked" />
+                            <Button Content="Search" Style="{StaticResource PrimaryActionStyle}" Height="32" Padding="16,4,16,4" FontSize="14" FontWeight="Normal" Click="OnAdvancedSearchClicked" />
                         </StackPanel>
                     </Grid>
                 </Grid>

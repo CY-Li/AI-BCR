@@ -17,12 +17,41 @@
     </Page.Resources>
 
     <Grid Background="Transparent" PointerPressed="OnOverlayClicked">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
+
+        <Border
+            Grid.Row="0"
+            Grid.Column="0"
+            Margin="24,16,24,0"
+            Padding="12,8"
+            Background="{ThemeResource LayerFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="6"
+            Visibility="{x:Bind ViewModel.MainViewModel.IsSearchActive, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Spacing="2">
+                    <TextBlock Text="Search results" FontSize="12" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                    <TextBlock Text="{x:Bind ViewModel.SearchResultSummary, Mode=OneWay}" FontSize="13" TextTrimming="CharacterEllipsis"/>
+                </StackPanel>
+                <Button Grid.Column="1" Content="Clear" Height="30" Padding="12,2" Click="OnClearSearchClicked"/>
+            </Grid>
+        </Border>
+
         <GridView 
+            Grid.Row="1"
             Grid.Column="0"
             Visibility="{x:Bind ViewModel.MainViewModel.IsGridView, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"
             ItemsSource="{x:Bind GroupedCardsSource.View, Mode=OneWay}"
@@ -132,6 +161,7 @@
 
         <!-- List View Mode -->
         <ListView
+            Grid.Row="1"
             Grid.Column="0"
             Visibility="{x:Bind ViewModel.MainViewModel.IsGridView, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}"
             ItemsSource="{x:Bind GroupedCardsSource.View, Mode=OneWay}"
@@ -241,8 +271,21 @@
             </ListView.GroupStyle>
         </ListView>
 
+        <Grid
+            Grid.Row="1"
+            Grid.Column="0"
+            Canvas.ZIndex="11"
+            IsHitTestVisible="False"
+            Visibility="{x:Bind ViewModel.HasNoSearchResults, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+                <TextBlock Text="No matching business cards" FontSize="18" FontWeight="SemiBold" TextAlignment="Center"/>
+                <TextBlock Text="Clear search conditions to return to all cards." FontSize="13" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextAlignment="Center"/>
+            </StackPanel>
+        </Grid>
+
         <!-- Overlay for closing sidebar -->
         <Grid x:Name="Overlay" 
+              Grid.Row="1"
               Grid.Column="0"
               Background="Transparent" 
               Visibility="{x:Bind ViewModel.IsSidebarOpen, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
@@ -251,6 +294,7 @@
 
         <!-- Grid Splitter (Custom Thumb) -->
         <Thumb x:Name="SidebarSplitter"
+               Grid.Row="1"
                Grid.Column="1"
                Width="8"
                Background="Transparent"
@@ -262,6 +306,8 @@
 
         <!-- Sidebar -->
         <Border x:Name="Sidebar" 
+                Grid.Row="0"
+                Grid.RowSpan="2"
                 Grid.Column="2"
                 Width="720" 
                 Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"

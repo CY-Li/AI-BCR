@@ -66,6 +66,9 @@ namespace PlustekBCR.Models
         [ObservableProperty]
         public partial ProcessingStatus Status { get; set; }
 
+        [ObservableProperty]
+        public partial bool IsAutoScanSession { get; set; }
+
         public bool IsRecognizing => Status == ProcessingStatus.Recognizing;
         public bool IsAiReprocessAvailable => !IsRecognizing;
 
@@ -90,6 +93,7 @@ namespace PlustekBCR.Models
             Website = string.Empty;
             Notes = new();
             Status = ProcessingStatus.Pending;
+            IsAutoScanSession = false;
         }
     }
 
