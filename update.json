@@ -1,5 +1,5 @@
 {
-  "version": "1.0.7",
-  "downloadUrl": "https://github.com/CY-Li/AI-BCR/releases/download/v1.0.7/PlustekBCR-v1.0.7-win-x64.zip",
-  "notes": "1. 整合紙張放入提示及Auto Scan彈窗"
+  "version": "1.0.8",
+  "downloadUrl": "https://github.com/CY-Li/AI-BCR/releases/download/v1.0.8/PlustekBCR-v1.0.8-win-x64.zip",
+  "notes": "1. 將左上角\"Auto Scan\"按鈕更名為\"Scan\"\r\n2. 名片資訊卡新增雙擊事件，可以導向編輯頁\r\n3. 實作Tag功能\r\n- 左側Sidebar新增\"+ Add tag\"及\"All tags\"標籤\r\n- 在左側Sidebar刪除tag，如有名片使用該tag也會一併移除標籤\r\n- 右側Detail drawer新增Tag欄位，點擊\"+ Add tag\"按鈕可以選擇既有標籤或是建立新標籤\r\n- 編輯頁新增Tag欄位，點擊\"+ Add tag\"按鈕可以選擇既有標籤或是建立新標籤\r\n4. 左側Sidebar新增掃描器狀態卡"
 }
