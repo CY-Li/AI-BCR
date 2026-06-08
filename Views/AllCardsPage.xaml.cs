@@ -7,6 +7,9 @@ using System.IO;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using Microsoft.UI.Xaml.Media.Animation;
+using Microsoft.UI.Xaml.Media;
+using PlustekBCR.Controls;
+using PlustekBCR.Helpers;
 using PlustekBCR.ViewModels;
 using PlustekBCR.Models;
 using PlustekBCR.Services;
@@ -19,6 +22,7 @@ namespace PlustekBCR.Views
     {
         public AllCardsViewModel ViewModel { get; }
         private readonly ITagCatalogService _tagCatalogService;
+        private readonly IBusinessCardFieldService _fieldService;
         public ObservableCollection<string> SidebarSelectedTags { get; } = new();
         public ObservableCollection<TagFlowItem> SidebarTagFlowItems { get; } = new();
 
@@ -26,6 +30,7 @@ namespace PlustekBCR.Views
         {
             ViewModel = App.GetService<AllCardsViewModel>();
             _tagCatalogService = App.GetService<ITagCatalogService>();
+            _fieldService = App.GetService<IBusinessCardFieldService>();
             this.InitializeComponent();
             this.NavigationCacheMode = Microsoft.UI.Xaml.Navigation.NavigationCacheMode.Required;
             ViewModel.PropertyChanged += OnViewModelPropertyChanged;
@@ -36,7 +41,7 @@ namespace PlustekBCR.Views
                 var dialog = new ContentDialog
                 {
                     Title = "Delete Business Card",
-                    Content = $"Are you sure you want to delete the business card of '{card.Name}'? This action cannot be undone.",
+                    Content = $"Are you sure you want to delete the business card of '{card.FullName}'? This action cannot be undone.",
                     PrimaryButtonText = "Delete",
                     CloseButtonText = "Cancel",
                     DefaultButton = ContentDialogButton.Close,
@@ -51,13 +56,6 @@ namespace PlustekBCR.Views
         {
             base.OnNavigatedTo(e);
             RefreshSidebarTagsFromCard();
-
-            // Handle backward animation when returning from CardDetailPage
-            var animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("BackwardConnectedAnimation");
-            if (animation != null)
-            {
-                animation.TryStart(SidebarFrontImage);
-            }
         }
 
         protected override void OnNavigatedFrom(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
@@ -103,7 +101,7 @@ namespace PlustekBCR.Views
                 return;
             }
 
-            OnEditInfoClicked(sender, e);
+            NavigateToDetail(ViewModel.SelectedCard);
         }
 
         private void OnOverlayClicked(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
@@ -166,19 +164,7 @@ namespace PlustekBCR.Views
 
         private void OnEditInfoClicked(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
         {
-            if (ViewModel.SelectedCard != null)
-            {
-                var navParams = new NavigationParams
-                {
-                    AllCards = ViewModel.AllCards,
-                    SelectedCard = ViewModel.SelectedCard
-                };
-
-                // Prepare connected animation
-                ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("ForwardConnectedAnimation", SidebarFrontImage);
-
-                this.Frame.Navigate(typeof(CardDetailPage), navParams);
-            }
+            NavigateToDetail(ViewModel.SelectedCard);
         }
 
         private void OnSidebarSplitterDragDelta(object sender, Microsoft.UI.Xaml.Controls.Primitives.DragDeltaEventArgs e)
@@ -239,8 +225,24 @@ namespace PlustekBCR.Views
             if (sender is MenuFlyoutItem menuItem && menuItem.DataContext is PlustekBCR.Models.BusinessCard card)
             {
                 ViewModel.SelectedCard = card;
-                OnEditInfoClicked(sender, e);
+                NavigateToDetail(card);
             }
+        }
+
+        private void NavigateToDetail(BusinessCard? card)
+        {
+            if (card == null || Frame == null)
+            {
+                return;
+            }
+
+            var navParams = new NavigationParams
+            {
+                AllCards = ViewModel.AllCards,
+                SelectedCard = card
+            };
+
+            Frame.Navigate(typeof(CardDetailPage), navParams, new SuppressNavigationTransitionInfo());
         }
 
         private async void OnExportCsvContextClicked(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
@@ -292,7 +294,7 @@ namespace PlustekBCR.Views
             var picker = new FileSavePicker
             {
                 SuggestedStartLocation = PickerLocationId.DocumentsLibrary,
-                SuggestedFileName = string.IsNullOrWhiteSpace(card.Name) ? "business_card" : card.Name
+                SuggestedFileName = string.IsNullOrWhiteSpace(card.FullName) ? "business_card" : card.FullName
             };
             picker.FileTypeChoices.Add("CSV (Comma delimited)", new System.Collections.Generic.List<string> { ".csv" });
 
@@ -302,15 +304,9 @@ namespace PlustekBCR.Views
             StorageFile? file = await picker.PickSaveFileAsync();
             if (file == null) return;
 
-            var headers = new[]
-            {
-                "Name","Title","Company","Phone","Email","Address","Country","Website","Tag","ScanDate","Status"
-            };
-            var values = new[]
-            {
-                card.Name, card.Title, card.Company, card.Phone, card.Email, card.Address, card.Country, card.Website, card.Tag,
-                card.ScanDate.ToString("yyyy-MM-dd HH:mm:ss"), card.Status.ToString()
-            };
+            var exportFields = _fieldService.GetFields(BusinessCardSurface.Export);
+            var headers = exportFields.Select(x => x.Key).ToArray();
+            var values = exportFields.Select(x => BusinessCardFieldAccessor.GetTextValue(card, x.PropertyName)).ToArray();
 
             var csv = string.Join(",", headers) + Environment.NewLine +
                       string.Join(",", System.Array.ConvertAll(values, EscapeCsv));
@@ -322,7 +318,7 @@ namespace PlustekBCR.Views
             var picker = new FileSavePicker
             {
                 SuggestedStartLocation = PickerLocationId.DocumentsLibrary,
-                SuggestedFileName = string.IsNullOrWhiteSpace(card.Name) ? "business_card" : card.Name
+                SuggestedFileName = string.IsNullOrWhiteSpace(card.FullName) ? "business_card" : card.FullName
             };
             picker.FileTypeChoices.Add("Text File", new System.Collections.Generic.List<string> { ".txt" });
 
@@ -333,12 +329,13 @@ namespace PlustekBCR.Views
             if (file == null) return;
 
             var sb = new StringBuilder();
-            sb.AppendLine($"Name: {card.Name}");
-            sb.AppendLine($"Title: {card.Title}");
-            sb.AppendLine($"Company: {card.Company}");
-            sb.AppendLine($"Phone: {card.Phone}");
+            sb.AppendLine($"Full Name: {card.FullName}");
+            sb.AppendLine($"Job Title: {card.JobTitle}");
+            sb.AppendLine($"Company: {card.CompanyName}");
+            sb.AppendLine($"Telephone: {card.Tel}");
+            sb.AppendLine($"Mobile: {card.Mobile}");
             sb.AppendLine($"Email: {card.Email}");
-            sb.AppendLine($"Address: {card.Address}");
+            sb.AppendLine($"Full Address: {card.FullAddress}");
             sb.AppendLine($"Country: {card.Country}");
             sb.AppendLine($"Website: {card.Website}");
             sb.AppendLine($"Tag: {card.Tag}");
@@ -365,7 +362,10 @@ namespace PlustekBCR.Views
                 return;
             }
 
-            var flyout = new MenuFlyout();
+            var flyout = new MenuFlyout
+            {
+                MenuFlyoutPresenterStyle = (Style)Application.Current.Resources["BcrTagMenuFlyoutPresenterStyle"]
+            };
             var available = _tagCatalogService.GetAllTags()
                 .Where(tag => !SidebarSelectedTags.Any(x => string.Equals(x, tag, StringComparison.OrdinalIgnoreCase)))
                 .ToList();
@@ -500,6 +500,158 @@ namespace PlustekBCR.Views
         private void OnTagCatalogChanged()
         {
             DispatcherQueue.TryEnqueue(RefreshSidebarTagsFromCard);
+        }
+
+        private void OnDetailFieldTapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
+        {
+            if (sender is FrameworkElement element && element.Tag is string fieldKey)
+            {
+                ViewModel.BeginFieldEdit(fieldKey);
+            }
+        }
+
+        private void OnSimpleFieldEditStarted(object? sender, EventArgs e)
+        {
+            if (!string.IsNullOrEmpty(ViewModel.EditingFieldKey))
+            {
+                ViewModel.EndFieldEdit(ViewModel.EditingFieldKey);
+            }
+        }
+
+        private void OnSidebarContentPointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+        {
+            var origin = e.OriginalSource as Microsoft.UI.Xaml.DependencyObject;
+
+            if (!string.IsNullOrEmpty(ViewModel.EditingFieldKey))
+            {
+                var activeContainer = GetFieldEditContainer(ViewModel.EditingFieldKey);
+                if (activeContainer != null && !IsDescendantOf(origin, activeContainer))
+                {
+                    ViewModel.EndFieldEdit(ViewModel.EditingFieldKey);
+                }
+            }
+
+            if (ShouldRedirectFocusToSink(origin))
+            {
+                SidebarFocusSink.Focus(Microsoft.UI.Xaml.FocusState.Programmatic);
+            }
+        }
+
+        private void OnCompositeFieldLosingFocus(UIElement sender, Microsoft.UI.Xaml.Input.LosingFocusEventArgs e)
+        {
+            if (sender is not FrameworkElement element)
+            {
+                return;
+            }
+
+            var fieldKey = ResolveFieldKey(element);
+            if (fieldKey == null)
+            {
+                return;
+            }
+
+            var container = GetFieldEditContainer(fieldKey);
+            if (container == null)
+            {
+                return;
+            }
+
+            if (e.NewFocusedElement is Microsoft.UI.Xaml.DependencyObject nextFocused
+                && IsDescendantOf(nextFocused, container))
+            {
+                return;
+            }
+
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                var focused = Microsoft.UI.Xaml.Input.FocusManager.GetFocusedElement(XamlRoot) as Microsoft.UI.Xaml.DependencyObject;
+                if (focused != null && IsDescendantOf(focused, container))
+                {
+                    return;
+                }
+
+                ViewModel.EndFieldEdit(fieldKey);
+            });
+        }
+
+        private bool ShouldRedirectFocusToSink(Microsoft.UI.Xaml.DependencyObject? origin)
+        {
+            var focused = Microsoft.UI.Xaml.Input.FocusManager.GetFocusedElement(XamlRoot) as Microsoft.UI.Xaml.DependencyObject;
+            if (focused == null)
+            {
+                return false;
+            }
+
+            if (!IsDescendantOfType<TextBox>(focused) && !IsDescendantOfType<EditableField>(focused))
+            {
+                return false;
+            }
+
+            return !IsDescendantOfType<TextBox>(origin)
+                && !IsDescendantOfType<Button>(origin)
+                && !IsDescendantOfType<EditableField>(origin);
+        }
+
+        private string? ResolveFieldKey(FrameworkElement element)
+        {
+            if (IsDescendantOf(element, NameEditContainer))
+            {
+                return "Name";
+            }
+
+            if (IsDescendantOf(element, DepartmentEditContainer))
+            {
+                return "Department";
+            }
+
+            if (IsDescendantOf(element, AddressEditContainer))
+            {
+                return "Address";
+            }
+
+            return null;
+        }
+
+        private FrameworkElement? GetFieldEditContainer(string fieldKey)
+        {
+            return fieldKey switch
+            {
+                "Name" => NameEditContainer,
+                "Department" => DepartmentEditContainer,
+                "Address" => AddressEditContainer,
+                _ => null
+            };
+        }
+
+        private static bool IsDescendantOf(Microsoft.UI.Xaml.DependencyObject? element, Microsoft.UI.Xaml.DependencyObject? ancestor)
+        {
+            while (element != null)
+            {
+                if (element == ancestor)
+                {
+                    return true;
+                }
+
+                element = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(element);
+            }
+
+            return false;
+        }
+
+        private static bool IsDescendantOfType<T>(Microsoft.UI.Xaml.DependencyObject? element)
+            where T : Microsoft.UI.Xaml.DependencyObject
+        {
+            while (element != null)
+            {
+                if (element is T)
+                {
+                    return true;
+                }
+
+                element = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(element);
+            }
+
+            return false;
         }
 
         private void RebuildSidebarTagFlowItems()

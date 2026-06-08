@@ -16,4 +16,5 @@
     <helpers:DateTimeToStringConverter x:Key="DateTimeToStringConverter"/>
     <helpers:DateTimeToDateTimeOffsetConverter x:Key="DateTimeToDateTimeOffsetConverter"/>
     <helpers:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
+    <helpers:FieldVisibilityConverter x:Key="FieldVisibilityConverter"/>
 </ResourceDictionary>

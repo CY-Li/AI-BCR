@@ -1,8 +1,11 @@
 using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices.WindowsRuntime;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Imaging;
 using PlustekBCR.Models;
 
 namespace PlustekBCR.Helpers
@@ -107,23 +110,24 @@ namespace PlustekBCR.Helpers
 
     public class ByteArrayToImageSourceConverter : IValueConverter
     {
+        private static readonly ConditionalWeakTable<byte[], BitmapImage> ImageCache = new();
+        private static readonly BitmapImage PlaceholderImage = new(new Uri("ms-appx:///Assets/scanner_illustration.png"));
+
         public object? Convert(object value, Type targetType, object parameter, string language)
         {
-            if (value is byte[] bytes)
+            if (value is byte[] bytes && bytes.Length > 0)
             {
-                // Note: In a real app, you might want to cache these or use a non-UI thread
-                // but for sample data this is fine.
-                using var ms = new System.IO.MemoryStream(bytes);
-                var image = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage();
-                // This is a bit tricky in WinUI 3 for desktop without a XamlRoot 
-                // but since it's a converter during binding it should be okay.
-                // However, the standard way is to use SetSourceAsync if possible.
-                // For simplicity here, we'll try this.
-                var stream = ms.AsRandomAccessStream();
-                image.SetSource(stream);
-                return image;
+                return ImageCache.GetValue(bytes, static key =>
+                {
+                    using var ms = new System.IO.MemoryStream(key, writable: false);
+                    using var stream = ms.AsRandomAccessStream();
+                    var image = new BitmapImage();
+                    image.SetSource(stream);
+                    return image;
+                });
             }
-            return new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri("ms-appx:///Assets/scanner_illustration.png"));
+
+            return PlaceholderImage;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();

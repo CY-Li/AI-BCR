@@ -16,7 +16,10 @@
                               Source="{x:Bind ViewModel.GroupedCards, Mode=OneWay}"/>
     </Page.Resources>
 
-    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    <Grid x:Name="PageRoot" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RenderTransform>
+            <TranslateTransform x:Name="PageRootTranslate"/>
+        </Grid.RenderTransform>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="300"/>
             <ColumnDefinition Width="*"/>
@@ -45,7 +48,7 @@
                                         BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}" 
                                         BorderThickness="1" 
                                         Background="{ThemeResource LayerFillColorDefaultBrush}" 
-                                        ToolTipService.ToolTip="{x:Bind Name}">
+                                        ToolTipService.ToolTip="{x:Bind FullName}">
                                     <Image Source="{x:Bind FrontImageData, Converter={StaticResource ByteArrayToImageSourceConverter}, Mode=OneWay}" 
                                            Stretch="Uniform" Margin="8"/>
                                 </Border>
@@ -74,11 +77,6 @@
         <!-- Main Content Area -->
         <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
             <Grid Padding="32" RowSpacing="24">
-                <Grid.ChildrenTransitions>
-                    <TransitionCollection>
-                        <EntranceThemeTransition FromVerticalOffset="20" IsStaggeringEnabled="True"/>
-                    </TransitionCollection>
-                </Grid.ChildrenTransitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/> <!-- Header: Name and Actions -->
                     <RowDefinition Height="Auto"/> <!-- Top: Card Images -->
@@ -93,7 +91,7 @@
                     </Grid.ColumnDefinitions>
                     
                     <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
-                        <TextBlock Text="{x:Bind ViewModel.SelectedCard.Name, Mode=OneWay}" FontSize="28" FontWeight="Bold"/>
+                        <TextBlock Text="{x:Bind ViewModel.SelectedCard.FullName, Mode=OneWay}" FontSize="28" FontWeight="Bold"/>
                         <Border Style="{StaticResource BcrStatusPillBorderStyle}" Background="{x:Bind ViewModel.SelectedCard.Status, Converter={StaticResource StatusToBackgroundBrushConverter}, Mode=OneWay}">
                             <TextBlock Text="{x:Bind ViewModel.SelectedCard.Status, Converter={StaticResource StatusToStringConverter}, Mode=OneWay}" 
                                        Style="{StaticResource BcrStatusPillTextStyle}"
@@ -164,7 +162,7 @@
                                             Style="{StaticResource HeaderIconButtonStyle}" Width="32" Height="32" 
                                             Visibility="{x:Bind ViewModel.SelectedCard.FrontImageData, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
                                         <Button.Flyout>
-                                            <MenuFlyout>
+                                            <MenuFlyout MenuFlyoutPresenterStyle="{StaticResource BcrTagMenuFlyoutPresenterStyle}">
                                                 <MenuFlyoutItem Text="Upload from file" Click="OnUploadFrontFileClicked">
                                                     <MenuFlyoutItem.Icon>
                                                         <FontIcon Glyph="&#xE710;"/>
@@ -200,7 +198,7 @@
                                     <Button Style="{StaticResource ImageEmptyStateButtonStyle}"
                                             Visibility="{x:Bind ViewModel.SelectedCard.FrontImageData, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}">
                                         <Button.Flyout>
-                                            <MenuFlyout>
+                                            <MenuFlyout MenuFlyoutPresenterStyle="{StaticResource BcrTagMenuFlyoutPresenterStyle}">
                                                 <MenuFlyoutItem Text="Upload from file" Click="OnUploadFrontFileClicked">
                                                     <MenuFlyoutItem.Icon>
                                                         <FontIcon Glyph="&#xE710;"/>
@@ -265,7 +263,7 @@
                                             Style="{StaticResource HeaderIconButtonStyle}" Width="32" Height="32" 
                                             Visibility="{x:Bind ViewModel.SelectedCard.BackImageData, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
                                         <Button.Flyout>
-                                            <MenuFlyout>
+                                            <MenuFlyout MenuFlyoutPresenterStyle="{StaticResource BcrTagMenuFlyoutPresenterStyle}">
                                                 <MenuFlyoutItem Text="Upload from file" Click="OnUploadBackFileClicked">
                                                     <MenuFlyoutItem.Icon>
                                                         <FontIcon Glyph="&#xE710;"/>
@@ -301,7 +299,7 @@
                                     <Button Style="{StaticResource ImageEmptyStateButtonStyle}"
                                             Visibility="{x:Bind ViewModel.SelectedCard.BackImageData, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}">
                                         <Button.Flyout>
-                                            <MenuFlyout>
+                                            <MenuFlyout MenuFlyoutPresenterStyle="{StaticResource BcrTagMenuFlyoutPresenterStyle}">
                                                 <MenuFlyoutItem Text="Upload from file" Click="OnUploadBackFileClicked">
                                                     <MenuFlyoutItem.Icon>
                                                         <FontIcon Glyph="&#xE710;"/>
@@ -377,16 +375,52 @@
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
 
                                         <TextBlock Grid.Row="0" Text="Name" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                                        <TextBox Grid.Row="0" Grid.Column="1" Text="{x:Bind ViewModel.SelectedCard.Name, Mode=TwoWay}" PlaceholderText="Full Name"/>
+                                        <Grid Grid.Row="0" Grid.Column="1" ColumnSpacing="12" Visibility="{x:Bind ViewModel.IsJapanMarket, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox Grid.Column="0" Text="{x:Bind ViewModel.SelectedCard.LastName, Mode=TwoWay}" PlaceholderText="Last Name"/>
+                                            <TextBox Grid.Column="1" Text="{x:Bind ViewModel.SelectedCard.FirstName, Mode=TwoWay}" PlaceholderText="First Name"/>
+                                        </Grid>
+                                        <Grid Grid.Row="0" Grid.Column="1" ColumnSpacing="12" Visibility="{x:Bind ViewModel.IsJapanMarket, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox Grid.Column="0" Text="{x:Bind ViewModel.SelectedCard.FirstName, Mode=TwoWay}" PlaceholderText="First Name"/>
+                                            <TextBox Grid.Column="1" Text="{x:Bind ViewModel.SelectedCard.LastName, Mode=TwoWay}" PlaceholderText="Last Name"/>
+                                        </Grid>
 
                                         <TextBlock Grid.Row="1" Text="Company" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                                        <TextBox Grid.Row="1" Grid.Column="1" Text="{x:Bind ViewModel.SelectedCard.Company, Mode=TwoWay}" PlaceholderText="Company Name"/>
+                                        <TextBox Grid.Row="1" Grid.Column="1" Text="{x:Bind ViewModel.SelectedCard.CompanyName, Mode=TwoWay}" PlaceholderText="Company Name"/>
 
-                                        <TextBlock Grid.Row="2" Text="Job Title" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                                        <TextBox Grid.Row="2" Grid.Column="1" Text="{x:Bind ViewModel.SelectedCard.Title, Mode=TwoWay}" PlaceholderText="Job Title"/>
+                                        <TextBlock Grid.Row="2" Text="Department" VerticalAlignment="Top" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,8,0,0"/>
+                                        <StackPanel Grid.Row="2" Grid.Column="1" Spacing="8">
+                                            <Grid ColumnSpacing="8">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBox Grid.Column="0" Text="{x:Bind ViewModel.SelectedCard.Department1, Mode=TwoWay}" PlaceholderText="Department 1"/>
+                                                <Button Grid.Column="1"
+                                                        Content="+"
+                                                        Width="36"
+                                                        Height="36"
+                                                        Command="{x:Bind ViewModel.AddDepartmentInputCommand}"
+                                                        IsEnabled="{x:Bind ViewModel.CanAddDepartmentInput, Mode=OneWay}"/>
+                                            </Grid>
+                                            <TextBox Text="{x:Bind ViewModel.SelectedCard.Department2, Mode=TwoWay}" PlaceholderText="Department 2" Visibility="{x:Bind ViewModel.ShowDepartment2, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"/>
+                                            <TextBox Text="{x:Bind ViewModel.SelectedCard.Department3, Mode=TwoWay}" PlaceholderText="Department 3" Visibility="{x:Bind ViewModel.ShowDepartment3, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"/>
+                                            <TextBox Text="{x:Bind ViewModel.SelectedCard.Department4, Mode=TwoWay}" PlaceholderText="Department 4" Visibility="{x:Bind ViewModel.ShowDepartment4, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"/>
+                                        </StackPanel>
+
+                                        <TextBlock Grid.Row="3" Text="Job Title" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                        <TextBox Grid.Row="3" Grid.Column="1" Text="{x:Bind ViewModel.SelectedCard.JobTitle, Mode=TwoWay}" PlaceholderText="Job Title"/>
                                     </Grid>
                                 </StackPanel>
 
@@ -405,19 +439,48 @@
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
 
-                                        <TextBlock Grid.Row="0" Text="Phone" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                                        <TextBox Grid.Row="0" Grid.Column="1" Text="{x:Bind ViewModel.SelectedCard.Phone, Mode=TwoWay}" PlaceholderText="Phone Number"/>
+                                        <TextBlock Grid.Row="0" Text="Address" VerticalAlignment="Top" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,8,0,0"/>
+                                        <StackPanel Grid.Row="0" Grid.Column="1" Spacing="8">
+                                            <Grid ColumnSpacing="8">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="140"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBox Grid.Column="0"
+                                                         Text="{x:Bind ViewModel.SelectedCard.ZipCode, Mode=TwoWay}"
+                                                         PlaceholderText="ZIP Code"/>
+                                                <TextBox Grid.Column="1"
+                                                         Text="{x:Bind ViewModel.SelectedCard.AddressLine1, Mode=TwoWay}"
+                                                         PlaceholderText="Address"/>
+                                            </Grid>
+                                            <TextBlock Text="{x:Bind ViewModel.ZipLookupStatusMessage, Mode=OneWay}"
+                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                       FontSize="12"
+                                                       Visibility="{x:Bind ViewModel.ZipLookupStatusMessage, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
+                                            <ProgressRing IsActive="{x:Bind ViewModel.IsZipLookupInProgress, Mode=OneWay}"
+                                                          Width="18"
+                                                          Height="18"
+                                                          Visibility="{x:Bind ViewModel.IsZipLookupInProgress, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"/>
+                                        </StackPanel>
 
-                                        <TextBlock Grid.Row="1" Text="Email" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                                        <TextBox Grid.Row="1" Grid.Column="1" Text="{x:Bind ViewModel.SelectedCard.Email, Mode=TwoWay}" PlaceholderText="Email Address"/>
+                                        <TextBlock Grid.Row="1" Text="Telephone" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                        <TextBox Grid.Row="1" Grid.Column="1" Text="{x:Bind ViewModel.SelectedCard.Tel, Mode=TwoWay}" PlaceholderText="Telephone"/>
 
-                                        <TextBlock Grid.Row="2" Text="Website" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                                        <TextBox Grid.Row="2" Grid.Column="1" Text="{x:Bind ViewModel.SelectedCard.Website, Mode=TwoWay}" PlaceholderText="Website URL"/>
+                                        <TextBlock Grid.Row="2" Text="Mobile" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Visibility="{x:Bind ViewModel.SelectedCard, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=detail:mobile, Mode=OneWay}"/>
+                                        <TextBox Grid.Row="2" Grid.Column="1" Text="{x:Bind ViewModel.SelectedCard.Mobile, Mode=TwoWay}" PlaceholderText="Mobile" Visibility="{x:Bind ViewModel.SelectedCard, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=detail:mobile, Mode=OneWay}"/>
 
-                                        <TextBlock Grid.Row="3" Text="Address" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                                        <TextBox Grid.Row="3" Grid.Column="1" Text="{x:Bind ViewModel.SelectedCard.Address, Mode=TwoWay}" PlaceholderText="Physical Address" TextWrapping="Wrap" AcceptsReturn="True"/>
+                                        <TextBlock Grid.Row="3" Text="Email" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                        <TextBox Grid.Row="3" Grid.Column="1" Text="{x:Bind ViewModel.SelectedCard.Email, Mode=TwoWay}" PlaceholderText="Email Address"/>
+
+                                        <TextBlock Grid.Row="4" Text="Website" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                        <TextBox Grid.Row="4" Grid.Column="1" Text="{x:Bind ViewModel.SelectedCard.Website, Mode=TwoWay}" PlaceholderText="Website URL"/>
+
+                                        <TextBlock Grid.Row="5" Text="Fax" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Visibility="{x:Bind ViewModel.SelectedCard, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=detail:fax, Mode=OneWay}"/>
+                                        <TextBox Grid.Row="5" Grid.Column="1" Text="{x:Bind ViewModel.SelectedCard.Fax, Mode=TwoWay}" PlaceholderText="Fax" Visibility="{x:Bind ViewModel.SelectedCard, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=detail:fax, Mode=OneWay}"/>
                                     </Grid>
                                 </StackPanel>
 
@@ -425,7 +488,6 @@
 
                                 <!-- Metadata Section -->
                                 <StackPanel Spacing="16">
-                                    <TextBlock Text="Details" FontSize="12" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorSecondaryBrush}" CharacterSpacing="50"/>
                                     <Grid ColumnSpacing="16" RowSpacing="16">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto" MinWidth="110"/>
@@ -436,11 +498,8 @@
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <TextBlock Grid.Row="0" Text="Scan Date" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                                        <CalendarDatePicker Grid.Row="0" Grid.Column="1" Date="{x:Bind ViewModel.SelectedCard.ScanDate, Converter={StaticResource DateTimeToDateTimeOffsetConverter}, Mode=TwoWay}" HorizontalAlignment="Stretch"/>
-
-                                        <TextBlock Grid.Row="1" Text="Tag" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                                        <StackPanel Grid.Row="1" Grid.Column="1" Spacing="8">
+                                        <TextBlock Grid.Row="0" Text="Tag" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                        <StackPanel Grid.Row="0" Grid.Column="1" Spacing="8">
                                             <Border Background="Transparent" Padding="0,0,24,0">
                                                 <ItemsRepeater ItemsSource="{x:Bind EditTagFlowItems, Mode=OneWay}" VerticalAlignment="Top">
                                                     <ItemsRepeater.Layout>
@@ -489,6 +548,18 @@
                                                     MinWidth="100"
                                                     HorizontalAlignment="Left"
                                                     Padding="12,4"/>
+                                        </StackPanel>
+
+                                        <TextBlock Grid.Row="1" Text="Scan Date" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="12">
+                                            <Path Data="M17.75 3A3.25 3.25 0 0 1 21 6.25v11.5A3.25 3.25 0 0 1 17.75 21H6.25A3.25 3.25 0 0 1 3 17.75V6.25A3.25 3.25 0 0 1 6.25 3h11.5Zm1.75 5.5h-15v9.25c0 .966.784 1.75 1.75 1.75h11.5a1.75 1.75 0 0 0 1.75-1.75V8.5Zm-11.75 6a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm4.25 0a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm-4.25-4a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm4.25 0a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm4.25 0a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm1.5-6H6.25A1.75 1.75 0 0 0 4.5 6.25V7h15v-.75a1.75 1.75 0 0 0-1.75-1.75Z"
+                                                  Stretch="Uniform"
+                                                  Width="16"
+                                                  Height="16"
+                                                  Fill="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                            <TextBlock Text="{x:Bind ViewModel.SelectedCard.ScanDate, Converter={StaticResource DateTimeToStringConverter}, Mode=OneWay}"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                                         </StackPanel>
                                     </Grid>
                                 </StackPanel>

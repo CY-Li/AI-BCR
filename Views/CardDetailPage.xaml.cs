@@ -21,8 +21,13 @@ namespace PlustekBCR.Views
 {
     public sealed partial class CardDetailPage : Page
     {
+        private const int PageEnterDurationMs = 140;
+        private const int PageExitDurationMs = 140;
+        private const double PageEnterOffsetX = 36d;
+        private const double PageExitOffsetX = 36d;
         public CardDetailViewModel ViewModel { get; }
         public ObservableCollection<TagFlowItem> EditTagFlowItems { get; } = new();
+        private bool _isTransitionRunning;
 
         public CardDetailPage()
         {
@@ -34,7 +39,7 @@ namespace PlustekBCR.Views
                 var dialog = new ContentDialog
                 {
                     Title = "Delete Business Card",
-                    Content = $"Are you sure you want to delete the business card of '{card.Name}'? This action cannot be undone.",
+                    Content = $"Are you sure you want to delete the business card of '{card.FullName}'? This action cannot be undone.",
                     PrimaryButtonText = "Delete",
                     CloseButtonText = "Cancel",
                     DefaultButton = ContentDialogButton.Close,
@@ -96,26 +101,20 @@ namespace PlustekBCR.Views
             }
         }
 
-        private void OnBackClicked(object sender, RoutedEventArgs e)
+        private async void OnBackClicked(object sender, RoutedEventArgs e)
         {
-            if (Frame.CanGoBack)
+            if (!Frame.CanGoBack || _isTransitionRunning)
             {
-                // Prepare backward connected animation
-                ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("BackwardConnectedAnimation", FrontDetailImage);
-
-                // Navigate back
-                Frame.GoBack(new SlideNavigationTransitionInfo { Effect = SlideNavigationTransitionEffect.FromLeft });
+                return;
             }
+
+            await PlayPageTransitionAsync(isEntering: false);
+            Frame.GoBack(new SuppressNavigationTransitionInfo());
         }
 
-        private void Page_Loaded(object sender, RoutedEventArgs e)
+        private async void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            // Try to start the forward connected animation
-            var animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("ForwardConnectedAnimation");
-            if (animation != null)
-            {
-                animation.TryStart(FrontDetailImage);
-            }
+            await PlayPageTransitionAsync(isEntering: true);
         }
 
         private async void OnUploadFrontFileClicked(object sender, RoutedEventArgs e)
@@ -261,7 +260,10 @@ namespace PlustekBCR.Views
 
         private async void OnAddTagClicked(object sender, RoutedEventArgs e)
         {
-            var flyout = new MenuFlyout();
+            var flyout = new MenuFlyout
+            {
+                MenuFlyoutPresenterStyle = (Style)Application.Current.Resources["BcrTagMenuFlyoutPresenterStyle"]
+            };
             var available = ViewModel.AvailableTags
                 .Where(tag => !ViewModel.SelectedTags.Any(x => string.Equals(x, tag, StringComparison.OrdinalIgnoreCase)))
                 .ToList();
@@ -309,6 +311,7 @@ namespace PlustekBCR.Views
                 ViewModel.RemoveSelectedTag(tag);
             }
         }
+
 
         private void OnImageDragOver(object sender, DragEventArgs e)
         {
@@ -432,6 +435,110 @@ namespace PlustekBCR.Views
         {
             string ext = file.FileType.ToLower();
             return ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".bmp";
+        }
+
+        private async Task PlayPageTransitionAsync(bool isEntering)
+        {
+            if (_isTransitionRunning)
+            {
+                return;
+            }
+
+            _isTransitionRunning = true;
+            SetInteractionEnabled(false);
+
+            var fromOpacity = isEntering ? 1d : 1d;
+            var toOpacity = isEntering ? 1d : 0d;
+            var fromX = isEntering ? PageEnterOffsetX : 0d;
+            var toX = isEntering ? 0d : PageExitOffsetX;
+            var duration = isEntering ? PageEnterDurationMs : PageExitDurationMs;
+
+            PageRoot.Opacity = fromOpacity;
+            PageRootTranslate.X = fromX;
+            PageRootTranslate.Y = 0;
+            var storyboard = new Storyboard();
+            if (!isEntering)
+            {
+                AddOpacityAnimation(storyboard, PageRoot, fromOpacity, toOpacity, duration, EasingMode.EaseOut);
+            }
+
+            AddTranslateXAnimation(storyboard, PageRootTranslate, fromX, toX, duration, EasingMode.EaseOut);
+            await RunTransitionStoryboardAsync(storyboard);
+
+            if (isEntering)
+            {
+                PageRoot.Opacity = 1;
+                PageRootTranslate.X = 0;
+                PageRootTranslate.Y = 0;
+            }
+
+            _isTransitionRunning = false;
+            SetInteractionEnabled(true);
+        }
+
+        private void SetInteractionEnabled(bool isEnabled)
+        {
+            PageRoot.IsHitTestVisible = isEnabled;
+        }
+
+        private static void AddOpacityAnimation(Storyboard storyboard, DependencyObject target, double from, double to, int durationMs, EasingMode easingMode)
+        {
+            var animation = new DoubleAnimation
+            {
+                From = from,
+                To = to,
+                Duration = TimeSpan.FromMilliseconds(durationMs),
+                EasingFunction = new CubicEase { EasingMode = easingMode }
+            };
+
+            Storyboard.SetTarget(animation, target);
+            Storyboard.SetTargetProperty(animation, "Opacity");
+            storyboard.Children.Add(animation);
+        }
+
+        private static void AddTranslateYAnimation(Storyboard storyboard, DependencyObject target, double from, double to, int durationMs)
+        {
+            var animation = new DoubleAnimation
+            {
+                From = from,
+                To = to,
+                Duration = TimeSpan.FromMilliseconds(durationMs),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            };
+
+            Storyboard.SetTarget(animation, target);
+            Storyboard.SetTargetProperty(animation, "Y");
+            storyboard.Children.Add(animation);
+        }
+
+        private static void AddTranslateXAnimation(Storyboard storyboard, DependencyObject target, double from, double to, int durationMs, EasingMode easingMode)
+        {
+            var animation = new DoubleAnimation
+            {
+                From = from,
+                To = to,
+                Duration = TimeSpan.FromMilliseconds(durationMs),
+                EasingFunction = new CubicEase { EasingMode = easingMode }
+            };
+
+            Storyboard.SetTarget(animation, target);
+            Storyboard.SetTargetProperty(animation, "X");
+            storyboard.Children.Add(animation);
+        }
+
+        private static Task RunTransitionStoryboardAsync(Storyboard storyboard)
+        {
+            var tcs = new TaskCompletionSource<object?>();
+
+            void OnCompleted(object? sender, object e)
+            {
+                storyboard.Completed -= OnCompleted;
+                tcs.TrySetResult(null);
+            }
+
+            storyboard.Completed += OnCompleted;
+            storyboard.Begin();
+            return tcs.Task;
         }
     }
 

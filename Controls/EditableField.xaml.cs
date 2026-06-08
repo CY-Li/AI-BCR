@@ -6,6 +6,8 @@ namespace PlustekBCR.Controls
 {
     public sealed partial class EditableField : UserControl
     {
+        public event EventHandler? EditStarted;
+
         public EditableField()
         {
             this.InitializeComponent();
@@ -44,6 +46,8 @@ namespace PlustekBCR.Controls
 
         private void OnGridPointerPressed(object sender, PointerRoutedEventArgs e)
         {
+            EditStarted?.Invoke(this, EventArgs.Empty);
+
             // Hide both display blocks, show EditBox
             DisplayBlock.Visibility = Visibility.Collapsed;
             PlaceholderBlock.Visibility = Visibility.Collapsed;

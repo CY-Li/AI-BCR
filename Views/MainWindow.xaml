@@ -185,7 +185,7 @@
         <Border Grid.Row="0" Canvas.ZIndex="20" Background="{ThemeResource LayerFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="0,0,0,1" Padding="16,8">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="520"/>
+                    <ColumnDefinition Width="400"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
@@ -210,7 +210,7 @@
                     </Button>
                 </Grid>
 
-                <Grid x:Name="SearchRoot" Grid.Column="1" Width="480" MaxWidth="640" Height="36" Canvas.ZIndex="40" HorizontalAlignment="Left" Margin="16,0">
+                <Grid x:Name="SearchRoot" Grid.Column="1" Width="600" MaxWidth="760" Height="44" Canvas.ZIndex="40" HorizontalAlignment="Left" Margin="16,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -261,6 +261,7 @@
                                     PlaceholderText=" "
                                     TextChanged="OnHeaderSearchBoxTextChanged"
                                     GotFocus="OnHeaderSearchBoxGotFocus"
+                                    LostFocus="OnHeaderSearchBoxLostFocus"
                                     KeyDown="OnHeaderSearchBoxKeyDown" />
                                 <Button Grid.Column="1" Style="{StaticResource SearchIconButtonStyle}" Click="OnOpenAdvancedSearchClicked" ToolTipService.ToolTip="?脤???">
                                     <FontIcon Glyph="&#xE71C;" FontSize="13" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
@@ -270,7 +271,7 @@
 
                         <Border
                             x:Name="DateSearchBoxHost"
-                            Height="36"
+                            Height="44"
                             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                             BorderThickness="1"
                             CornerRadius="4"
@@ -278,42 +279,32 @@
                             Visibility="Collapsed">
                             <Grid ColumnSpacing="4" Padding="4,0">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="32" />
                                     <ColumnDefinition Width="32" />
                                     <ColumnDefinition Width="32" />
                                 </Grid.ColumnDefinitions>
 
-                                <Button
-                                    Grid.Column="0"
-                                    Height="28"
-                                    MinWidth="36"
-                                    Padding="8,0"
-                                    FontSize="12"
-                                    Content="Recent">
-                                    <Button.Flyout>
-                                        <MenuFlyout>
-                                            <MenuFlyoutItem Text="Today" Tag="Today" Click="OnRecentPresetClicked" />
-                                            <MenuFlyoutItem Text="Within 3 days" Tag="Within 3 days" Click="OnRecentPresetClicked" />
-                                            <MenuFlyoutItem Text="Within 7 days" Tag="Within 7 days" Click="OnRecentPresetClicked" />
-                                        </MenuFlyout>
-                                    </Button.Flyout>
-                                </Button>
                                 <CalendarDatePicker
                                     x:Name="HeaderStartDatePicker"
-                                    Grid.Column="1"
-                                    Height="28"
+                                    Grid.Column="0"
+                                    Height="34"
                                     PlaceholderText="Start"
+                                    VerticalAlignment="Center"
                                     HorizontalAlignment="Stretch" />
                                 <CalendarDatePicker
                                     x:Name="HeaderEndDatePicker"
-                                    Grid.Column="2"
-                                    Height="28"
+                                    Grid.Column="1"
+                                    Height="34"
                                     PlaceholderText="End"
+                                    VerticalAlignment="Center"
                                     HorizontalAlignment="Stretch" />
-                                <Button Grid.Column="3" Style="{StaticResource SearchIconButtonStyle}" Click="OnHeaderDateSearchClicked" ToolTipService.ToolTip="Search date range">
+                                <Button Grid.Column="2" Style="{StaticResource SearchIconButtonStyle}" Click="OnHeaderDateSearchClicked" ToolTipService.ToolTip="Search date range">
                                     <FontIcon Glyph="&#xE721;" FontSize="13" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </Button>
+                                <Button Grid.Column="3" Style="{StaticResource SearchIconButtonStyle}" Click="OnHeaderDateClearClicked" ToolTipService.ToolTip="Clear date filter">
+                                    <FontIcon Glyph="&#xE711;" FontSize="13" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                 </Button>
                                 <Button Grid.Column="4" Style="{StaticResource SearchIconButtonStyle}" Click="OnOpenAdvancedSearchClicked" ToolTipService.ToolTip="Advanced search">
                                     <FontIcon Glyph="&#xE71C;" FontSize="13" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
@@ -402,7 +393,7 @@
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
                 <NavigationViewItemSeparator/>
-                <NavigationViewItem Content="Recent">
+                <NavigationViewItem Content="By Date">
                     <NavigationViewItem.Icon>
                         <PathIcon Data="M12 2c5.523 0 10 4.478 10 10s-4.477 10-10 10S2 17.522 2 12 6.477 2 12 2Zm0 1.667c-4.595 0-8.333 3.738-8.333 8.333 0 4.595 3.738 8.333 8.333 8.333 4.595 0 8.333-3.738 8.333-8.333 0-4.595-3.738-8.333-8.333-8.333ZM11.25 6a.75.75 0 0 1 .743.648L12 6.75V12h3.25a.75.75 0 0 1 .102 1.493l-.102.007h-4a.75.75 0 0 1-.743-.648l-.007-.102v-6a.75.75 0 0 1 .75-.75Z"/>
                     </NavigationViewItem.Icon>
@@ -652,18 +643,74 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
-                            <TextBox x:Name="AdvancedCompanyTextBox" Grid.Row="0" Header="Company" />
-                            <TextBox x:Name="AdvancedNameTextBox" Grid.Row="1" Header="Name" />
-                            <TextBox x:Name="AdvancedTagTextBox" Grid.Row="2" Header="Tag" PlaceholderText="Enter tags, separated by commas" />
-                            <CalendarDatePicker x:Name="AdvancedStartDatePicker" Grid.Row="3" Header="Start Date" HorizontalAlignment="Stretch" />
-                            <CalendarDatePicker x:Name="AdvancedEndDatePicker" Grid.Row="4" Header="End Date" HorizontalAlignment="Stretch" />
-                            <StackPanel Grid.Row="5" Orientation="Horizontal" Spacing="8">
-                                <Button Content="Today" Tag="Today" Height="30" Padding="10,2" Click="OnAdvancedRecentPresetClicked" />
-                                <Button Content="Within 3 days" Tag="Within 3 days" Height="30" Padding="10,2" Click="OnAdvancedRecentPresetClicked" />
-                                <Button Content="Within 7 days" Tag="Within 7 days" Height="30" Padding="10,2" Click="OnAdvancedRecentPresetClicked" />
+                            <StackPanel Grid.Row="0" Spacing="8">
+                                <TextBlock Text="Date" />
+                                <Grid ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <CalendarDatePicker x:Name="AdvancedStartDatePicker" Grid.Column="0" HorizontalAlignment="Stretch" />
+                                    <CalendarDatePicker x:Name="AdvancedEndDatePicker" Grid.Column="1" HorizontalAlignment="Stretch" />
+                                </Grid>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button Content="Today" Tag="Today" Height="30" Padding="10,2" Click="OnAdvancedRecentPresetClicked" />
+                                    <Button Content="Within 3 days" Tag="Within 3 days" Height="30" Padding="10,2" Click="OnAdvancedRecentPresetClicked" />
+                                    <Button Content="Within 7 days" Tag="Within 7 days" Height="30" Padding="10,2" Click="OnAdvancedRecentPresetClicked" />
+                                </StackPanel>
+                            </StackPanel>
+                            <TextBox x:Name="AdvancedCompanyTextBox" Grid.Row="1" Header="Company" />
+                            <TextBox x:Name="AdvancedNameTextBox" Grid.Row="2" Header="Name" />
+                            <StackPanel Grid.Row="3" Spacing="8">
+                                <TextBlock Text="Tag" />
+                                <Border Background="Transparent" Padding="0,0,24,0">
+                                    <ItemsRepeater ItemsSource="{x:Bind AdvancedTagFlowItems, Mode=OneWay}" VerticalAlignment="Top">
+                                        <ItemsRepeater.Layout>
+                                            <LinedFlowLayout MinItemSpacing="8" LineSpacing="8" ItemsStretch="None"/>
+                                        </ItemsRepeater.Layout>
+                                        <ItemsRepeater.ItemTemplate>
+                                            <DataTemplate x:DataType="models:TagFlowItem">
+                                                <Grid HorizontalAlignment="Left">
+                                                    <Border Background="{StaticResource BcrBrush.Surface}"
+                                                            BorderBrush="{StaticResource BcrBrush.Border}"
+                                                            BorderThickness="1"
+                                                            CornerRadius="10"
+                                                            Height="34"
+                                                            Padding="10,0">
+                                                        <Grid ColumnSpacing="8">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Grid.Column="0"
+                                                                       Text="{x:Bind Text}"
+                                                                       VerticalAlignment="Center"
+                                                                       TextTrimming="CharacterEllipsis"
+                                                                       MaxWidth="140"/>
+                                                            <Button Grid.Column="1"
+                                                                    Tag="{x:Bind Text}"
+                                                                    MinWidth="20"
+                                                                    Height="20"
+                                                                    VerticalAlignment="Center"
+                                                                    Padding="0"
+                                                                    Click="OnRemoveAdvancedTagClicked">
+                                                                <FontIcon Glyph="&#xE711;" FontSize="10"/>
+                                                            </Button>
+                                                        </Grid>
+                                                    </Border>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsRepeater.ItemTemplate>
+                                    </ItemsRepeater>
+                                </Border>
+                                <Button Content="+ Add tag"
+                                        Click="OnAddAdvancedTagClicked"
+                                        Style="{StaticResource AccentButtonStyle}"
+                                        Height="34"
+                                        MinWidth="100"
+                                        HorizontalAlignment="Left"
+                                        Padding="12,4"/>
                             </StackPanel>
                         </Grid>
                         <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">

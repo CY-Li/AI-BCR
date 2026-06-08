@@ -6,18 +6,22 @@ using PlustekBCR.ViewModels;
 using CommunityToolkit.Mvvm.Messaging;
 using PlustekBCR.Models;
 using System;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Linq;
 
 namespace PlustekBCR.Views
 {
     public sealed partial class MainWindow : Window
     {
         public MainViewModel ViewModel { get; }
+        public ObservableCollection<TagFlowItem> AdvancedTagFlowItems { get; } = new();
         private bool _hasCheckedForUpdates;
         private bool _isUpdateCheckRunning;
         private readonly DispatcherTimer _mockPaperSensorTimer;
         private readonly ITagCatalogService _tagCatalogService;
         private bool _isSyncingFilterUi;
+        private readonly ObservableCollection<string> _advancedSelectedTags = new();
 
         public MainWindow()
         {
@@ -166,6 +170,7 @@ namespace PlustekBCR.Views
             RootNavigationView.SelectedItem = DashboardItem;
             ContentFrame.Navigate(typeof(EmptyPage));
             RebuildTagFilterMenu();
+            RebuildAdvancedTagFlowItems();
 
             // Navigate to AllCards when cards are imported or scanned
             WeakReferenceMessenger.Default.Register<CardsImportedMessage>(this, (r, m) =>
@@ -310,7 +315,11 @@ namespace PlustekBCR.Views
 
         private void OnTagCatalogChanged()
         {
-            DispatcherQueue.TryEnqueue(RebuildTagFilterMenu);
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                RebuildTagFilterMenu();
+                PruneAdvancedSelectedTags();
+            });
         }
 
         private void RebuildTagFilterMenu()
@@ -427,6 +436,8 @@ namespace PlustekBCR.Views
             {
                 _isSyncingFilterUi = false;
             }
+
+            OpenSearchDropdown(showAdvanced: false);
         }
 
         private void ClearCardFilters()
@@ -484,7 +495,8 @@ namespace PlustekBCR.Views
                 RemoveTagFromAllCards(tag);
                 await _tagCatalogService.SaveAsync();
                 if (string.Equals(ViewModel.SelectedTagFilter, tag, StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(ViewModel.TagSearchKeyword, tag, StringComparison.OrdinalIgnoreCase))
+                    || string.Equals(ViewModel.TagSearchKeyword, tag, StringComparison.OrdinalIgnoreCase)
+                    || ViewModel.AdvancedTagSearchKeywords.Any(x => string.Equals(x, tag, StringComparison.OrdinalIgnoreCase)))
                 {
                     ClearCardFilters();
                     ContentFrame.Navigate(typeof(AllCardsPage));
@@ -645,6 +657,12 @@ namespace PlustekBCR.Views
             OpenSearchDropdown(showAdvanced: false);
         }
 
+        private void OnHeaderSearchBoxLostFocus(object sender, RoutedEventArgs e)
+        {
+            // Let SearchRoot interactions keep the dropdown alive.
+            // Outside clicks are already handled by OnRootPointerPressed.
+        }
+
         private void OnSearchBoxHostPointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
         {
             OpenSearchDropdown(showAdvanced: false);
@@ -675,18 +693,9 @@ namespace PlustekBCR.Views
                 }
 
                 SyncHeaderDatePickersFromViewModel();
+                SyncAdvancedSearchFieldsFromViewModel();
                 UpdateSearchInputMode();
             });
-        }
-
-        private void OnRecentPresetClicked(object sender, RoutedEventArgs e)
-        {
-            if (sender is MenuFlyoutItem item && item.Tag is string preset)
-            {
-                ApplyRecentPresetFromSidebar(preset);
-                ContentFrame.Navigate(typeof(AllCardsPage));
-                CloseSearchDropdown();
-            }
         }
 
         private void OnAdvancedRecentPresetClicked(object sender, RoutedEventArgs e)
@@ -702,7 +711,12 @@ namespace PlustekBCR.Views
         private void OnHeaderDateSearchClicked(object sender, RoutedEventArgs e)
         {
             ApplyHeaderDateSearch();
-            CloseSearchDropdown();
+        }
+
+        private void OnHeaderDateClearClicked(object sender, RoutedEventArgs e)
+        {
+            ClearCardFilters();
+            ContentFrame.Navigate(typeof(AllCardsPage));
         }
 
         private void OnAdvancedSearchClicked(object sender, RoutedEventArgs e)
@@ -710,7 +724,7 @@ namespace PlustekBCR.Views
             ViewModel.ApplyAdvancedSearch(
                 AdvancedCompanyTextBox.Text,
                 AdvancedNameTextBox.Text,
-                AdvancedTagTextBox.Text,
+                _advancedSelectedTags,
                 ToDateTime(AdvancedStartDatePicker.Date),
                 ToDateTime(AdvancedEndDatePicker.Date));
 
@@ -739,10 +753,15 @@ namespace PlustekBCR.Views
 
         private void ApplyHeaderDateSearch()
         {
-            ViewModel.ApplyDateRange(
-                ToDateTime(HeaderStartDatePicker.Date),
-                ToDateTime(HeaderEndDatePicker.Date),
-                null);
+            var startDate = ToDateTime(HeaderStartDatePicker.Date);
+            var endDate = ToDateTime(HeaderEndDatePicker.Date);
+            if (!startDate.HasValue && !endDate.HasValue)
+            {
+                ClearCardFilters();
+                return;
+            }
+
+            ViewModel.ApplyDateRange(startDate, endDate, null);
             ViewModel.SelectedSearchScope = "Date";
 
             try
@@ -785,9 +804,105 @@ namespace PlustekBCR.Views
         {
             AdvancedCompanyTextBox.Text = string.Empty;
             AdvancedNameTextBox.Text = string.Empty;
-            AdvancedTagTextBox.Text = string.Empty;
             AdvancedStartDatePicker.Date = null;
             AdvancedEndDatePicker.Date = null;
+            _advancedSelectedTags.Clear();
+            RebuildAdvancedTagFlowItems();
+        }
+
+        private void SyncAdvancedSearchFieldsFromViewModel()
+        {
+            AdvancedCompanyTextBox.Text = ViewModel.CompanySearchKeyword ?? string.Empty;
+            AdvancedNameTextBox.Text = ViewModel.NameSearchKeyword ?? string.Empty;
+            AdvancedStartDatePicker.Date = ToDateTimeOffset(ViewModel.StartDate);
+            AdvancedEndDatePicker.Date = ToDateTimeOffset(ViewModel.EndDate);
+
+            _advancedSelectedTags.Clear();
+            foreach (var tag in ViewModel.AdvancedTagSearchKeywords)
+            {
+                _advancedSelectedTags.Add(tag);
+            }
+
+            RebuildAdvancedTagFlowItems();
+        }
+
+        private void RebuildAdvancedTagFlowItems()
+        {
+            AdvancedTagFlowItems.Clear();
+            foreach (var tag in _advancedSelectedTags)
+            {
+                AdvancedTagFlowItems.Add(new TagFlowItem { Text = tag, IsAddButton = false });
+            }
+        }
+
+        private void PruneAdvancedSelectedTags()
+        {
+            var validTags = _tagCatalogService.GetAllTags();
+            var removedTags = _advancedSelectedTags
+                .Where(selectedTag => !validTags.Any(validTag => string.Equals(validTag, selectedTag, StringComparison.OrdinalIgnoreCase)))
+                .ToList();
+
+            if (removedTags.Count == 0)
+            {
+                return;
+            }
+
+            foreach (var tag in removedTags)
+            {
+                _advancedSelectedTags.Remove(tag);
+            }
+
+            RebuildAdvancedTagFlowItems();
+        }
+
+        private void OnRemoveAdvancedTagClicked(object sender, RoutedEventArgs e)
+        {
+            if (sender is not Button button || button.Tag is not string tag)
+            {
+                return;
+            }
+
+            var target = _advancedSelectedTags.FirstOrDefault(x => string.Equals(x, tag, StringComparison.OrdinalIgnoreCase));
+            if (target == null)
+            {
+                return;
+            }
+
+            _advancedSelectedTags.Remove(target);
+            RebuildAdvancedTagFlowItems();
+        }
+
+        private void OnAddAdvancedTagClicked(object sender, RoutedEventArgs e)
+        {
+            var flyout = new MenuFlyout
+            {
+                MenuFlyoutPresenterStyle = (Style)Application.Current.Resources["BcrTagMenuFlyoutPresenterStyle"]
+            };
+            var available = _tagCatalogService.GetAllTags()
+                .Where(tag => !_advancedSelectedTags.Any(x => string.Equals(x, tag, StringComparison.OrdinalIgnoreCase)))
+                .ToList();
+
+            foreach (var tag in available)
+            {
+                var item = new MenuFlyoutItem { Text = tag, Tag = tag };
+                item.Click += (_, __) =>
+                {
+                    _advancedSelectedTags.Add(tag);
+                    RebuildAdvancedTagFlowItems();
+                };
+                flyout.Items.Add(item);
+            }
+
+            if (available.Count == 0)
+            {
+                flyout.Items.Add(new MenuFlyoutItem
+                {
+                    Text = "No available tags",
+                    IsEnabled = false
+                });
+            }
+
+            flyout.ShowAt((FrameworkElement)sender);
         }
 
         private static (DateTime start, DateTime end) GetRecentPresetRange(string preset)
@@ -822,11 +937,20 @@ namespace PlustekBCR.Views
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(HeaderSearchBox.Text)
-                && ViewModel.IsSearchActive
-                && !string.Equals(ViewModel.SelectedSearchScope, "Date", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(ViewModel.SelectedSearchScope, "Date", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(HeaderSearchBox.Text) && ViewModel.IsSearchActive)
             {
                 ClearCardFilters();
+                return;
+            }
+
+            if (!string.IsNullOrWhiteSpace(HeaderSearchBox.Text))
+            {
+                OpenSearchDropdown(showAdvanced: false);
             }
         }
 
@@ -837,13 +961,15 @@ namespace PlustekBCR.Views
                 if (string.Equals(ViewModel.SelectedSearchScope, "Date", StringComparison.OrdinalIgnoreCase))
                 {
                     ApplyHeaderDateSearch();
-                    CloseSearchDropdown();
                     return;
                 }
 
                 ViewModel.AddRecentSearch(HeaderSearchBox.Text);
                 ApplyTextSearchFromHeader();
-                CloseSearchDropdown();
+                if (!string.IsNullOrWhiteSpace(HeaderSearchBox.Text))
+                {
+                    OpenSearchDropdown(showAdvanced: false);
+                }
             }
             else if (e.Key == Windows.System.VirtualKey.Escape)
             {
@@ -880,6 +1006,12 @@ namespace PlustekBCR.Views
                 return;
             }
 
+            if (string.Equals(ViewModel.SelectedSearchScope, "Date", StringComparison.OrdinalIgnoreCase)
+                && (ViewModel.StartDate.HasValue || ViewModel.EndDate.HasValue))
+            {
+                return;
+            }
+
             if (IsPointerInsideRootBounds(e, SearchRoot) || IsPointerInsideRootBounds(e, SearchDropdownPanel))
             {
                 return;
@@ -897,6 +1029,14 @@ namespace PlustekBCR.Views
         private void OpenSearchDropdown(bool showAdvanced)
         {
             SearchScopeComboBox.Visibility = Visibility.Visible;
+            if (string.Equals(ViewModel.SelectedSearchScope, "Date", StringComparison.OrdinalIgnoreCase) && !showAdvanced)
+            {
+                SearchOverlayLayer.Visibility = Visibility.Collapsed;
+                AdvancedSearchPanel.Visibility = Visibility.Collapsed;
+                DefaultSearchPanel.Visibility = Visibility.Visible;
+                return;
+            }
+
             DefaultSearchPanel.Visibility = showAdvanced ? Visibility.Collapsed : Visibility.Visible;
             AdvancedSearchPanel.Visibility = showAdvanced ? Visibility.Visible : Visibility.Collapsed;
 
@@ -916,7 +1056,9 @@ namespace PlustekBCR.Views
         private void ResetSearchDropdownState()
         {
             SearchOverlayLayer.Visibility = Visibility.Collapsed;
-            SearchScopeComboBox.Visibility = Visibility.Collapsed;
+            SearchScopeComboBox.Visibility = string.Equals(ViewModel.SelectedSearchScope, "Date", StringComparison.OrdinalIgnoreCase)
+                ? Visibility.Visible
+                : Visibility.Collapsed;
             AdvancedSearchPanel.Visibility = Visibility.Collapsed;
             DefaultSearchPanel.Visibility = Visibility.Visible;
         }

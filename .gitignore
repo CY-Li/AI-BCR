@@ -63,3 +63,6 @@ Desktop.ini
 crash_log.txt
 update_check_log.txt
 *.zip
+
+# Documents
+docs/

@@ -1,15 +1,22 @@
 using System;
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm.ComponentModel;
+using PlustekBCR.Helpers;
 
 namespace PlustekBCR.Models
 {
     public enum ProcessingStatus
     {
-        Pending,       // 待處理
-        Recognizing,   // AI 辨認中...
-        Done,          // 由AI辨識
-        Manual    // 手動輸入（AI OFF 時）
+        Pending,
+        Recognizing,
+        Done,
+        Manual
+    }
+
+    public enum MarketCode
+    {
+        JP,
+        US
     }
 
     public class Note
@@ -25,37 +32,91 @@ namespace PlustekBCR.Models
         public partial Guid Id { get; set; }
 
         [ObservableProperty]
+        public partial MarketCode MarketCode { get; set; }
+
+        [ObservableProperty]
         public partial DateTime ScanDate { get; set; }
 
         [ObservableProperty]
-        public partial string Name { get; set; }
+        public partial string CompanyName { get; set; }
 
         [ObservableProperty]
-        public partial string Title { get; set; }
+        public partial string Department1 { get; set; }
 
         [ObservableProperty]
-        public partial string Company { get; set; }
+        public partial string Department2 { get; set; }
 
         [ObservableProperty]
-        public partial string Phone { get; set; }
+        public partial string Department3 { get; set; }
 
         [ObservableProperty]
-        public partial string Email { get; set; }
+        public partial string Department4 { get; set; }
 
         [ObservableProperty]
-        public partial string Address { get; set; }
+        public partial string DepartmentFull { get; set; }
+
+        [ObservableProperty]
+        public partial string JobTitle { get; set; }
+
+        [ObservableProperty]
+        public partial string LastName { get; set; }
+
+        [ObservableProperty]
+        public partial string MiddleName { get; set; }
+
+        [ObservableProperty]
+        public partial string FirstName { get; set; }
+
+        [ObservableProperty]
+        public partial string Suffix { get; set; }
+
+        [ObservableProperty]
+        public partial string FullName { get; set; }
+
+        [ObservableProperty]
+        public partial string ZipCode { get; set; }
 
         [ObservableProperty]
         public partial string Country { get; set; }
 
         [ObservableProperty]
-        public partial string Tag { get; set; }
+        public partial string State { get; set; }
+
+        [ObservableProperty]
+        public partial string City { get; set; }
+
+        [ObservableProperty]
+        public partial string AddressLine1 { get; set; }
+
+        [ObservableProperty]
+        public partial string AddressLine2 { get; set; }
+
+        [ObservableProperty]
+        public partial string FullAddress { get; set; }
+
+        [ObservableProperty]
+        public partial string Tel { get; set; }
+
+        [ObservableProperty]
+        public partial string Extension { get; set; }
+
+        [ObservableProperty]
+        public partial string Fax { get; set; }
+
+        [ObservableProperty]
+        public partial string Mobile { get; set; }
+
+        [ObservableProperty]
+        public partial string Email { get; set; }
 
         [ObservableProperty]
         public partial string Website { get; set; }
 
         [ObservableProperty]
         public partial List<Note> Notes { get; set; }
+
+        [ObservableProperty]
+        public partial string Tag { get; set; }
 
         [ObservableProperty]
         public partial byte[]? FrontImageData { get; set; }
@@ -71,6 +132,7 @@ namespace PlustekBCR.Models
 
         public bool IsRecognizing => Status == ProcessingStatus.Recognizing;
         public bool IsAiReprocessAvailable => !IsRecognizing;
+        public string DisplayName => !string.IsNullOrWhiteSpace(FullName) ? FullName : BusinessCardAddressHelper.ComposeFullName(MarketCode, FirstName, MiddleName, LastName, Suffix);
 
         partial void OnStatusChanged(ProcessingStatus value)
         {
@@ -78,28 +140,115 @@ namespace PlustekBCR.Models
             OnPropertyChanged(nameof(IsAiReprocessAvailable));
         }
 
+        partial void OnFirstNameChanged(string value) => SyncDerivedIdentityAndAddress();
+        partial void OnMiddleNameChanged(string value) => SyncDerivedIdentityAndAddress();
+        partial void OnLastNameChanged(string value) => SyncDerivedIdentityAndAddress();
+        partial void OnSuffixChanged(string value) => SyncDerivedIdentityAndAddress();
+        partial void OnDepartment1Changed(string value) => SyncDerivedIdentityAndAddress();
+        partial void OnDepartment2Changed(string value) => SyncDerivedIdentityAndAddress();
+        partial void OnDepartment3Changed(string value) => SyncDerivedIdentityAndAddress();
+        partial void OnDepartment4Changed(string value) => SyncDerivedIdentityAndAddress();
+        partial void OnAddressLine1Changed(string value) => SyncDerivedIdentityAndAddress();
+        partial void OnAddressLine2Changed(string value) => SyncDerivedIdentityAndAddress();
+        partial void OnCityChanged(string value) => SyncDerivedIdentityAndAddress();
+        partial void OnStateChanged(string value) => SyncDerivedIdentityAndAddress();
+        partial void OnZipCodeChanged(string value) => SyncDerivedIdentityAndAddress();
+        partial void OnCountryChanged(string value) => SyncDerivedIdentityAndAddress();
+
+        partial void OnFullNameChanged(string value)
+        {
+            OnPropertyChanged(nameof(DisplayName));
+        }
+
         public BusinessCard()
         {
             Id = Guid.NewGuid();
+            MarketCode = MarketCode.JP;
             ScanDate = DateTime.Now;
-            Name = string.Empty;
-            Title = string.Empty;
-            Company = string.Empty;
-            Phone = string.Empty;
-            Email = string.Empty;
-            Address = string.Empty;
+            CompanyName = string.Empty;
+            Department1 = string.Empty;
+            Department2 = string.Empty;
+            Department3 = string.Empty;
+            Department4 = string.Empty;
+            DepartmentFull = string.Empty;
+            JobTitle = string.Empty;
+            LastName = string.Empty;
+            MiddleName = string.Empty;
+            FirstName = string.Empty;
+            Suffix = string.Empty;
+            FullName = string.Empty;
+            ZipCode = string.Empty;
             Country = string.Empty;
-            Tag = string.Empty;
+            State = string.Empty;
+            City = string.Empty;
+            AddressLine1 = string.Empty;
+            AddressLine2 = string.Empty;
+            FullAddress = string.Empty;
+            Tel = string.Empty;
+            Extension = string.Empty;
+            Fax = string.Empty;
+            Mobile = string.Empty;
+            Email = string.Empty;
             Website = string.Empty;
             Notes = new();
+            Tag = string.Empty;
             Status = ProcessingStatus.Pending;
             IsAutoScanSession = false;
+        }
+
+        public void PopulateDerivedFieldsFromStructuredValues()
+        {
+            if (string.IsNullOrWhiteSpace(FullName))
+            {
+                FullName = BusinessCardAddressHelper.ComposeFullName(MarketCode, FirstName, MiddleName, LastName, Suffix);
+            }
+
+            if (string.IsNullOrWhiteSpace(DepartmentFull))
+            {
+                DepartmentFull = BusinessCardAddressHelper.ComposeDepartmentFull(Department1, Department2, Department3, Department4);
+            }
+
+            if (string.IsNullOrWhiteSpace(FullAddress))
+            {
+                FullAddress = BusinessCardAddressHelper.ComposeFullAddress(AddressLine1, AddressLine2, City, State, ZipCode, Country);
+            }
+
+            OnPropertyChanged(nameof(DisplayName));
+        }
+
+        private void SyncDerivedIdentityAndAddress()
+        {
+            var composedName = BusinessCardAddressHelper.ComposeFullName(MarketCode, FirstName, MiddleName, LastName, Suffix);
+            if (!string.IsNullOrWhiteSpace(composedName))
+            {
+                FullName = composedName;
+            }
+
+            var composedDepartment = BusinessCardAddressHelper.ComposeDepartmentFull(Department1, Department2, Department3, Department4);
+            if (string.IsNullOrWhiteSpace(Department1)
+                && string.IsNullOrWhiteSpace(Department2)
+                && string.IsNullOrWhiteSpace(Department3)
+                && string.IsNullOrWhiteSpace(Department4))
+            {
+                DepartmentFull = string.Empty;
+            }
+            else if (!string.IsNullOrWhiteSpace(composedDepartment))
+            {
+                DepartmentFull = composedDepartment;
+            }
+
+            var composedAddress = BusinessCardAddressHelper.ComposeFullAddress(AddressLine1, AddressLine2, City, State, ZipCode, Country);
+            if (!string.IsNullOrWhiteSpace(composedAddress))
+            {
+                FullAddress = composedAddress;
+            }
         }
     }
 
     public class CardsImportedMessage
     {
         public List<BusinessCard> Cards { get; }
+
         public CardsImportedMessage(List<BusinessCard> cards)
         {
             Cards = cards;

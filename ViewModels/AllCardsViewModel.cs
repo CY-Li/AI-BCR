@@ -1,37 +1,165 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using PlustekBCR.Helpers;
 using PlustekBCR.Models;
-using PlustekBCR.Views;
+using PlustekBCR.Services;
 
 namespace PlustekBCR.ViewModels
 {
     public partial class AllCardsViewModel : ObservableObject
     {
+        private readonly System.Threading.SemaphoreSlim _queueSemaphore = new(3);
+        private readonly IZipCodeLookupService _zipCodeLookupService;
+        private readonly IBusinessCardFieldService _fieldService;
         private ObservableCollection<BusinessCard> _allCards = new();
-        public ObservableCollection<BusinessCard> AllCards { get => _allCards; set => SetProperty(ref _allCards, value); }
-
         private BusinessCard? _selectedCard;
-        public BusinessCard? SelectedCard { get => _selectedCard; set => SetProperty(ref _selectedCard, value); }
-
+        private BusinessCard? _subscribedCard;
         private bool _isSidebarOpen;
-        public bool IsSidebarOpen { get => _isSidebarOpen; set => SetProperty(ref _isSidebarOpen, value); }
+        private string _editingFieldKey = string.Empty;
+        private int _departmentInputCount = 1;
+        private bool _isZipLookupInProgress;
+        private string _zipLookupStatusMessage = string.Empty;
+        private CancellationTokenSource? _zipLookupCts;
+        private bool _isApplyingZipLookupResult;
+
+        public ObservableCollection<BusinessCard> AllCards
+        {
+            get => _allCards;
+            set => SetProperty(ref _allCards, value);
+        }
+
+        public BusinessCard? SelectedCard
+        {
+            get => _selectedCard;
+            set
+            {
+                if (SetProperty(ref _selectedCard, value))
+                {
+                    SubscribeToSelectedCard(value);
+                    EditingFieldKey = string.Empty;
+                    SyncDepartmentInputCount(value);
+                    ZipLookupStatusMessage = string.Empty;
+                    OnPropertyChanged(nameof(DetailAddressText));
+                    OnPropertyChanged(nameof(DetailDepartmentText));
+                    OnPropertyChanged(nameof(HasDetailDepartmentText));
+                }
+            }
+        }
+
+        public bool IsSidebarOpen
+        {
+            get => _isSidebarOpen;
+            set => SetProperty(ref _isSidebarOpen, value);
+        }
+
+        public string EditingFieldKey
+        {
+            get => _editingFieldKey;
+            set
+            {
+                if (SetProperty(ref _editingFieldKey, value))
+                {
+                    OnPropertyChanged(nameof(IsEditingName));
+                    OnPropertyChanged(nameof(IsEditingDepartment));
+                    OnPropertyChanged(nameof(IsEditingAddress));
+                }
+            }
+        }
+
+        public int DepartmentInputCount
+        {
+            get => _departmentInputCount;
+            set
+            {
+                if (SetProperty(ref _departmentInputCount, value))
+                {
+                    OnPropertyChanged(nameof(ShowDepartment2));
+                    OnPropertyChanged(nameof(ShowDepartment3));
+                    OnPropertyChanged(nameof(ShowDepartment4));
+                    OnPropertyChanged(nameof(CanAddDepartmentInput));
+                }
+            }
+        }
+
+        public bool IsZipLookupInProgress
+        {
+            get => _isZipLookupInProgress;
+            set => SetProperty(ref _isZipLookupInProgress, value);
+        }
+
+        public string ZipLookupStatusMessage
+        {
+            get => _zipLookupStatusMessage;
+            set => SetProperty(ref _zipLookupStatusMessage, value);
+        }
+
+        public bool IsEditingName => string.Equals(EditingFieldKey, "Name", StringComparison.Ordinal);
+        public bool IsEditingDepartment => string.Equals(EditingFieldKey, "Department", StringComparison.Ordinal);
+        public bool IsEditingAddress => string.Equals(EditingFieldKey, "Address", StringComparison.Ordinal);
+        public bool ShowDepartment2 => DepartmentInputCount >= 2;
+        public bool ShowDepartment3 => DepartmentInputCount >= 3;
+        public bool ShowDepartment4 => DepartmentInputCount >= 4;
+        public bool CanAddDepartmentInput => DepartmentInputCount < 4;
+        public bool IsJapanMarket => _fieldService.CurrentMarket == MarketCode.JP;
+
+        public string DetailDepartmentText =>
+            SelectedCard?.DepartmentFull ?? string.Empty;
+
+        public bool HasDetailDepartmentText => !string.IsNullOrWhiteSpace(SelectedCard?.DepartmentFull);
+
+        public string DetailAddressText
+        {
+            get
+            {
+                if (SelectedCard == null)
+                {
+                    return "Click to enter address";
+                }
+
+                var segments = new List<string>();
+                if (!string.IsNullOrWhiteSpace(SelectedCard.ZipCode))
+                {
+                    segments.Add(SelectedCard.ZipCode.Trim());
+                }
+
+                if (!string.IsNullOrWhiteSpace(SelectedCard.AddressLine1))
+                {
+                    segments.Add(SelectedCard.AddressLine1.Trim());
+                }
+
+                if (segments.Count > 0)
+                {
+                    return string.Join(" ", segments);
+                }
+
+                if (!string.IsNullOrWhiteSpace(SelectedCard.FullAddress))
+                {
+                    return SelectedCard.FullAddress;
+                }
+
+                return "Click to enter address";
+            }
+        }
 
         public MainViewModel MainViewModel { get; }
 
         public AllCardsViewModel()
         {
             MainViewModel = App.GetService<MainViewModel>();
+            _zipCodeLookupService = App.GetService<IZipCodeLookupService>();
+            _fieldService = App.GetService<IBusinessCardFieldService>();
             AllCards = new ObservableCollection<BusinessCard>();
             MainViewModel.SearchChanged += OnSearchChanged;
             LoadSampleData();
 
-            // Register for cards imported message
             WeakReferenceMessenger.Default.Register<CardsImportedMessage>(this, (r, m) =>
             {
                 App.Window?.DispatcherQueue.TryEnqueue(() =>
@@ -47,22 +175,99 @@ namespace PlustekBCR.ViewModels
             var yesterday = today.AddDays(-1);
             var lastWeek = today.AddDays(-7);
 
-            var images = new[] 
-            { 
-                "BusinessCard_01.jpg", 
-                "BusinessCard_02.jpg", 
-                "BusinessCard_03.jpg",
-                "BusinessCard_04.jpg" 
+            var images = new[]
+            {
+                "BusinessCard_jp_01.jpg",
+                "BusinessCard_jp_02.jpg",
+                "BusinessCard_jp_03.jpg",
+                "BusinessCard_jp_04.jpg"
             };
 
             var cards = new List<BusinessCard>
             {
-                new BusinessCard { Name = "Sophia Smith", Company = "RealLiving", Title = "Realtor", Address = "123 Main St, Anytown, USA. 33609", Phone = "804-368-5864", Email = "sophie@mywebsite.com", Status = ProcessingStatus.Recognizing, ScanDate = today },
-                new BusinessCard { Name = "James Smith", Company = "RealLiving", Status = ProcessingStatus.Done, ScanDate = yesterday },
-                new BusinessCard { Name = "Adam Vincent", Company = "Luxury Estate", Status = ProcessingStatus.Manual, ScanDate = yesterday },
-                // new BusinessCard { Name = "張三", Company = "範例股份有限公司", Status = ProcessingStatus.Done, ScanDate = yesterday },
-                // new BusinessCard { Name = "李四", Company = "測試有限公司", Status = ProcessingStatus.Done, ScanDate = yesterday },
-                new BusinessCard { Name = "Sandra Tucker", Company = "Fine FX", Status = ProcessingStatus.Pending, ScanDate = lastWeek }
+                new BusinessCard
+                {
+                    MarketCode = MarketCode.JP,
+                    FullName = "大宮 章宏",
+                    FirstName = "章宏",
+                    LastName = "大宮",
+                    CompanyName = "エレコム株式会社",
+                    Department1 = "特販東日本支店",
+                    Department2 = "特販東日本営業２課",
+                    DepartmentFull = "特販東日本支店 / 特販東日本営業２課",
+                    JobTitle = "主任",
+                    Email = "Akihiro_Omiya@elecom.co.jp",
+                    ZipCode = "1010062",
+                    AddressLine1 = "東京都千代田区神田駿河台4-6 御茶ノ水ソラシティ16F",
+                    FullAddress = "〒101-0062 東京都千代田区神田駿河台4-6 御茶ノ水ソラシティ16F",
+                    Tel = "0120-941-149",
+                    Fax = "03-6732-9909",
+                    Mobile = "090-7487-7145",
+                    Website = "www.elecom.co.jp",
+                    Status = ProcessingStatus.Recognizing,
+                    ScanDate = today
+                },
+                new BusinessCard
+                {
+                    MarketCode = MarketCode.JP,
+                    FullName = "吉田 亜生",
+                    FirstName = "亜生",
+                    LastName = "吉田",
+                    CompanyName = "コーナン商事株式会社",
+                    Department1 = "商品統括部",
+                    Department2 = "商品二部",
+                    DepartmentFull = "商品統括部 / 商品二部",
+                    JobTitle = "電材・照明担当 / バイヤー",
+                    Email = "TSUGIO.YOSHIDA@hc-kohnan.co.jp",
+                    ZipCode = "5320004",
+                    AddressLine1 = "大阪府大阪市淀川区西宮原2丁目2番17号",
+                    FullAddress = "〒532-0004 大阪府大阪市淀川区西宮原2丁目2番17号",
+                    Tel = "06-6397-1612",
+                    Fax = "06-6397-1643",
+                    Status = ProcessingStatus.Done,
+                    ScanDate = yesterday
+                },
+                new BusinessCard
+                {
+                    MarketCode = MarketCode.JP,
+                    FullName = "加納 康貴",
+                    FirstName = "康貴",
+                    LastName = "加納",
+                    CompanyName = "大和無線電器株式会社",
+                    Department1 = "東日本営業統括部",
+                    DepartmentFull = "東日本営業統括部",
+                    JobTitle = "主任",
+                    Email = "y_kano@dmd.co.jp",
+                    ZipCode = "1010021",
+                    AddressLine1 = "東京都千代田区外神田5-6-7 関東DGビル3階",
+                    FullAddress = "〒101-0021 東京都千代田区外神田5-6-7 関東DGビル3階",
+                    Tel = "03-5816-2263",
+                    Fax = "03-5816-2272",
+                    Mobile = "080-6233-1174",
+                    Status = ProcessingStatus.Manual,
+                    ScanDate = yesterday
+                },
+                new BusinessCard
+                {
+                    MarketCode = MarketCode.JP,
+                    FullName = "甚野 慈子",
+                    FirstName = "慈子",
+                    LastName = "甚野",
+                    CompanyName = "株式会社 ダイユーエイト",
+                    Department1 = "商品統括部",
+                    Department2 = "商品Ⅱ部",
+                    DepartmentFull = "商品統括部 / 商品Ⅱ部",
+                    JobTitle = "オフィス・OA・一般文具・サービス担当バイヤー",
+                    Email = "y-zinno@daiyu8.co.jp",
+                    ZipCode = "9608151",
+                    AddressLine1 = "福島市太平寺字堰ノ上58番地",
+                    FullAddress = "〒960-8151 福島市太平寺字堰ノ上58番地",
+                    Tel = "024-545-2216",
+                    Fax = "024-545-2504",
+                    Website = "https://www.daiyu8.co.jp",
+                    Status = ProcessingStatus.Pending,
+                    ScanDate = lastWeek
+                }
             };
 
             for (int i = 0; i < cards.Count; i++)
@@ -78,7 +283,6 @@ namespace PlustekBCR.ViewModels
                         }
                         else
                         {
-                            // Try app data or other locations if base directory is different
                             var altPath = System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", images[i]);
                             if (System.IO.File.Exists(altPath))
                             {
@@ -86,14 +290,16 @@ namespace PlustekBCR.ViewModels
                             }
                         }
                     }
-                    catch { /* Fallback to placeholder in UI */ }
+                    catch
+                    {
+                    }
                 }
+
                 AllCards.Add(cards[i]);
             }
         }
 
         public IEnumerable<BusinessCard> FilteredCards => AllCards.Where(MatchesSearch);
-
         public int FilteredCardCount => FilteredCards.Count();
 
         public string SearchResultSummary => MainViewModel.IsSearchActive
@@ -102,11 +308,11 @@ namespace PlustekBCR.ViewModels
 
         public bool HasNoSearchResults => MainViewModel.IsSearchActive && FilteredCardCount == 0;
 
-        public List<CardGroup> GroupedCards => 
+        public List<CardGroup> GroupedCards =>
             FilteredCards.OrderByDescending(c => c.ScanDate)
-                   .GroupBy(c => c.ScanDate.Date)
-                   .Select(g => new CardGroup(g.Key.ToString("MMMM dd, yyyy", System.Globalization.CultureInfo.InvariantCulture), g))
-                   .ToList();
+                .GroupBy(c => c.ScanDate.Date)
+                .Select(g => new CardGroup(g.Key.ToString("MMMM dd, yyyy", System.Globalization.CultureInfo.InvariantCulture), g))
+                .ToList();
 
         private IRelayCommand? _selectCardCommand;
         public IRelayCommand SelectCardCommand => _selectCardCommand ??= new RelayCommand<BusinessCard>(SelectCard);
@@ -119,7 +325,11 @@ namespace PlustekBCR.ViewModels
         [RelayCommand]
         private async Task DeleteCardAsync(BusinessCard? card)
         {
-            if (card == null) return;
+            if (card == null)
+            {
+                return;
+            }
+
             if (ConfirmDeleteCardAsync != null)
             {
                 var confirm = await ConfirmDeleteCardAsync(card);
@@ -136,9 +346,90 @@ namespace PlustekBCR.ViewModels
             }
         }
 
+        [RelayCommand]
+        private void AddDepartmentInput()
+        {
+            if (DepartmentInputCount < 4)
+            {
+                DepartmentInputCount++;
+            }
+        }
+
+        public void BeginFieldEdit(string fieldKey)
+        {
+            EditingFieldKey = fieldKey;
+            if (string.Equals(fieldKey, "Department", StringComparison.Ordinal))
+            {
+                SyncDepartmentInputCount(SelectedCard);
+            }
+        }
+
+        public void EndFieldEdit(string fieldKey)
+        {
+            if (string.Equals(EditingFieldKey, fieldKey, StringComparison.Ordinal))
+            {
+                EditingFieldKey = string.Empty;
+            }
+        }
+
+        public async Task LookupZipCodeAsync()
+        {
+            if (SelectedCard == null || _fieldService.CurrentMarket != MarketCode.JP)
+            {
+                return;
+            }
+
+            var normalizedZip = (SelectedCard.ZipCode ?? string.Empty).Replace("-", string.Empty).Trim();
+            if (normalizedZip.Length != 7)
+            {
+                ZipLookupStatusMessage = string.Empty;
+                return;
+            }
+
+            _zipLookupCts?.Cancel();
+            _zipLookupCts = new CancellationTokenSource();
+
+            try
+            {
+                IsZipLookupInProgress = true;
+                ZipLookupStatusMessage = "Looking up address...";
+
+                var result = await _zipCodeLookupService.LookupJapanAddressAsync(normalizedZip, _zipLookupCts.Token);
+                if (result == null)
+                {
+                    ZipLookupStatusMessage = "Address not found.";
+                    return;
+                }
+
+                _isApplyingZipLookupResult = true;
+                SelectedCard.MarketCode = MarketCode.JP;
+                SelectedCard.ZipCode = result.Zipcode ?? normalizedZip;
+                SelectedCard.AddressLine1 = string.Concat(result.Address1 ?? string.Empty, result.Address2 ?? string.Empty, result.Address3 ?? string.Empty);
+                SelectedCard.FullAddress = BusinessCardAddressHelper.ComposeFullAddress(SelectedCard.AddressLine1, SelectedCard.AddressLine2, SelectedCard.City, SelectedCard.State, SelectedCard.ZipCode, SelectedCard.Country);
+                ZipLookupStatusMessage = "Address updated.";
+                OnPropertyChanged(nameof(DetailAddressText));
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch
+            {
+                ZipLookupStatusMessage = "Address lookup failed.";
+            }
+            finally
+            {
+                _isApplyingZipLookupResult = false;
+                IsZipLookupInProgress = false;
+            }
+        }
+
         private void SelectCard(BusinessCard? card)
         {
-            if (card == null) return;
+            if (card == null)
+            {
+                return;
+            }
+
             SelectedCard = card;
             IsSidebarOpen = true;
         }
@@ -146,13 +437,15 @@ namespace PlustekBCR.ViewModels
         private void CloseSidebar()
         {
             IsSidebarOpen = false;
+            EditingFieldKey = string.Empty;
         }
-
-        private readonly System.Threading.SemaphoreSlim _queueSemaphore = new(3);
 
         private void OnCardsImported(List<BusinessCard> cards)
         {
-            if (cards == null || cards.Count == 0) return;
+            if (cards == null || cards.Count == 0)
+            {
+                return;
+            }
 
             var cardsToProcess = new List<BusinessCard>();
             foreach (var card in cards)
@@ -187,8 +480,8 @@ namespace PlustekBCR.ViewModels
 
             return MainViewModel.SelectedSearchScope switch
             {
-                "Company" => Contains(card.Company, keyword),
-                "Name" => Contains(card.Name, keyword),
+                "Company" => Contains(card.CompanyName, keyword),
+                "Name" => Contains(card.FullName, keyword),
                 "Tag" => ContainsTag(card, keyword, exact: false),
                 "Date" => true,
                 _ => ContainsAnyMainField(card, keyword)
@@ -198,13 +491,13 @@ namespace PlustekBCR.ViewModels
         private bool MatchesAdvancedFilters(BusinessCard card)
         {
             if (!string.IsNullOrWhiteSpace(MainViewModel.CompanySearchKeyword)
-                && !Contains(card.Company, MainViewModel.CompanySearchKeyword))
+                && !Contains(card.CompanyName, MainViewModel.CompanySearchKeyword))
             {
                 return false;
             }
 
             if (!string.IsNullOrWhiteSpace(MainViewModel.NameSearchKeyword)
-                && !Contains(card.Name, MainViewModel.NameSearchKeyword))
+                && !Contains(card.FullName, MainViewModel.NameSearchKeyword))
             {
                 return false;
             }
@@ -217,6 +510,12 @@ namespace PlustekBCR.ViewModels
 
             if (!string.IsNullOrWhiteSpace(MainViewModel.TagSearchKeyword)
                 && !ContainsTag(card, MainViewModel.TagSearchKeyword, exact: false))
+            {
+                return false;
+            }
+
+            if (MainViewModel.AdvancedTagSearchKeywords.Count > 0
+                && !ContainsAnySelectedTag(card, MainViewModel.AdvancedTagSearchKeywords))
             {
                 return false;
             }
@@ -237,12 +536,13 @@ namespace PlustekBCR.ViewModels
 
         private static bool ContainsAnyMainField(BusinessCard card, string keyword)
         {
-            return Contains(card.Name, keyword)
-                || Contains(card.Company, keyword)
-                || Contains(card.Title, keyword)
-                || Contains(card.Phone, keyword)
+            return Contains(card.FullName, keyword)
+                || Contains(card.CompanyName, keyword)
+                || Contains(card.JobTitle, keyword)
+                || Contains(card.Tel, keyword)
+                || Contains(card.Mobile, keyword)
                 || Contains(card.Email, keyword)
-                || Contains(card.Address, keyword)
+                || Contains(card.FullAddress, keyword)
                 || Contains(card.Tag, keyword);
         }
 
@@ -268,8 +568,26 @@ namespace PlustekBCR.ViewModels
                 : tags.Any(x => x.Contains(keyword, StringComparison.OrdinalIgnoreCase));
         }
 
+        private static bool ContainsAnySelectedTag(BusinessCard card, IReadOnlyList<string> selectedTags)
+        {
+            if (selectedTags.Count == 0)
+            {
+                return false;
+            }
+
+            var tags = (card.Tag ?? string.Empty)
+                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => x.Trim())
+                .Where(x => !string.IsNullOrWhiteSpace(x));
+
+            return tags.Any(cardTag => selectedTags.Any(selectedTag =>
+                string.Equals(cardTag, selectedTag, StringComparison.OrdinalIgnoreCase)));
+        }
+
         private void OnSearchChanged()
         {
+            SelectedCard = null;
+            IsSidebarOpen = false;
             RefreshSearchResults();
         }
 
@@ -294,7 +612,6 @@ namespace PlustekBCR.ViewModels
                         card.Status = ProcessingStatus.Recognizing;
                     });
 
-                    // Simulate AI BCR OCR delay
                     await Task.Delay(3000);
 
                     string[] names = { "Liam Davis", "Noah Miller", "Oliver Wilson", "Elijah Moore", "William Taylor", "James Anderson", "Benjamin Thomas", "Lucas Jackson", "Henry White", "Alexander Harris" };
@@ -308,18 +625,26 @@ namespace PlustekBCR.ViewModels
 
                     App.Window?.DispatcherQueue.TryEnqueue(() =>
                     {
-                        if (string.IsNullOrEmpty(card.Name) || card.Name.StartsWith("BusinessCard") || card.Company == "Ingested Image")
+                        if (string.IsNullOrEmpty(card.FullName) || card.FullName.StartsWith("BusinessCard") || card.CompanyName == "Ingested Image")
                         {
-                            card.Name = randomName;
-                            card.Company = randomCompany;
+                            card.FullName = randomName;
+                            var nameParts = randomName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                            card.FirstName = nameParts.FirstOrDefault() ?? string.Empty;
+                            card.LastName = nameParts.Skip(1).FirstOrDefault() ?? string.Empty;
+                            card.CompanyName = randomCompany;
                         }
-                        
-                        card.Title = randomTitle;
-                        card.Email = $"{card.Name.Replace(" ", ".").ToLower()}@{card.Company.Replace(" ", "").ToLower()}.com";
-                        card.Phone = $"+1 (555) {rand.Next(100, 999)}-{rand.Next(1000, 9999)}";
-                        card.Address = $"{rand.Next(100, 9999)} Silicon Valley Rd, Suite {rand.Next(10, 500)}, San Jose, CA";
+
+                        card.JobTitle = randomTitle;
+                        card.Email = $"{card.FullName.Replace(" ", ".").ToLower()}@{card.CompanyName.Replace(" ", "").ToLower()}.com";
+                        card.Tel = $"+1 (555) {rand.Next(100, 999)}-{rand.Next(1000, 9999)}";
+                        card.AddressLine1 = $"{rand.Next(100, 9999)} Silicon Valley Rd";
+                        card.AddressLine2 = $"Suite {rand.Next(10, 500)}";
+                        card.City = "San Jose";
+                        card.State = "CA";
+                        card.FullAddress = $"{card.AddressLine1}, {card.AddressLine2}, {card.City}, {card.State}";
                         card.Country = "United States";
-                        card.Website = $"www.{card.Company.Replace(" ", "").ToLower()}.com";
+                        card.Website = $"www.{card.CompanyName.Replace(" ", "").ToLower()}.com";
+                        card.MarketCode = MarketCode.US;
 
                         card.Notes.Add(new Note { Content = "Automatically recognized and parsed by AI BCR Engine." });
                         card.Status = ProcessingStatus.Done;
@@ -343,12 +668,111 @@ namespace PlustekBCR.ViewModels
 
             await Task.WhenAll(tasks);
         }
+
+        private void SubscribeToSelectedCard(BusinessCard? card)
+        {
+            if (_subscribedCard != null)
+            {
+                _subscribedCard.PropertyChanged -= OnSelectedCardPropertyChanged;
+            }
+
+            _subscribedCard = card;
+
+            if (_subscribedCard != null)
+            {
+                _subscribedCard.PropertyChanged += OnSelectedCardPropertyChanged;
+            }
+        }
+
+        private void OnSelectedCardPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (sender is not BusinessCard card)
+            {
+                return;
+            }
+
+            switch (e.PropertyName)
+            {
+                case nameof(BusinessCard.ZipCode):
+                    OnPropertyChanged(nameof(DetailAddressText));
+                    if (!_isApplyingZipLookupResult)
+                    {
+                        _ = TriggerZipLookupAsync(card.ZipCode);
+                    }
+                    break;
+                case nameof(BusinessCard.AddressLine1):
+                case nameof(BusinessCard.FullAddress):
+                    OnPropertyChanged(nameof(DetailAddressText));
+                    break;
+                case nameof(BusinessCard.Department1):
+                case nameof(BusinessCard.Department2):
+                case nameof(BusinessCard.Department3):
+                case nameof(BusinessCard.Department4):
+                case nameof(BusinessCard.DepartmentFull):
+                    SyncDepartmentInputCount(card);
+                    OnPropertyChanged(nameof(DetailDepartmentText));
+                    OnPropertyChanged(nameof(HasDetailDepartmentText));
+                    break;
+            }
+        }
+
+        private async Task TriggerZipLookupAsync(string? zipCode)
+        {
+            if (_fieldService.CurrentMarket != MarketCode.JP)
+            {
+                return;
+            }
+
+            _zipLookupCts?.Cancel();
+            var currentCts = new CancellationTokenSource();
+            _zipLookupCts = currentCts;
+
+            try
+            {
+                await Task.Delay(300, currentCts.Token);
+                if (currentCts.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                var normalizedZip = (zipCode ?? string.Empty).Replace("-", string.Empty).Trim();
+                if (normalizedZip.Length == 7)
+                {
+                    await LookupZipCodeAsync();
+                }
+                else
+                {
+                    ZipLookupStatusMessage = string.Empty;
+                }
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }
+
+        private void SyncDepartmentInputCount(BusinessCard? card)
+        {
+            if (card == null)
+            {
+                DepartmentInputCount = 1;
+                return;
+            }
+
+            var count = 1;
+            if (!string.IsNullOrWhiteSpace(card.Department4)) count = 4;
+            else if (!string.IsNullOrWhiteSpace(card.Department3)) count = 3;
+            else if (!string.IsNullOrWhiteSpace(card.Department2)) count = 2;
+
+            DepartmentInputCount = count;
+        }
     }
 
     public class CardGroup : List<BusinessCard>
     {
         public string Key { get; set; }
-        public CardGroup(string key, IEnumerable<BusinessCard> items) : base(items)
+
+        public CardGroup(string key, IEnumerable<BusinessCard> items)
+            : base(items)
         {
             Key = key;
         }

@@ -103,7 +103,7 @@ namespace PlustekBCR.ViewModels
             }
         }
 
-        public string ScannerName => "Plustek SmartOffice S410+";
+        public string ScannerName => "Plustek SmartOffice S602";
 
         public string ScannerStatusText => IsScannerConnected
             ? "Scanner Status : Ready"
@@ -214,6 +214,24 @@ namespace PlustekBCR.ViewModels
             }
         }
 
+        private IReadOnlyList<string> _advancedTagSearchKeywords = Array.Empty<string>();
+        public IReadOnlyList<string> AdvancedTagSearchKeywords
+        {
+            get => _advancedTagSearchKeywords;
+            private set
+            {
+                var normalized = NormalizeAdvancedTagSearchKeywords(value);
+                if (_advancedTagSearchKeywords.SequenceEqual(normalized, StringComparer.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+
+                _advancedTagSearchKeywords = normalized;
+                OnPropertyChanged(nameof(AdvancedTagSearchKeywords));
+                NotifySearchChanged();
+            }
+        }
+
         private string? _searchKeyword;
         public string? SearchKeyword
         {
@@ -297,6 +315,7 @@ namespace PlustekBCR.ViewModels
             || !string.IsNullOrWhiteSpace(CompanySearchKeyword)
             || !string.IsNullOrWhiteSpace(NameSearchKeyword)
             || !string.IsNullOrWhiteSpace(TagSearchKeyword)
+            || AdvancedTagSearchKeywords.Count > 0
             || !string.IsNullOrWhiteSpace(SelectedTagFilter)
             || StartDate.HasValue
             || EndDate.HasValue;
@@ -309,7 +328,10 @@ namespace PlustekBCR.ViewModels
                 AddSummaryPart(parts, "All", SearchKeyword);
                 AddSummaryPart(parts, "Company", CompanySearchKeyword);
                 AddSummaryPart(parts, "Name", NameSearchKeyword);
-                AddSummaryPart(parts, "Tag", SelectedTagFilter ?? TagSearchKeyword);
+                var tagSummary = AdvancedTagSearchKeywords.Count > 0
+                    ? string.Join(", ", AdvancedTagSearchKeywords)
+                    : SelectedTagFilter ?? TagSearchKeyword;
+                AddSummaryPart(parts, "Tag", tagSummary);
 
                 if (StartDate.HasValue || EndDate.HasValue)
                 {
@@ -358,6 +380,7 @@ namespace PlustekBCR.ViewModels
         {
             ClearKeywordFilters();
             SelectedTagFilter = null;
+            AdvancedTagSearchKeywords = Array.Empty<string>();
             TagSearchKeyword = keyword;
         }
 
@@ -365,6 +388,7 @@ namespace PlustekBCR.ViewModels
         {
             SelectedTagFilter = null;
             TagSearchKeyword = null;
+            AdvancedTagSearchKeywords = Array.Empty<string>();
         }
 
         public void ApplyHeaderSearch(string? scope, string? keyword)
@@ -406,6 +430,16 @@ namespace PlustekBCR.ViewModels
             ApplyDateRange(startDate, endDate, null);
         }
 
+        public void ApplyAdvancedSearch(string? company, string? name, IEnumerable<string>? tags, DateTime? startDate, DateTime? endDate)
+        {
+            ClearSearchCore();
+            SelectedSearchScope = "All cards";
+            CompanySearchKeyword = company;
+            NameSearchKeyword = name;
+            AdvancedTagSearchKeywords = tags?.ToArray() ?? Array.Empty<string>();
+            ApplyDateRange(startDate, endDate, null);
+        }
+
         public void ApplyDateRange(DateTime? startDate, DateTime? endDate, string? preset)
         {
             StartDate = startDate?.Date;
@@ -441,6 +475,7 @@ namespace PlustekBCR.ViewModels
             SearchKeyword = null;
             CompanySearchKeyword = null;
             NameSearchKeyword = null;
+            AdvancedTagSearchKeywords = Array.Empty<string>();
             StartDate = null;
             EndDate = null;
             SelectedRecentPreset = null;
@@ -453,6 +488,7 @@ namespace PlustekBCR.ViewModels
             NameSearchKeyword = null;
             SelectedTagFilter = null;
             TagSearchKeyword = null;
+            AdvancedTagSearchKeywords = Array.Empty<string>();
             StartDate = null;
             EndDate = null;
             SelectedRecentPreset = null;
@@ -478,6 +514,16 @@ namespace PlustekBCR.ViewModels
             {
                 parts.Add($"{label}: {value}");
             }
+        }
+
+        private static IReadOnlyList<string> NormalizeAdvancedTagSearchKeywords(IEnumerable<string>? values)
+        {
+            return (values ?? Array.Empty<string>())
+                .Select(x => x?.Trim())
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Cast<string>()
+                .ToArray();
         }
 
         private void RefreshTagFilters()
@@ -755,8 +801,8 @@ namespace PlustekBCR.ViewModels
 
                     var scanningCard = new BusinessCard
                     {
-                        Name = "Scanned Document",
-                        Company = "Processing...",
+                        FullName = "Scanned Document",
+                        CompanyName = "Processing...",
                         Status = ProcessingStatus.Recognizing,
                         ScanDate = DateTime.Now,
                         IsAutoScanSession = true
@@ -800,8 +846,8 @@ namespace PlustekBCR.ViewModels
 
                 var scanningCard = new BusinessCard
                 {
-                    Name = "Scanned Document",
-                    Company = "Processing...",
+                    FullName = "Scanned Document",
+                    CompanyName = "Processing...",
                     Status = ProcessingStatus.Recognizing,
                     ScanDate = DateTime.Now,
                     IsAutoScanSession = true
@@ -851,8 +897,8 @@ namespace PlustekBCR.ViewModels
         {
             var scanningCard = new BusinessCard
             {
-                Name = "Scanned Document",
-                Company = "Processing...",
+                FullName = "Scanned Document",
+                CompanyName = "Processing...",
                 Status = ProcessingStatus.Recognizing,
                 ScanDate = DateTime.Now,
                 IsAutoScanSession = true

@@ -42,6 +42,14 @@
         <Setter Property="VerticalAlignment" Value="Stretch"/>
     </Style>
 
+    <Style x:Key="BcrTagMenuFlyoutPresenterStyle" TargetType="MenuFlyoutPresenter">
+        <Setter Property="Background" Value="{StaticResource BcrBrush.Surface}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BcrBrush.Border}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="{StaticResource BcrRadius.Control}"/>
+        <Setter Property="Padding" Value="4"/>
+    </Style>
+
     <Style x:Key="BcrImportLoadingShieldStyle" TargetType="Grid">
         <Setter Property="Background" Value="{ThemeResource ApplicationPageBackgroundThemeBrush}"/>
         <Setter Property="Opacity" Value="0.85"/>
