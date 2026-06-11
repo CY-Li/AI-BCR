@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Media;
 using PlustekBCR.Services;
 using PlustekBCR.ViewModels;
 using CommunityToolkit.Mvvm.Messaging;
+using PlustekBCR.Helpers;
 using PlustekBCR.Models;
 using System;
 using System.Collections.ObjectModel;
@@ -24,7 +25,7 @@ namespace PlustekBCR.Views
         private bool _isSyncingFilterUi;
         private readonly ObservableCollection<string> _advancedSelectedTags = new();
         private bool _isInSettingsWorkspace;
-        private Type _lastCardsPageType = typeof(EmptyPage);
+        private Type _lastCardsPageType = typeof(AllCardsPage);
         private object? _lastCardsNavigationItem;
         private string _currentSettingsSection = "General";
         private bool _isRestoringWorkspaceSelection;
@@ -55,76 +56,20 @@ namespace PlustekBCR.Views
                     return (false, false);
                 }
 
-                // Create programmatic dialog to avoid XAML generation issues
                 var skipCheckbox = new CheckBox 
                 { 
                     Content = "Don't show this again",
                     Margin = new Thickness(0, 8, 0, 0)
                 };
-                var panel = new StackPanel { Spacing = 16 };
-                panel.Children.Add(new TextBlock 
-                { 
-                    Text = "Please scan the business card, placing it face up in the scanner.", 
-                    TextWrapping = TextWrapping.WrapWholeWords, 
-                    FontSize = 16 
-                });
-                panel.Children.Add(new Image
-                {
-                    Source = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new System.Uri("ms-appx:///Assets/scanner_illustration.png")),
-                    MaxHeight = 200,
-                    Stretch = Microsoft.UI.Xaml.Media.Stretch.Uniform,
-                    Margin = new Thickness(0, 8, 0, 8)
-                });
-                panel.Children.Add(skipCheckbox);
+                var panel = CreateScanInstructionPanel(skipCheckbox);
+                var dialog = DialogHelper.CreateDialog(
+                    root,
+                    "Ready to start scanning",
+                    panel,
+                    primaryButtonText: "Scan",
+                    secondaryButtonText: "Cancel");
 
-                var dialog = new ContentDialog
-                {
-                    Title = "Ready to start scanning",
-                    Content = panel,
-                    PrimaryButtonText = "Scan",
-                    SecondaryButtonText = "Cancel",
-                    DefaultButton = ContentDialogButton.Primary,
-                    XamlRoot = root
-                };
-
-                UIElement? popupRoot = null;
-                Microsoft.UI.Xaml.Input.PointerEventHandler? pointerHandler = null;
-                pointerHandler = new Microsoft.UI.Xaml.Input.PointerEventHandler((sender, args) =>
-                {
-                    var backgroundElement = FindVisualChildByName(dialog, "BackgroundElement");
-                    if (backgroundElement != null)
-                    {
-                        var pos = args.GetCurrentPoint(backgroundElement).Position;
-                        if (pos.X < 0 || pos.Y < 0 || pos.X > backgroundElement.ActualWidth || pos.Y > backgroundElement.ActualHeight)
-                        {
-                            dialog.Hide();
-                        }
-                    }
-                });
-
-                dialog.Opened += (s, e) =>
-                {
-                    DependencyObject current = dialog;
-                    DependencyObject root = dialog;
-                    while (current != null)
-                    {
-                        root = current;
-                        current = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(current);
-                    }
-                    if (root is UIElement uiRoot)
-                    {
-                        popupRoot = uiRoot;
-                        popupRoot.AddHandler(UIElement.PointerPressedEvent, pointerHandler, true);
-                    }
-                };
-
-                dialog.Closed += (s, e) =>
-                {
-                    if (popupRoot != null && pointerHandler != null)
-                    {
-                        popupRoot.RemoveHandler(UIElement.PointerPressedEvent, pointerHandler);
-                    }
-                };
+                EnableOutsideTapDismiss(dialog);
 
                 var result = await dialog.ShowAsync();
                 return (result == ContentDialogResult.Primary, skipCheckbox.IsChecked ?? false);
@@ -135,15 +80,12 @@ namespace PlustekBCR.Views
                 var root = this.Content?.XamlRoot;
                 if (root == null) return false;
 
-                var dialog = new ContentDialog
-                {
-                    Title = "AI is turned off",
-                    Content = "Business cards will not be recognized automatically. You will need to input data manually",
-                    PrimaryButtonText = "Turn On AI",
-                    SecondaryButtonText = "Continue Manually",
-                    DefaultButton = ContentDialogButton.Primary,
-                    XamlRoot = root
-                };
+                var dialog = DialogHelper.CreateDialog(
+                    root,
+                    "AI is turned off",
+                    "Business cards will not be recognized automatically. You will need to input data manually",
+                    primaryButtonText: "Turn On AI",
+                    secondaryButtonText: "Continue Manually");
 
                 var result = await dialog.ShowAsync();
                 return result == ContentDialogResult.Primary;
@@ -173,8 +115,8 @@ namespace PlustekBCR.Views
             ScannerReadyPulseStoryboard?.Begin();
 
             // Set default page
-            RootNavigationView.SelectedItem = DashboardItem;
-            ContentFrame.Navigate(typeof(EmptyPage));
+            RootNavigationView.SelectedItem = AllCardsItem;
+            ContentFrame.Navigate(typeof(AllCardsPage));
             RebuildTagFilterMenu();
             RebuildAdvancedTagFlowItems();
             ApplyWorkspaceState();
@@ -299,23 +241,19 @@ namespace PlustekBCR.Views
 
                 switch (tag)
                 {
-                    case "Dashboard":
-                        ExitSettingsWorkspaceIfNeeded();
-                        ContentFrame.Navigate(typeof(EmptyPage));
-                        break;
                     case "AllCards":
                         ExitSettingsWorkspaceIfNeeded();
                         ClearCardFilters();
-                        ContentFrame.Navigate(typeof(AllCardsPage));
+                        NavigateToAllCardsPage();
                         break;
                     case "TagsRoot":
                         ExitSettingsWorkspaceIfNeeded();
-                        ContentFrame.Navigate(typeof(AllCardsPage));
+                        NavigateToAllCardsPage();
                         break;
                     case "TagAction:Add":
                         ExitSettingsWorkspaceIfNeeded();
                         _ = AddTagFromSidebarAsync();
-                        ContentFrame.Navigate(typeof(AllCardsPage));
+                        NavigateToAllCardsPage();
                         break;
                     default:
                         if (tag.StartsWith("TagFilter:", StringComparison.Ordinal))
@@ -323,14 +261,14 @@ namespace PlustekBCR.Views
                             ExitSettingsWorkspaceIfNeeded();
                             var selectedTag = tag["TagFilter:".Length..];
                             ApplyTagSearchShortcutFromSidebar(selectedTag);
-                            ContentFrame.Navigate(typeof(AllCardsPage));
+                            NavigateToAllCardsPage();
                         }
                         else if (tag.StartsWith("RecentPreset:", StringComparison.Ordinal))
                         {
                             ExitSettingsWorkspaceIfNeeded();
                             var preset = tag["RecentPreset:".Length..];
                             ApplyRecentPresetFromSidebar(preset);
-                            ContentFrame.Navigate(typeof(AllCardsPage));
+                            NavigateToAllCardsPage();
                         }
                         break;
                 }
@@ -358,8 +296,8 @@ namespace PlustekBCR.Views
             try
             {
                 _isRestoringWorkspaceSelection = true;
-                RootNavigationView.SelectedItem = AllCardsItem;
-                ContentFrame.Navigate(typeof(AllCardsPage));
+                SelectAllCardsNavigationItem();
+                NavigateToAllCardsPage();
             }
             finally
             {
@@ -415,7 +353,6 @@ namespace PlustekBCR.Views
             var settingsVisibility = _isInSettingsWorkspace ? Visibility.Visible : Visibility.Collapsed;
             var headerWorkspaceVisibility = _isInSettingsWorkspace ? Visibility.Collapsed : Visibility.Visible;
 
-            DashboardItem.Visibility = cardsVisibility;
             AllCardsItem.Visibility = cardsVisibility;
             CardsNavSeparator.Visibility = cardsVisibility;
             ByDateItem.Visibility = cardsVisibility;
@@ -529,7 +466,7 @@ namespace PlustekBCR.Views
         {
             e.Handled = true;
             _ = AddTagFromSidebarAsync();
-            ContentFrame.Navigate(typeof(AllCardsPage));
+            NavigateToAllCardsPage();
         }
 
         private void OnSidebarTagTapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
@@ -544,65 +481,47 @@ namespace PlustekBCR.Views
             {
                 var selectedTag = rawTag["TagFilter:".Length..];
                 ApplyTagSearchShortcutFromSidebar(selectedTag);
-                ContentFrame.Navigate(typeof(AllCardsPage));
+                NavigateToAllCardsPage();
             }
         }
 
         private void ApplyTagSearchShortcutFromSidebar(string tag)
         {
-            try
+            RunWithSearchUiSync(() =>
             {
-                _isSyncingFilterUi = true;
                 ViewModel.ApplyTagSearchKeyword(tag);
                 ViewModel.SelectedSearchScope = "Tag";
                 HeaderSearchBox.Text = tag;
                 UpdateSearchInputMode();
-                RootNavigationView.SelectedItem = AllCardsItem;
-            }
-            finally
-            {
-                _isSyncingFilterUi = false;
-            }
+                SelectAllCardsNavigationItem();
+            });
         }
 
         private void ApplyRecentPresetFromSidebar(string preset)
         {
-            try
+            RunWithSearchUiSync(() =>
             {
-                _isSyncingFilterUi = true;
                 ViewModel.ApplyRecentPreset(preset);
-                HeaderSearchBox.Text = string.Empty;
+                ClearHeaderSearchText();
                 SyncHeaderDatePickersFromViewModel();
                 UpdateSearchInputMode();
-                RootNavigationView.SelectedItem = AllCardsItem;
-            }
-            finally
-            {
-                _isSyncingFilterUi = false;
-            }
+                SelectAllCardsNavigationItem();
+            });
 
             OpenSearchDropdown(showAdvanced: false);
         }
 
         private void ClearCardFilters()
         {
-            try
+            RunWithSearchUiSync(() =>
             {
-                _isSyncingFilterUi = true;
                 ViewModel.ClearSearch();
-                if (!string.IsNullOrEmpty(HeaderSearchBox.Text))
-                {
-                    HeaderSearchBox.Text = string.Empty;
-                }
+                ClearHeaderSearchText();
                 ClearAdvancedSearchFields();
                 ClearHeaderDateFields();
                 UpdateSearchInputMode();
-                RootNavigationView.SelectedItem = AllCardsItem;
-            }
-            finally
-            {
-                _isSyncingFilterUi = false;
-            }
+                SelectAllCardsNavigationItem();
+            });
         }
 
         private void ApplyTextSearchFromHeader()
@@ -615,16 +534,12 @@ namespace PlustekBCR.Views
             }
 
             ViewModel.ApplyHeaderSearch(ViewModel.SelectedSearchScope, keyword);
-            try
+            RunWithSearchUiSync(() =>
             {
-                _isSyncingFilterUi = true;
-                RootNavigationView.SelectedItem = AllCardsItem;
-            }
-            finally
-            {
-                _isSyncingFilterUi = false;
-            }
-            ContentFrame.Navigate(typeof(AllCardsPage));
+                SelectAllCardsNavigationItem();
+            });
+
+            NavigateToAllCardsPage();
         }
 
         private async void OnSidebarTagDeleteClicked(object sender, RoutedEventArgs e)
@@ -640,10 +555,10 @@ namespace PlustekBCR.Views
                 await _tagCatalogService.SaveAsync();
                 if (string.Equals(ViewModel.SelectedTagFilter, tag, StringComparison.OrdinalIgnoreCase)
                     || string.Equals(ViewModel.TagSearchKeyword, tag, StringComparison.OrdinalIgnoreCase)
-                    || ViewModel.AdvancedTagSearchKeywords.Any(x => string.Equals(x, tag, StringComparison.OrdinalIgnoreCase)))
+                    || TagTextHelper.ContainsIgnoreCase(ViewModel.AdvancedTagSearchKeywords, tag))
                 {
                     ClearCardFilters();
-                    ContentFrame.Navigate(typeof(AllCardsPage));
+                    NavigateToAllCardsPage();
                 }
             }
         }
@@ -653,41 +568,16 @@ namespace PlustekBCR.Views
             var allCardsViewModel = App.GetService<AllCardsViewModel>();
             foreach (var card in allCardsViewModel.AllCards)
             {
-                var tags = (card.Tag ?? string.Empty)
-                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(x => x.Trim())
-                    .Where(x => !string.IsNullOrWhiteSpace(x))
-                    .Where(x => !string.Equals(x, tagToRemove, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
+                var tags = TagTextHelper.Split(card.Tag)
+                    .Where(x => !string.Equals(x, tagToRemove, StringComparison.OrdinalIgnoreCase));
 
-                card.Tag = string.Join(", ", tags);
+                card.Tag = TagTextHelper.Join(tags);
             }
         }
 
         private async Task AddTagFromSidebarAsync()
         {
-            var input = new TextBox
-            {
-                PlaceholderText = "Enter a new tag"
-            };
-
-            var dialog = new ContentDialog
-            {
-                Title = "Add tag",
-                Content = input,
-                PrimaryButtonText = "Add",
-                CloseButtonText = "Cancel",
-                DefaultButton = ContentDialogButton.Primary,
-                XamlRoot = this.Content?.XamlRoot
-            };
-
-            var result = await dialog.ShowAsync();
-            if (result != ContentDialogResult.Primary)
-            {
-                return;
-            }
-
-            var value = input.Text?.Trim();
+            var value = await TagDialogHelper.PromptForNewTagAsync(this.Content?.XamlRoot);
             if (string.IsNullOrWhiteSpace(value))
             {
                 return;
@@ -696,7 +586,7 @@ namespace PlustekBCR.Views
             if (_tagCatalogService.AddTag(value))
             {
                 await _tagCatalogService.SaveAsync();
-                ContentFrame.Navigate(typeof(AllCardsPage));
+                NavigateToAllCardsPage();
             }
         }
 
@@ -711,14 +601,7 @@ namespace PlustekBCR.Views
                 if (ViewModel.ScanCommand.CanExecute(null))
                 {
                     await ViewModel.ScanCommand.ExecuteAsync(null);
-                    if (ViewModel.IsAutoScanMode)
-                    {
-                        _mockPaperSensorTimer.Stop();
-                    }
-                    else
-                    {
-                        _mockPaperSensorTimer.Stop();
-                    }
+                    _mockPaperSensorTimer.Stop();
                 }
             }
             catch (System.Exception ex)
@@ -794,11 +677,85 @@ namespace PlustekBCR.Views
             return null;
         }
 
+        private static StackPanel CreateScanInstructionPanel(CheckBox skipCheckbox)
+        {
+            var panel = new StackPanel { Spacing = 16 };
+            panel.Children.Add(new TextBlock
+            {
+                Text = "Please scan the business card, placing it face up in the scanner.",
+                TextWrapping = TextWrapping.WrapWholeWords,
+                FontSize = 16
+            });
+            panel.Children.Add(new Image
+            {
+                Source = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri("ms-appx:///Assets/scanner_illustration.png")),
+                MaxHeight = 200,
+                Stretch = Microsoft.UI.Xaml.Media.Stretch.Uniform,
+                Margin = new Thickness(0, 8, 0, 8)
+            });
+            panel.Children.Add(skipCheckbox);
+            return panel;
+        }
+
+        private void EnableOutsideTapDismiss(ContentDialog dialog)
+        {
+            UIElement? popupRoot = null;
+            Microsoft.UI.Xaml.Input.PointerEventHandler? pointerHandler = null;
+
+            pointerHandler = new Microsoft.UI.Xaml.Input.PointerEventHandler((sender, args) =>
+            {
+                var backgroundElement = FindVisualChildByName(dialog, "BackgroundElement");
+                if (backgroundElement == null)
+                {
+                    return;
+                }
+
+                var pos = args.GetCurrentPoint(backgroundElement).Position;
+                if (pos.X < 0 || pos.Y < 0 || pos.X > backgroundElement.ActualWidth || pos.Y > backgroundElement.ActualHeight)
+                {
+                    dialog.Hide();
+                }
+            });
+
+            dialog.Opened += (s, e) =>
+            {
+                var root = FindTopLevelElement(dialog);
+                if (root == null)
+                {
+                    return;
+                }
+
+                popupRoot = root;
+                popupRoot.AddHandler(UIElement.PointerPressedEvent, pointerHandler, true);
+            };
+
+            dialog.Closed += (s, e) =>
+            {
+                if (popupRoot != null && pointerHandler != null)
+                {
+                    popupRoot.RemoveHandler(UIElement.PointerPressedEvent, pointerHandler);
+                }
+            };
+        }
+
+        private static UIElement? FindTopLevelElement(DependencyObject? start)
+        {
+            DependencyObject? current = start;
+            DependencyObject? root = start;
+            while (current != null)
+            {
+                root = current;
+                current = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(current);
+            }
+
+            return root as UIElement;
+        }
+
         private bool _isSearchScopeDropDownOpen = false;
 
         private void OnHeaderSearchBoxGotFocus(object sender, RoutedEventArgs e)
         {
-            OpenSearchDropdown(showAdvanced: false);
+            OpenDefaultSearchDropdown();
         }
 
         private void OnHeaderSearchBoxLostFocus(object sender, RoutedEventArgs e)
@@ -809,7 +766,7 @@ namespace PlustekBCR.Views
 
         private void OnSearchBoxHostPointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
         {
-            OpenSearchDropdown(showAdvanced: false);
+            OpenDefaultSearchDropdown();
         }
 
         private void OnSearchScopeDropDownOpened(object sender, object e)
@@ -846,7 +803,7 @@ namespace PlustekBCR.Views
         {
             if (sender is Button button && button.Tag is string preset)
             {
-                var (start, end) = GetRecentPresetRange(preset);
+                var (start, end) = RecentPresetHelper.GetRange(preset);
                 AdvancedStartDatePicker.Date = ToDateTimeOffset(start);
                 AdvancedEndDatePicker.Date = ToDateTimeOffset(end);
             }
@@ -860,7 +817,7 @@ namespace PlustekBCR.Views
         private void OnHeaderDateClearClicked(object sender, RoutedEventArgs e)
         {
             ClearCardFilters();
-            ContentFrame.Navigate(typeof(AllCardsPage));
+            NavigateToAllCardsPage();
         }
 
         private void OnAdvancedSearchClicked(object sender, RoutedEventArgs e)
@@ -872,26 +829,21 @@ namespace PlustekBCR.Views
                 ToDateTime(AdvancedStartDatePicker.Date),
                 ToDateTime(AdvancedEndDatePicker.Date));
 
-            try
+            RunWithSearchUiSync(() =>
             {
-                _isSyncingFilterUi = true;
-                HeaderSearchBox.Text = string.Empty;
+                ClearHeaderSearchText();
                 SyncHeaderDatePickersFromViewModel();
-                RootNavigationView.SelectedItem = AllCardsItem;
-            }
-            finally
-            {
-                _isSyncingFilterUi = false;
-            }
+                SelectAllCardsNavigationItem();
+            });
 
-            ContentFrame.Navigate(typeof(AllCardsPage));
+            NavigateToAllCardsPage();
             CloseSearchDropdown();
         }
 
         private void OnAdvancedSearchClearClicked(object sender, RoutedEventArgs e)
         {
             ClearCardFilters();
-            ContentFrame.Navigate(typeof(AllCardsPage));
+            NavigateToAllCardsPage();
             CloseSearchDropdown();
         }
 
@@ -908,18 +860,13 @@ namespace PlustekBCR.Views
             ViewModel.ApplyDateRange(startDate, endDate, null);
             ViewModel.SelectedSearchScope = "Date";
 
-            try
+            RunWithSearchUiSync(() =>
             {
-                _isSyncingFilterUi = true;
-                HeaderSearchBox.Text = string.Empty;
-                RootNavigationView.SelectedItem = AllCardsItem;
-            }
-            finally
-            {
-                _isSyncingFilterUi = false;
-            }
+                ClearHeaderSearchText();
+                SelectAllCardsNavigationItem();
+            });
 
-            ContentFrame.Navigate(typeof(AllCardsPage));
+            NavigateToAllCardsPage();
         }
 
         private void UpdateSearchInputMode()
@@ -936,6 +883,14 @@ namespace PlustekBCR.Views
         {
             HeaderStartDatePicker.Date = ToDateTimeOffset(ViewModel.StartDate);
             HeaderEndDatePicker.Date = ToDateTimeOffset(ViewModel.EndDate);
+        }
+
+        private void ClearHeaderSearchText()
+        {
+            if (!string.IsNullOrEmpty(HeaderSearchBox.Text))
+            {
+                HeaderSearchBox.Text = string.Empty;
+            }
         }
 
         private void ClearHeaderDateFields()
@@ -964,7 +919,7 @@ namespace PlustekBCR.Views
             _advancedSelectedTags.Clear();
             foreach (var tag in ViewModel.AdvancedTagSearchKeywords)
             {
-                _advancedSelectedTags.Add(tag);
+                TagTextHelper.AddIfMissing(_advancedSelectedTags, tag);
             }
 
             RebuildAdvancedTagFlowItems();
@@ -972,18 +927,14 @@ namespace PlustekBCR.Views
 
         private void RebuildAdvancedTagFlowItems()
         {
-            AdvancedTagFlowItems.Clear();
-            foreach (var tag in _advancedSelectedTags)
-            {
-                AdvancedTagFlowItems.Add(new TagFlowItem { Text = tag, IsAddButton = false });
-            }
+            CardPageUiHelper.RebuildTagFlowItems(AdvancedTagFlowItems, _advancedSelectedTags);
         }
 
         private void PruneAdvancedSelectedTags()
         {
             var validTags = _tagCatalogService.GetAllTags();
             var removedTags = _advancedSelectedTags
-                .Where(selectedTag => !validTags.Any(validTag => string.Equals(validTag, selectedTag, StringComparison.OrdinalIgnoreCase)))
+                .Where(selectedTag => !TagTextHelper.ContainsIgnoreCase(validTags, selectedTag))
                 .ToList();
 
             if (removedTags.Count == 0)
@@ -1006,13 +957,11 @@ namespace PlustekBCR.Views
                 return;
             }
 
-            var target = _advancedSelectedTags.FirstOrDefault(x => string.Equals(x, tag, StringComparison.OrdinalIgnoreCase));
-            if (target == null)
+            if (!TagTextHelper.RemoveFirstIgnoreCase(_advancedSelectedTags, tag))
             {
                 return;
             }
 
-            _advancedSelectedTags.Remove(target);
             RebuildAdvancedTagFlowItems();
         }
 
@@ -1023,7 +972,7 @@ namespace PlustekBCR.Views
                 MenuFlyoutPresenterStyle = (Style)Application.Current.Resources["BcrTagMenuFlyoutPresenterStyle"]
             };
             var available = _tagCatalogService.GetAllTags()
-                .Where(tag => !_advancedSelectedTags.Any(x => string.Equals(x, tag, StringComparison.OrdinalIgnoreCase)))
+                .Where(tag => !TagTextHelper.ContainsIgnoreCase(_advancedSelectedTags, tag))
                 .ToList();
 
             foreach (var tag in available)
@@ -1031,7 +980,7 @@ namespace PlustekBCR.Views
                 var item = new MenuFlyoutItem { Text = tag, Tag = tag };
                 item.Click += (_, __) =>
                 {
-                    _advancedSelectedTags.Add(tag);
+                    TagTextHelper.AddIfMissing(_advancedSelectedTags, tag);
                     RebuildAdvancedTagFlowItems();
                 };
                 flyout.Items.Add(item);
@@ -1049,20 +998,6 @@ namespace PlustekBCR.Views
             flyout.ShowAt((FrameworkElement)sender);
         }
 
-        private static (DateTime start, DateTime end) GetRecentPresetRange(string preset)
-        {
-            var today = DateTime.Today;
-            var start = preset switch
-            {
-                "Today" => today,
-                "Within 3 days" => today.AddDays(-2),
-                "Within 7 days" => today.AddDays(-6),
-                _ => today
-            };
-
-            return (start, today);
-        }
-
         private static DateTime? ToDateTime(DateTimeOffset? value)
         {
             return value?.Date;
@@ -1071,6 +1006,29 @@ namespace PlustekBCR.Views
         private static DateTimeOffset? ToDateTimeOffset(DateTime? value)
         {
             return value.HasValue ? new DateTimeOffset(value.Value.Date) : null;
+        }
+
+        private void RunWithSearchUiSync(Action action)
+        {
+            try
+            {
+                _isSyncingFilterUi = true;
+                action();
+            }
+            finally
+            {
+                _isSyncingFilterUi = false;
+            }
+        }
+
+        private void SelectAllCardsNavigationItem()
+        {
+            RootNavigationView.SelectedItem = AllCardsItem;
+        }
+
+        private void NavigateToAllCardsPage()
+        {
+            ContentFrame.Navigate(typeof(AllCardsPage));
         }
 
         private void OnHeaderSearchBoxTextChanged(object sender, TextChangedEventArgs e)
@@ -1094,7 +1052,7 @@ namespace PlustekBCR.Views
 
             if (!string.IsNullOrWhiteSpace(HeaderSearchBox.Text))
             {
-                OpenSearchDropdown(showAdvanced: false);
+                OpenDefaultSearchDropdown();
             }
         }
 
@@ -1112,7 +1070,7 @@ namespace PlustekBCR.Views
                 ApplyTextSearchFromHeader();
                 if (!string.IsNullOrWhiteSpace(HeaderSearchBox.Text))
                 {
-                    OpenSearchDropdown(showAdvanced: false);
+                    OpenDefaultSearchDropdown();
                 }
             }
             else if (e.Key == Windows.System.VirtualKey.Escape)
@@ -1170,19 +1128,21 @@ namespace PlustekBCR.Views
             e.Handled = true;
         }
 
+        private void OpenDefaultSearchDropdown()
+        {
+            OpenSearchDropdown(showAdvanced: false);
+        }
+
         private void OpenSearchDropdown(bool showAdvanced)
         {
-            SearchScopeComboBox.Visibility = Visibility.Visible;
+            ShowSearchScopeSelector();
             if (string.Equals(ViewModel.SelectedSearchScope, "Date", StringComparison.OrdinalIgnoreCase) && !showAdvanced)
             {
-                SearchOverlayLayer.Visibility = Visibility.Collapsed;
-                AdvancedSearchPanel.Visibility = Visibility.Collapsed;
-                DefaultSearchPanel.Visibility = Visibility.Visible;
+                ShowDateSearchMode();
                 return;
             }
 
-            DefaultSearchPanel.Visibility = showAdvanced ? Visibility.Collapsed : Visibility.Visible;
-            AdvancedSearchPanel.Visibility = showAdvanced ? Visibility.Visible : Visibility.Collapsed;
+            SetSearchDropdownMode(showAdvanced);
 
             SearchRoot.UpdateLayout();
 
@@ -1205,6 +1165,24 @@ namespace PlustekBCR.Views
                 : Visibility.Collapsed;
             AdvancedSearchPanel.Visibility = Visibility.Collapsed;
             DefaultSearchPanel.Visibility = Visibility.Visible;
+        }
+
+        private void ShowSearchScopeSelector()
+        {
+            SearchScopeComboBox.Visibility = Visibility.Visible;
+        }
+
+        private void ShowDateSearchMode()
+        {
+            SearchOverlayLayer.Visibility = Visibility.Collapsed;
+            AdvancedSearchPanel.Visibility = Visibility.Collapsed;
+            DefaultSearchPanel.Visibility = Visibility.Visible;
+        }
+
+        private void SetSearchDropdownMode(bool showAdvanced)
+        {
+            DefaultSearchPanel.Visibility = showAdvanced ? Visibility.Collapsed : Visibility.Visible;
+            AdvancedSearchPanel.Visibility = showAdvanced ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private bool IsPointerInsideRootBounds(Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e, FrameworkElement element)

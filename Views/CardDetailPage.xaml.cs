@@ -12,6 +12,7 @@ using Windows.System;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
+using PlustekBCR.Helpers;
 using PlustekBCR.ViewModels;
 using PlustekBCR.Models;
 using System.Collections.ObjectModel;
@@ -40,15 +41,7 @@ namespace PlustekBCR.Views
 
             ViewModel.ConfirmDeleteCardAsync = async (card) =>
             {
-                var dialog = new ContentDialog
-                {
-                    Title = "Delete Business Card",
-                    Content = $"Are you sure you want to delete the business card of '{card.FullName}'? This action cannot be undone.",
-                    PrimaryButtonText = "Delete",
-                    CloseButtonText = "Cancel",
-                    DefaultButton = ContentDialogButton.Close,
-                    XamlRoot = this.XamlRoot
-                };
+                var dialog = CardPageUiHelper.CreateDeleteConfirmationDialog(card.FullName, this.XamlRoot);
                 var result = await dialog.ShowAsync();
                 return result == ContentDialogResult.Primary;
             };
@@ -114,11 +107,7 @@ namespace PlustekBCR.Views
 
         private void RebuildEditTagFlowItems()
         {
-            EditTagFlowItems.Clear();
-            foreach (var tag in ViewModel.SelectedTags)
-            {
-                EditTagFlowItems.Add(new TagFlowItem { Text = tag, IsAddButton = false });
-            }
+            CardPageUiHelper.RebuildTagFlowItems(EditTagFlowItems, ViewModel.SelectedTags);
         }
 
         private async void OnBackClicked(object sender, RoutedEventArgs e)
@@ -139,23 +128,14 @@ namespace PlustekBCR.Views
 
         private async void OnUploadFrontFileClicked(object sender, RoutedEventArgs e)
         {
-            var file = await PickImageFileAsync();
-            if (file != null)
-            {
-                await LoadImageToFrontAsync(file);
-            }
+            await HandleImageUploadAsync(isFront: true);
         }
 
         private async void OnScanFrontClicked(object sender, RoutedEventArgs e)
         {
-            if (ViewModel.MainViewModel != null && !ViewModel.MainViewModel.SkipScanDialog)
+            if (!await EnsureScanConfirmedAsync())
             {
-                if (ViewModel.MainViewModel.ShowScanConfirmationDialogAsync != null)
-                {
-                    var result = await ViewModel.MainViewModel.ShowScanConfirmationDialogAsync();
-                    if (!result.proceed) return;
-                    if (result.skip) ViewModel.MainViewModel.SkipScanDialog = true;
-                }
+                return;
             }
 
             await SimulateScanAsync(isFront: true);
@@ -163,31 +143,19 @@ namespace PlustekBCR.Views
 
         private void OnDeleteFrontClicked(object sender, RoutedEventArgs e)
         {
-            if (ViewModel.SelectedCard != null)
-            {
-                ViewModel.SelectedCard.FrontImageData = null;
-            }
+            ClearSelectedImage(isFront: true);
         }
 
         private async void OnUploadBackFileClicked(object sender, RoutedEventArgs e)
         {
-            var file = await PickImageFileAsync();
-            if (file != null)
-            {
-                await LoadImageToBackAsync(file);
-            }
+            await HandleImageUploadAsync(isFront: false);
         }
 
         private async void OnScanBackClicked(object sender, RoutedEventArgs e)
         {
-            if (ViewModel.MainViewModel != null && !ViewModel.MainViewModel.SkipScanDialog)
+            if (!await EnsureScanConfirmedAsync())
             {
-                if (ViewModel.MainViewModel.ShowScanConfirmationDialogAsync != null)
-                {
-                    var result = await ViewModel.MainViewModel.ShowScanConfirmationDialogAsync();
-                    if (!result.proceed) return;
-                    if (result.skip) ViewModel.MainViewModel.SkipScanDialog = true;
-                }
+                return;
             }
 
             await SimulateScanAsync(isFront: false);
@@ -217,14 +185,7 @@ namespace PlustekBCR.Views
                     var sampleFile = await StorageFile.GetFileFromApplicationUriAsync(new Uri("ms-appx:///Assets/BusinessCard_01.jpg"));
                     var scannedBytes = await FileToByteArrayAsync(sampleFile);
 
-                    if (isFront)
-                    {
-                        ViewModel.SelectedCard.FrontImageData = scannedBytes;
-                    }
-                    else
-                    {
-                        ViewModel.SelectedCard.BackImageData = scannedBytes;
-                    }
+                    SetSelectedImageData(scannedBytes, isFront);
                 }
                 finally
                 {
@@ -244,10 +205,7 @@ namespace PlustekBCR.Views
 
         private void OnDeleteBackClicked(object sender, RoutedEventArgs e)
         {
-            if (ViewModel.SelectedCard != null)
-            {
-                ViewModel.SelectedCard.BackImageData = null;
-            }
+            ClearSelectedImage(isFront: false);
         }
 
         private void OnNewNoteTextBoxKeyDown(object sender, KeyRoutedEventArgs e)
@@ -298,25 +256,7 @@ namespace PlustekBCR.Views
                 return;
             }
 
-            var card = ViewModel.SelectedCard;
-            if (card.Status == ProcessingStatus.Recognizing)
-            {
-                return;
-            }
-
-            var prevStatus = card.Status;
-            card.Status = ProcessingStatus.Recognizing;
-
-            try
-            {
-                await Task.Delay(1800);
-                card.Status = ProcessingStatus.Done;
-            }
-            catch
-            {
-                card.Status = prevStatus;
-                throw;
-            }
+            await CardPageUiHelper.RunMockAiReprocessAsync(ViewModel.SelectedCard);
         }
 
         private async void OnAddTagClicked(object sender, RoutedEventArgs e)
@@ -326,7 +266,7 @@ namespace PlustekBCR.Views
                 MenuFlyoutPresenterStyle = (Style)Application.Current.Resources["BcrTagMenuFlyoutPresenterStyle"]
             };
             var available = ViewModel.AvailableTags
-                .Where(tag => !ViewModel.SelectedTags.Any(x => string.Equals(x, tag, StringComparison.OrdinalIgnoreCase)))
+                .Where(tag => !TagTextHelper.ContainsIgnoreCase(ViewModel.SelectedTags, tag))
                 .ToList();
 
             foreach (var tag in available)
@@ -344,22 +284,8 @@ namespace PlustekBCR.Views
             var newTagItem = new MenuFlyoutItem { Text = "+ New tag" };
             newTagItem.Click += async (_, __) =>
             {
-                var input = new TextBox { PlaceholderText = "Enter a new tag" };
-                var dialog = new ContentDialog
-                {
-                    Title = "Add tag",
-                    Content = input,
-                    PrimaryButtonText = "Add",
-                    CloseButtonText = "Cancel",
-                    DefaultButton = ContentDialogButton.Primary,
-                    XamlRoot = this.XamlRoot
-                };
-
-                var result = await dialog.ShowAsync();
-                if (result == ContentDialogResult.Primary)
-                {
-                    await ViewModel.AddSelectedTagAsync(input.Text);
-                }
+                var value = await TagDialogHelper.PromptForNewTagAsync(this.XamlRoot);
+                await ViewModel.AddSelectedTagAsync(value);
             };
             flyout.Items.Add(newTagItem);
             flyout.ShowAt((FrameworkElement)sender);
@@ -405,44 +331,12 @@ namespace PlustekBCR.Views
 
         private async void OnFrontImageDrop(object sender, DragEventArgs e)
         {
-            if (sender is FrameworkElement element)
-            {
-                element.Opacity = 1.0;
-            }
-
-            if (e.DataView.Contains(Windows.ApplicationModel.DataTransfer.StandardDataFormats.StorageItems))
-            {
-                e.Handled = true;
-                var items = await e.DataView.GetStorageItemsAsync();
-                if (items.Count > 0 && items[0] is StorageFile file)
-                {
-                    if (IsImageFile(file))
-                    {
-                        await LoadImageToFrontAsync(file);
-                    }
-                }
-            }
+            await HandleImageDropAsync(sender, e, isFront: true);
         }
 
         private async void OnBackImageDrop(object sender, DragEventArgs e)
         {
-            if (sender is FrameworkElement element)
-            {
-                element.Opacity = 1.0;
-            }
-
-            if (e.DataView.Contains(Windows.ApplicationModel.DataTransfer.StandardDataFormats.StorageItems))
-            {
-                e.Handled = true;
-                var items = await e.DataView.GetStorageItemsAsync();
-                if (items.Count > 0 && items[0] is StorageFile file)
-                {
-                    if (IsImageFile(file))
-                    {
-                        await LoadImageToBackAsync(file);
-                    }
-                }
-            }
+            await HandleImageDropAsync(sender, e, isFront: false);
         }
 
         private async Task<StorageFile?> PickImageFileAsync()
@@ -454,28 +348,100 @@ namespace PlustekBCR.Views
             picker.FileTypeFilter.Add(".jpeg");
             picker.FileTypeFilter.Add(".png");
             picker.FileTypeFilter.Add(".bmp");
-
-            // Initialize the picker with the window handle
-            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.Window);
-            WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+            PickerWindowHelper.Initialize(picker);
 
             return await picker.PickSingleFileAsync();
         }
 
-        private async Task LoadImageToFrontAsync(StorageFile file)
+        private async Task HandleImageUploadAsync(bool isFront)
         {
-            if (ViewModel.SelectedCard != null)
+            var file = await PickImageFileAsync();
+            if (file == null)
             {
-                ViewModel.SelectedCard.FrontImageData = await FileToByteArrayAsync(file);
+                return;
+            }
+
+            await LoadImageAsync(file, isFront);
+        }
+
+        private async Task HandleImageDropAsync(object sender, DragEventArgs e, bool isFront)
+        {
+            ResetDropZoneOpacity(sender);
+
+            if (!e.DataView.Contains(Windows.ApplicationModel.DataTransfer.StandardDataFormats.StorageItems))
+            {
+                return;
+            }
+
+            e.Handled = true;
+            var items = await e.DataView.GetStorageItemsAsync();
+            if (items.Count == 0 || items[0] is not StorageFile file || !IsImageFile(file))
+            {
+                return;
+            }
+
+            await LoadImageAsync(file, isFront);
+        }
+
+        private async Task LoadImageAsync(StorageFile file, bool isFront)
+        {
+            if (ViewModel.SelectedCard == null)
+            {
+                return;
+            }
+
+            var imageBytes = await FileToByteArrayAsync(file);
+            SetSelectedImageData(imageBytes, isFront);
+        }
+
+        private void ClearSelectedImage(bool isFront)
+        {
+            SetSelectedImageData(null, isFront);
+        }
+
+        private void SetSelectedImageData(byte[]? imageData, bool isFront)
+        {
+            if (ViewModel.SelectedCard == null)
+            {
+                return;
+            }
+
+            if (isFront)
+            {
+                ViewModel.SelectedCard.FrontImageData = imageData;
+                return;
+            }
+
+            ViewModel.SelectedCard.BackImageData = imageData;
+        }
+
+        private static void ResetDropZoneOpacity(object sender)
+        {
+            if (sender is FrameworkElement element)
+            {
+                element.Opacity = 1.0;
             }
         }
 
-        private async Task LoadImageToBackAsync(StorageFile file)
+        private async Task<bool> EnsureScanConfirmedAsync()
         {
-            if (ViewModel.SelectedCard != null)
+            if (ViewModel.MainViewModel == null || ViewModel.MainViewModel.SkipScanDialog)
             {
-                ViewModel.SelectedCard.BackImageData = await FileToByteArrayAsync(file);
+                return true;
             }
+
+            if (ViewModel.MainViewModel.ShowScanConfirmationDialogAsync == null)
+            {
+                return true;
+            }
+
+            var result = await ViewModel.MainViewModel.ShowScanConfirmationDialogAsync();
+            if (result.skip)
+            {
+                ViewModel.MainViewModel.SkipScanDialog = true;
+            }
+
+            return result.proceed;
         }
 
         private async Task<byte[]> FileToByteArrayAsync(StorageFile file)

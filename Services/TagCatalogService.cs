@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using PlustekBCR.Helpers;
 
 namespace PlustekBCR.Services
 {
@@ -31,37 +32,33 @@ namespace PlustekBCR.Services
 
         public bool AddTag(string? tag)
         {
-            var normalized = Normalize(tag);
+            var normalized = TagTextHelper.Normalize(tag);
             if (string.IsNullOrEmpty(normalized))
             {
                 return false;
             }
 
-            if (_tags.Any(x => string.Equals(x, normalized, StringComparison.OrdinalIgnoreCase)))
+            if (!TagTextHelper.AddIfMissing(_tags, normalized))
             {
                 return false;
             }
 
-            _tags.Add(normalized);
             TagsChanged?.Invoke();
             return true;
         }
 
         public bool RemoveTag(string? tag)
         {
-            var normalized = Normalize(tag);
+            var normalized = TagTextHelper.Normalize(tag);
             if (string.IsNullOrEmpty(normalized))
             {
                 return false;
             }
 
-            var existing = _tags.FirstOrDefault(x => string.Equals(x, normalized, StringComparison.OrdinalIgnoreCase));
-            if (existing == null)
+            if (!TagTextHelper.RemoveFirstIgnoreCase(_tags, normalized))
             {
                 return false;
             }
-
-            _tags.Remove(existing);
             TagsChanged?.Invoke();
             return true;
         }
@@ -121,22 +118,13 @@ namespace PlustekBCR.Services
                         continue;
                     }
 
-                    var normalized = Normalize(node.ToString());
-                    if (!string.IsNullOrEmpty(normalized) && !_tags.Any(x => string.Equals(x, normalized, StringComparison.OrdinalIgnoreCase)))
-                    {
-                        _tags.Add(normalized);
-                    }
+                    TagTextHelper.AddIfMissing(_tags, node.ToString());
                 }
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"Load tag catalog failed: {ex.Message}");
             }
-        }
-
-        private static string Normalize(string? value)
-        {
-            return (value ?? string.Empty).Trim();
         }
     }
 }

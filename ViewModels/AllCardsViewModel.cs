@@ -19,6 +19,7 @@ namespace PlustekBCR.ViewModels
         private readonly System.Threading.SemaphoreSlim _queueSemaphore = new(3);
         private readonly IZipCodeLookupService _zipCodeLookupService;
         private readonly IBusinessCardFieldService _fieldService;
+        private readonly JapanZipLookupCoordinator _zipLookupCoordinator;
         private ObservableCollection<BusinessCard> _allCards = new();
         private BusinessCard? _selectedCard;
         private BusinessCard? _subscribedCard;
@@ -219,6 +220,7 @@ namespace PlustekBCR.ViewModels
             MainViewModel = App.GetService<MainViewModel>();
             _zipCodeLookupService = App.GetService<IZipCodeLookupService>();
             _fieldService = App.GetService<IBusinessCardFieldService>();
+            _zipLookupCoordinator = App.GetService<JapanZipLookupCoordinator>();
             AllCards = new ObservableCollection<BusinessCard>();
             MainViewModel.SearchChanged += OnSearchChanged;
             LoadSampleData();
@@ -364,6 +366,9 @@ namespace PlustekBCR.ViewModels
 
         public IEnumerable<BusinessCard> FilteredCards => AllCards.Where(MatchesSearch);
         public int FilteredCardCount => FilteredCards.Count();
+        public bool HasCards => AllCards.Count > 0;
+        public bool ShowEmptyState => !MainViewModel.IsSearchActive && !HasCards;
+        public bool ShowCardsContent => FilteredCardCount > 0;
 
         public string SearchResultSummary => MainViewModel.IsSearchActive
             ? $"{FilteredCardCount} result{(FilteredCardCount == 1 ? string.Empty : "s")} | {MainViewModel.SearchSummaryText}"
@@ -442,8 +447,7 @@ namespace PlustekBCR.ViewModels
                 return;
             }
 
-            var normalizedZip = (SelectedCard.ZipCode ?? string.Empty).Replace("-", string.Empty).Trim();
-            if (normalizedZip.Length != 7)
+            if (!JapanZipLookupCoordinator.IsLookupReady(SelectedCard.ZipCode))
             {
                 ZipLookupStatusMessage = string.Empty;
                 return;
@@ -455,29 +459,15 @@ namespace PlustekBCR.ViewModels
             try
             {
                 IsZipLookupInProgress = true;
-                ZipLookupStatusMessage = "Looking up address...";
-
-                var result = await _zipCodeLookupService.LookupJapanAddressAsync(normalizedZip, _zipLookupCts.Token);
-                if (result == null)
-                {
-                    ZipLookupStatusMessage = "Address not found.";
-                    return;
-                }
+                ZipLookupStatusMessage = JapanZipLookupCoordinator.LookingUpMessage;
 
                 _isApplyingZipLookupResult = true;
-                SelectedCard.MarketCode = MarketCode.JP;
-                SelectedCard.ZipCode = result.Zipcode ?? normalizedZip;
-                SelectedCard.AddressLine1 = string.Concat(result.Address1 ?? string.Empty, result.Address2 ?? string.Empty, result.Address3 ?? string.Empty);
-                SelectedCard.FullAddress = BusinessCardAddressHelper.ComposeFullAddress(SelectedCard.MarketCode, SelectedCard.AddressLine1, SelectedCard.AddressLine2, SelectedCard.City, SelectedCard.State, SelectedCard.ZipCode, SelectedCard.Country);
-                ZipLookupStatusMessage = "Address updated.";
+                var outcome = await _zipLookupCoordinator.LookupAndApplyAsync(_zipCodeLookupService, SelectedCard, _zipLookupCts.Token);
+                ZipLookupStatusMessage = outcome.StatusMessage;
                 OnPropertyChanged(nameof(DetailAddressText));
             }
             catch (OperationCanceledException)
             {
-            }
-            catch
-            {
-                ZipLookupStatusMessage = "Address lookup failed.";
             }
             finally
             {
@@ -622,9 +612,7 @@ namespace PlustekBCR.ViewModels
                 return false;
             }
 
-            var tags = (card.Tag ?? string.Empty)
-                .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(x => x.Trim());
+            var tags = TagTextHelper.Split(card.Tag);
 
             return exact
                 ? tags.Any(x => string.Equals(x, keyword, StringComparison.OrdinalIgnoreCase))
@@ -638,10 +626,7 @@ namespace PlustekBCR.ViewModels
                 return false;
             }
 
-            var tags = (card.Tag ?? string.Empty)
-                .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(x => x.Trim())
-                .Where(x => !string.IsNullOrWhiteSpace(x));
+            var tags = TagTextHelper.Split(card.Tag);
 
             return tags.Any(cardTag => selectedTags.Any(selectedTag =>
                 string.Equals(cardTag, selectedTag, StringComparison.OrdinalIgnoreCase)));
@@ -659,6 +644,9 @@ namespace PlustekBCR.ViewModels
             OnPropertyChanged(nameof(FilteredCards));
             OnPropertyChanged(nameof(GroupedCards));
             OnPropertyChanged(nameof(FilteredCardCount));
+            OnPropertyChanged(nameof(HasCards));
+            OnPropertyChanged(nameof(ShowEmptyState));
+            OnPropertyChanged(nameof(ShowCardsContent));
             OnPropertyChanged(nameof(SearchResultSummary));
             OnPropertyChanged(nameof(HasNoSearchResults));
         }
@@ -812,8 +800,7 @@ namespace PlustekBCR.ViewModels
                     return;
                 }
 
-                var normalizedZip = (zipCode ?? string.Empty).Replace("-", string.Empty).Trim();
-                if (normalizedZip.Length == 7)
+                if (JapanZipLookupCoordinator.IsLookupReady(zipCode))
                 {
                     await LookupZipCodeAsync();
                 }
@@ -829,18 +816,7 @@ namespace PlustekBCR.ViewModels
 
         private void SyncDepartmentInputCount(BusinessCard? card)
         {
-            if (card == null)
-            {
-                DepartmentInputCount = 1;
-                return;
-            }
-
-            var count = 1;
-            if (!string.IsNullOrWhiteSpace(card.Department4)) count = 4;
-            else if (!string.IsNullOrWhiteSpace(card.Department3)) count = 3;
-            else if (!string.IsNullOrWhiteSpace(card.Department2)) count = 2;
-
-            DepartmentInputCount = count;
+            DepartmentInputCount = BusinessCardDepartmentHelper.GetVisibleDepartmentCount(card);
         }
     }
 

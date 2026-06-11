@@ -41,15 +41,7 @@ namespace PlustekBCR.Views
 
             ViewModel.ConfirmDeleteCardAsync = async (card) =>
             {
-                var dialog = new ContentDialog
-                {
-                    Title = "Delete Business Card",
-                    Content = $"Are you sure you want to delete the business card of '{card.FullName}'? This action cannot be undone.",
-                    PrimaryButtonText = "Delete",
-                    CloseButtonText = "Cancel",
-                    DefaultButton = ContentDialogButton.Close,
-                    XamlRoot = this.XamlRoot
-                };
+                var dialog = CardPageUiHelper.CreateDeleteConfirmationDialog(card.FullName, this.XamlRoot);
                 var result = await dialog.ShowAsync();
                 return result == ContentDialogResult.Primary;
             };
@@ -279,25 +271,7 @@ namespace PlustekBCR.Views
                 return;
             }
 
-            var card = ViewModel.SelectedCard;
-            if (card.Status == ProcessingStatus.Recognizing)
-            {
-                return;
-            }
-
-            var prevStatus = card.Status;
-            card.Status = ProcessingStatus.Recognizing;
-
-            try
-            {
-                await Task.Delay(1800);
-                card.Status = ProcessingStatus.Done;
-            }
-            catch
-            {
-                card.Status = prevStatus;
-                throw;
-            }
+            await CardPageUiHelper.RunMockAiReprocessAsync(ViewModel.SelectedCard);
         }
 
         private async Task ExportCardAsCsvAsync(BusinessCard card)
@@ -308,9 +282,7 @@ namespace PlustekBCR.Views
                 SuggestedFileName = string.IsNullOrWhiteSpace(card.FullName) ? "business_card" : card.FullName
             };
             picker.FileTypeChoices.Add("CSV (Comma delimited)", new System.Collections.Generic.List<string> { ".csv" });
-
-            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.Window);
-            WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+            PickerWindowHelper.Initialize(picker);
 
             StorageFile? file = await picker.PickSaveFileAsync();
             if (file == null) return;
@@ -332,9 +304,7 @@ namespace PlustekBCR.Views
                 SuggestedFileName = string.IsNullOrWhiteSpace(card.FullName) ? "business_card" : card.FullName
             };
             picker.FileTypeChoices.Add("Text File", new System.Collections.Generic.List<string> { ".txt" });
-
-            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.Window);
-            WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+            PickerWindowHelper.Initialize(picker);
 
             StorageFile? file = await picker.PickSaveFileAsync();
             if (file == null) return;
@@ -378,7 +348,7 @@ namespace PlustekBCR.Views
                 MenuFlyoutPresenterStyle = (Style)Application.Current.Resources["BcrTagMenuFlyoutPresenterStyle"]
             };
             var available = _tagCatalogService.GetAllTags()
-                .Where(tag => !SidebarSelectedTags.Any(x => string.Equals(x, tag, StringComparison.OrdinalIgnoreCase)))
+                .Where(tag => !TagTextHelper.ContainsIgnoreCase(SidebarSelectedTags, tag))
                 .ToList();
 
             foreach (var tag in available)
@@ -386,7 +356,7 @@ namespace PlustekBCR.Views
                 var item = new MenuFlyoutItem { Text = tag, Tag = tag };
                 item.Click += async (_, __) =>
                 {
-                    SidebarSelectedTags.Add(tag);
+                    TagTextHelper.AddIfMissing(SidebarSelectedTags, tag);
                     RebuildSidebarTagFlowItems();
                     await PersistSidebarTagsAsync();
                 };
@@ -401,33 +371,14 @@ namespace PlustekBCR.Views
             var newTagItem = new MenuFlyoutItem { Text = "+ New tag" };
             newTagItem.Click += async (_, __) =>
             {
-                var input = new TextBox { PlaceholderText = "Enter a new tag" };
-                var dialog = new ContentDialog
-                {
-                    Title = "Add tag",
-                    Content = input,
-                    PrimaryButtonText = "Add",
-                    CloseButtonText = "Cancel",
-                    DefaultButton = ContentDialogButton.Primary,
-                    XamlRoot = this.XamlRoot
-                };
-
-                var result = await dialog.ShowAsync();
-                if (result != ContentDialogResult.Primary)
-                {
-                    return;
-                }
-
-                var value = input.Text?.Trim();
+                var value = await TagDialogHelper.PromptForNewTagAsync(this.XamlRoot);
                 if (string.IsNullOrWhiteSpace(value))
                 {
                     return;
                 }
 
-                var existsInCard = SidebarSelectedTags.Any(x => string.Equals(x, value, StringComparison.OrdinalIgnoreCase));
-                if (!existsInCard)
+                if (TagTextHelper.AddIfMissing(SidebarSelectedTags, value))
                 {
-                    SidebarSelectedTags.Add(value);
                     RebuildSidebarTagFlowItems();
                 }
 
@@ -447,15 +398,13 @@ namespace PlustekBCR.Views
                 return;
             }
 
-                var target = SidebarSelectedTags.FirstOrDefault(x => string.Equals(x, tag, StringComparison.OrdinalIgnoreCase));
-                if (target == null)
-                {
-                    return;
-                }
+            if (!TagTextHelper.RemoveFirstIgnoreCase(SidebarSelectedTags, tag))
+            {
+                return;
+            }
 
-                SidebarSelectedTags.Remove(target);
-                RebuildSidebarTagFlowItems();
-                await PersistSidebarTagsAsync();
+            RebuildSidebarTagFlowItems();
+            await PersistSidebarTagsAsync();
         }
 
         private async Task PersistSidebarTagsAsync()
@@ -465,7 +414,7 @@ namespace PlustekBCR.Views
                 return;
             }
 
-            ViewModel.SelectedCard.Tag = string.Join(", ", SidebarSelectedTags);
+            ViewModel.SelectedCard.Tag = TagTextHelper.Join(SidebarSelectedTags);
 
             var hasNew = false;
             foreach (var tag in SidebarSelectedTags)
@@ -485,17 +434,10 @@ namespace PlustekBCR.Views
         private void RefreshSidebarTagsFromCard()
         {
             SidebarSelectedTags.Clear();
-            var raw = ViewModel.SelectedCard?.Tag ?? string.Empty;
-            var tags = raw.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(x => x.Trim())
-                .Where(x => !string.IsNullOrWhiteSpace(x));
-
+            var tags = TagTextHelper.Split(ViewModel.SelectedCard?.Tag);
             foreach (var tag in tags)
             {
-                if (!SidebarSelectedTags.Any(x => string.Equals(x, tag, StringComparison.OrdinalIgnoreCase)))
-                {
-                    SidebarSelectedTags.Add(tag);
-                }
+                TagTextHelper.AddIfMissing(SidebarSelectedTags, tag);
             }
             RebuildSidebarTagFlowItems();
         }
@@ -673,11 +615,7 @@ namespace PlustekBCR.Views
 
         private void RebuildSidebarTagFlowItems()
         {
-            SidebarTagFlowItems.Clear();
-            foreach (var tag in SidebarSelectedTags)
-            {
-                SidebarTagFlowItems.Add(new TagFlowItem { Text = tag, IsAddButton = false });
-            }
+            CardPageUiHelper.RebuildTagFlowItems(SidebarTagFlowItems, SidebarSelectedTags);
         }
     }
 }

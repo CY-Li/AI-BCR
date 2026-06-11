@@ -28,6 +28,7 @@ namespace PlustekBCR.ViewModels
         private readonly ITagCatalogService _tagCatalogService;
         private readonly IZipCodeLookupService _zipCodeLookupService;
         private readonly IBusinessCardFieldService _fieldService;
+        private readonly JapanZipLookupCoordinator _zipLookupCoordinator;
 
         private ObservableCollection<BusinessCard>? _originalCards;
         private BusinessCard? _subscribedCard;
@@ -65,6 +66,7 @@ namespace PlustekBCR.ViewModels
             _tagCatalogService = App.GetService<ITagCatalogService>();
             _zipCodeLookupService = App.GetService<IZipCodeLookupService>();
             _fieldService = App.GetService<IBusinessCardFieldService>();
+            _zipLookupCoordinator = App.GetService<JapanZipLookupCoordinator>();
             AllCards = new ObservableCollection<BusinessCard>();
             NewNoteContent = string.Empty;
             AvailableTags = new ObservableCollection<string>(_tagCatalogService.GetAllTags());
@@ -183,8 +185,7 @@ namespace PlustekBCR.ViewModels
                 return;
             }
 
-            var normalizedZip = (SelectedCard.ZipCode ?? string.Empty).Replace("-", string.Empty).Trim();
-            if (normalizedZip.Length != 7)
+            if (!JapanZipLookupCoordinator.IsLookupReady(SelectedCard.ZipCode))
             {
                 ZipLookupStatusMessage = string.Empty;
                 return;
@@ -196,28 +197,14 @@ namespace PlustekBCR.ViewModels
             try
             {
                 IsZipLookupInProgress = true;
-                ZipLookupStatusMessage = "Looking up address...";
-
-                var result = await _zipCodeLookupService.LookupJapanAddressAsync(normalizedZip, _zipLookupCts.Token);
-                if (result == null)
-                {
-                    ZipLookupStatusMessage = "Address not found.";
-                    return;
-                }
+                ZipLookupStatusMessage = JapanZipLookupCoordinator.LookingUpMessage;
 
                 _isApplyingZipLookupResult = true;
-                SelectedCard.MarketCode = MarketCode.JP;
-                SelectedCard.ZipCode = result.Zipcode ?? normalizedZip;
-                SelectedCard.AddressLine1 = string.Concat(result.Address1 ?? string.Empty, result.Address2 ?? string.Empty, result.Address3 ?? string.Empty);
-                SelectedCard.FullAddress = BusinessCardAddressHelper.ComposeFullAddress(SelectedCard.MarketCode, SelectedCard.AddressLine1, SelectedCard.AddressLine2, SelectedCard.City, SelectedCard.State, SelectedCard.ZipCode, SelectedCard.Country);
-                ZipLookupStatusMessage = "Address updated.";
+                var outcome = await _zipLookupCoordinator.LookupAndApplyAsync(_zipCodeLookupService, SelectedCard, _zipLookupCts.Token);
+                ZipLookupStatusMessage = outcome.StatusMessage;
             }
             catch (OperationCanceledException)
             {
-            }
-            catch
-            {
-                ZipLookupStatusMessage = "Address lookup failed.";
             }
             finally
             {
@@ -234,7 +221,7 @@ namespace PlustekBCR.ViewModels
                 return;
             }
 
-            if (SelectedTags.Any(x => string.Equals(x, normalized, StringComparison.OrdinalIgnoreCase)))
+            if (TagTextHelper.ContainsIgnoreCase(SelectedTags, normalized))
             {
                 return;
             }
@@ -250,19 +237,11 @@ namespace PlustekBCR.ViewModels
 
         public void RemoveSelectedTag(string? tag)
         {
-            var normalized = NormalizeTag(tag);
-            if (string.IsNullOrEmpty(normalized))
+            if (!TagTextHelper.RemoveFirstIgnoreCase(SelectedTags, tag))
             {
                 return;
             }
 
-            var target = SelectedTags.FirstOrDefault(x => string.Equals(x, normalized, StringComparison.OrdinalIgnoreCase));
-            if (target == null)
-            {
-                return;
-            }
-
-            SelectedTags.Remove(target);
             UpdateCardTagString();
         }
 
@@ -276,12 +255,10 @@ namespace PlustekBCR.ViewModels
 
             foreach (var tag in SplitTags(card.Tag))
             {
-                if (SelectedTags.Any(x => string.Equals(x, tag, StringComparison.OrdinalIgnoreCase)))
+                if (!TagTextHelper.AddIfMissing(SelectedTags, tag))
                 {
                     continue;
                 }
-
-                SelectedTags.Add(tag);
                 if (_tagCatalogService.AddTag(tag))
                 {
                     await _tagCatalogService.SaveAsync();
@@ -296,7 +273,7 @@ namespace PlustekBCR.ViewModels
                 return;
             }
 
-            SelectedCard.Tag = string.Join(", ", SelectedTags);
+            SelectedCard.Tag = TagTextHelper.Join(SelectedTags);
         }
 
         private void OnTagCatalogChanged()
@@ -310,20 +287,7 @@ namespace PlustekBCR.ViewModels
 
         private void SyncDepartmentInputCount(BusinessCard? card)
         {
-            if (card == null)
-            {
-                DepartmentInputCount = 1;
-                OnPropertyChanged(nameof(ShowDepartment2));
-                OnPropertyChanged(nameof(ShowDepartment3));
-                OnPropertyChanged(nameof(ShowDepartment4));
-                OnPropertyChanged(nameof(CanAddDepartmentInput));
-                return;
-            }
-
-            DepartmentInputCount = 1;
-            if (!string.IsNullOrWhiteSpace(card.Department4)) DepartmentInputCount = 4;
-            else if (!string.IsNullOrWhiteSpace(card.Department3)) DepartmentInputCount = 3;
-            else if (!string.IsNullOrWhiteSpace(card.Department2)) DepartmentInputCount = 2;
+            DepartmentInputCount = BusinessCardDepartmentHelper.GetVisibleDepartmentCount(card);
             OnPropertyChanged(nameof(ShowDepartment2));
             OnPropertyChanged(nameof(ShowDepartment3));
             OnPropertyChanged(nameof(ShowDepartment4));
@@ -362,8 +326,7 @@ namespace PlustekBCR.ViewModels
         {
             _zipLookupCts?.Cancel();
 
-            var normalizedZip = (zipCode ?? string.Empty).Replace("-", string.Empty).Trim();
-            if (normalizedZip.Length != 7)
+            if (!JapanZipLookupCoordinator.IsLookupReady(zipCode))
             {
                 ZipLookupStatusMessage = string.Empty;
                 IsZipLookupInProgress = false;
@@ -385,17 +348,12 @@ namespace PlustekBCR.ViewModels
 
         private static List<string> SplitTags(string? rawTags)
         {
-            return (rawTags ?? string.Empty)
-                .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(NormalizeTag)
-                .Where(x => !string.IsNullOrEmpty(x))
-                .Cast<string>()
-                .ToList();
+            return TagTextHelper.Split(rawTags).ToList();
         }
 
         private static string NormalizeTag(string? value)
         {
-            return (value ?? string.Empty).Trim();
+            return TagTextHelper.Normalize(value);
         }
     }
 }

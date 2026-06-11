@@ -38,60 +38,31 @@
             <Grid x:Name="GeneralContentPanel"
                   Grid.Row="1"
                   Margin="74,26,0,0"
-                  MaxWidth="1260"
-                  HorizontalAlignment="Left"
-                  ColumnSpacing="34"
-                  RowSpacing="18">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="642"/>
-                    <ColumnDefinition Width="538"/>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="128"/>
-                    <RowDefinition Height="180"/>
-                </Grid.RowDefinitions>
-
-                <Border Grid.Column="0"
-                        Grid.Row="0"
-                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
-                    <Border Padding="22"
-                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                            BorderThickness="1"
-                            CornerRadius="16">
-                        <StackPanel Spacing="14">
-                            <StackPanel Spacing="8">
-                                <TextBlock Text="Language" FontSize="18" FontWeight="SemiBold"/>
-                                <TextBlock Text="Controls the default field set and import mapping used in detail, edit, and import flows."
-                                           FontSize="13"
-                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                           TextWrapping="WrapWholeWords"/>
-                            </StackPanel>
-
-                            <ComboBox x:Name="LanguageComboBox"
-                                      Width="220"
-                                      SelectionChanged="OnLanguageSelectionChanged">
-                                <ComboBoxItem Tag="JP" Content="Japanese"/>
-                                <ComboBoxItem Tag="US" Content="English"/>
-                            </ComboBox>
+                  MaxWidth="720"
+                  HorizontalAlignment="Left">
+                <Border Padding="24"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="16">
+                    <StackPanel Spacing="16">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Language" FontSize="18" FontWeight="SemiBold"/>
+                            <TextBlock Text="Controls the default field set and import mapping used in detail, edit, and import flows."
+                                       FontSize="13"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       TextWrapping="WrapWholeWords"/>
                         </StackPanel>
-                    </Border>
+
+                        <ComboBox x:Name="LanguageComboBox"
+                                  Style="{StaticResource BcrComboBoxStyle}"
+                                  Width="220"
+                                  SelectionChanged="OnLanguageSelectionChanged">
+                            <ComboBoxItem Tag="JP" Content="Japanese"/>
+                            <ComboBoxItem Tag="US" Content="English"/>
+                        </ComboBox>
+                    </StackPanel>
                 </Border>
-
-                <Border Grid.Column="0"
-                        Grid.Row="1"
-                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"/>
-
-                <Border Grid.Column="0"
-                        Grid.Row="2"
-                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"/>
-
-                <Border Grid.Column="1"
-                        Grid.Row="0"
-                        Grid.RowSpan="2"
-                        Margin="0,58,0,0"
-                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"/>
             </Grid>
 
             <Border x:Name="SectionHintBorder"

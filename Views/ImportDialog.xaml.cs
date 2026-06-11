@@ -184,14 +184,11 @@ namespace PlustekBCR.Views
         {
             try
             {
-                var picker = new FileOpenPicker();
-                picker.ViewMode = PickerViewMode.List;
-                picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
-                picker.FileTypeFilter.Add(".csv");
-                picker.FileTypeFilter.Add(".xlsx");
-
-                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.Window);
-                WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+                var picker = CreateOpenPicker(
+                    PickerViewMode.List,
+                    PickerLocationId.DocumentsLibrary,
+                    ".csv",
+                    ".xlsx");
 
                 var file = await picker.PickSingleFileAsync();
                 if (file != null)
@@ -201,7 +198,7 @@ namespace PlustekBCR.Views
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error selecting spreadsheet: {ex.Message}");
+                LogImportError("Error selecting spreadsheet", ex);
             }
         }
 
@@ -209,16 +206,13 @@ namespace PlustekBCR.Views
         {
             try
             {
-                var picker = new FileOpenPicker();
-                picker.ViewMode = PickerViewMode.Thumbnail;
-                picker.SuggestedStartLocation = PickerLocationId.PicturesLibrary;
-                picker.FileTypeFilter.Add(".jpg");
-                picker.FileTypeFilter.Add(".jpeg");
-                picker.FileTypeFilter.Add(".png");
-                picker.FileTypeFilter.Add(".heic");
-
-                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.Window);
-                WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+                var picker = CreateOpenPicker(
+                    PickerViewMode.Thumbnail,
+                    PickerLocationId.PicturesLibrary,
+                    ".jpg",
+                    ".jpeg",
+                    ".png",
+                    ".heic");
 
                 var files = await picker.PickMultipleFilesAsync();
                 if (files != null && files.Count > 0)
@@ -228,7 +222,7 @@ namespace PlustekBCR.Views
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error selecting images: {ex.Message}");
+                LogImportError("Error selecting images", ex);
             }
         }
 
@@ -242,14 +236,9 @@ namespace PlustekBCR.Views
             if (_csvHeaders.Count == 0)
             {
                 HideLoading();
-                var dialog = new ContentDialog
-                {
-                    Title = "Unsupported or Empty File",
-                    Content = "The spreadsheet file does not contain valid column headers. Please use the download template to ensure proper formatting.",
-                    CloseButtonText = "OK",
-                    XamlRoot = XamlRoot
-                };
-                await dialog.ShowAsync();
+                await ShowMessageDialogAsync(
+                    "Unsupported or Empty File",
+                    "The spreadsheet file does not contain valid column headers. Please use the download template to ensure proper formatting.");
                 return;
             }
 
@@ -314,7 +303,7 @@ namespace PlustekBCR.Views
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Failed reading image byte array: {ex.Message}");
+                    LogImportError("Failed reading image byte array", ex);
                 }
 
                 var card = new BusinessCard
@@ -396,58 +385,24 @@ namespace PlustekBCR.Views
         {
             try
             {
-                var picker = new FileSavePicker();
-                picker.SuggestedStartLocation = PickerLocationId.Downloads;
-                picker.SuggestedFileName = "business_cards_template";
-                picker.FileTypeChoices.Add("CSV (Comma delimited)", new List<string> { ".csv" });
-
-                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.Window);
-                WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+                var picker = CreateSavePicker(
+                    PickerLocationId.Downloads,
+                    "business_cards_template",
+                    "CSV (Comma delimited)",
+                    ".csv");
 
                 var file = await picker.PickSaveFileAsync();
                 if (file != null)
                 {
                     var headers = _fieldService.GetCsvHeaders(BusinessCardSurface.Import);
                     string headerRow = string.Join(",", headers) + Environment.NewLine;
-                    string exampleRow = string.Join(",", headers.Select(BuildExampleValue)) + Environment.NewLine;
-                    await File.WriteAllTextAsync(file.Path, headerRow + exampleRow);
+                    await File.WriteAllTextAsync(file.Path, headerRow);
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Failed to save template: {ex.Message}");
+                LogImportError("Failed to save template", ex);
             }
-        }
-
-        private static string BuildExampleValue(string key)
-        {
-            return key switch
-            {
-                "company_name" => "Awesome Corp",
-                "department_1" => "Platform",
-                "department_2" => "Engineering",
-                "department_full" => "Platform / Engineering",
-                "job_title" => "Software Architect",
-                "full_name" => "John Doe",
-                "first_name" => "John",
-                "middle_name" => "A.",
-                "last_name" => "Doe",
-                "suffix" => "Jr.",
-                "zip_code" => "10001",
-                "state" => "Tokyo",
-                "city" => "Chiyoda",
-                "address_line_1" => "1-2-3 Tech Street",
-                "address_line_2" => "Suite 18",
-                "full_address" => "1-2-3 Tech Street, Chiyoda, Tokyo, 10001, Japan",
-                "tel" => "+81-3-1234-5678",
-                "extension" => "205",
-                "fax" => "+81-3-1234-5679",
-                "mobile" => "+81-90-1234-5678",
-                "email" => "john.doe@awesome.com",
-                "website" => "https://awesome.com",
-                "country" => "Japan",
-                _ => string.Empty
-            };
         }
 
         private void ShowLoading(string text)
@@ -459,6 +414,50 @@ namespace PlustekBCR.Views
         private void HideLoading()
         {
             LoadingShield.Visibility = Visibility.Collapsed;
+        }
+
+        private static FileOpenPicker CreateOpenPicker(PickerViewMode viewMode, PickerLocationId startLocation, params string[] fileTypes)
+        {
+            var picker = new FileOpenPicker
+            {
+                ViewMode = viewMode,
+                SuggestedStartLocation = startLocation
+            };
+
+            foreach (var fileType in fileTypes)
+            {
+                picker.FileTypeFilter.Add(fileType);
+            }
+
+            PickerWindowHelper.Initialize(picker);
+            return picker;
+        }
+
+        private static FileSavePicker CreateSavePicker(
+            PickerLocationId startLocation,
+            string suggestedFileName,
+            string typeLabel,
+            string extension)
+        {
+            var picker = new FileSavePicker
+            {
+                SuggestedStartLocation = startLocation,
+                SuggestedFileName = suggestedFileName
+            };
+            picker.FileTypeChoices.Add(typeLabel, new List<string> { extension });
+
+            PickerWindowHelper.Initialize(picker);
+            return picker;
+        }
+
+        private async Task ShowMessageDialogAsync(string title, string content)
+        {
+            await DialogHelper.ShowMessageAsync(XamlRoot, title, content);
+        }
+
+        private static void LogImportError(string message, Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"{message}: {ex.Message}");
         }
         #endregion
     }

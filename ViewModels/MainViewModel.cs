@@ -7,6 +7,7 @@ using System.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using PlustekBCR.Helpers;
 using PlustekBCR.Models;
 using PlustekBCR.Services;
 
@@ -372,13 +373,13 @@ namespace PlustekBCR.ViewModels
 
         public void ApplyTagFilter(string? tag)
         {
-            ClearKeywordFilters();
+            ResetSearchState(clearTagFilters: false);
             SelectedTagFilter = string.IsNullOrWhiteSpace(tag) ? null : tag.Trim();
         }
 
         public void ApplyTagSearchKeyword(string? keyword)
         {
-            ClearKeywordFilters();
+            ResetSearchState(clearTagFilters: false);
             SelectedTagFilter = null;
             AdvancedTagSearchKeywords = Array.Empty<string>();
             TagSearchKeyword = keyword;
@@ -393,7 +394,7 @@ namespace PlustekBCR.ViewModels
 
         public void ApplyHeaderSearch(string? scope, string? keyword)
         {
-            ClearSearchCore();
+            ResetSearchState();
             SelectedSearchScope = string.IsNullOrWhiteSpace(scope) ? "All cards" : scope.Trim();
 
             var normalized = NormalizeSearchText(keyword);
@@ -422,7 +423,7 @@ namespace PlustekBCR.ViewModels
 
         public void ApplyAdvancedSearch(string? company, string? name, string? tag, DateTime? startDate, DateTime? endDate)
         {
-            ClearSearchCore();
+            ResetSearchState();
             SelectedSearchScope = "All cards";
             CompanySearchKeyword = company;
             NameSearchKeyword = name;
@@ -432,7 +433,7 @@ namespace PlustekBCR.ViewModels
 
         public void ApplyAdvancedSearch(string? company, string? name, IEnumerable<string>? tags, DateTime? startDate, DateTime? endDate)
         {
-            ClearSearchCore();
+            ResetSearchState();
             SelectedSearchScope = "All cards";
             CompanySearchKeyword = company;
             NameSearchKeyword = name;
@@ -449,28 +450,20 @@ namespace PlustekBCR.ViewModels
 
         public void ApplyRecentPreset(string preset)
         {
-            var today = DateTime.Today;
-            var start = preset switch
-            {
-                "Today" => today,
-                "Within 3 days" => today.AddDays(-2),
-                "Within 7 days" => today.AddDays(-6),
-                _ => today
-            };
-
-            ClearSearchCore();
+            var (start, end) = RecentPresetHelper.GetRange(preset);
+            ResetSearchState();
             SelectedSearchScope = "Date";
-            ApplyDateRange(start, today, preset);
+            ApplyDateRange(start, end, preset);
         }
 
         public void ClearSearch()
         {
-            ClearSearchCore();
+            ResetSearchState();
             SelectedSearchScope = "All cards";
             NotifySearchChanged();
         }
 
-        private void ClearKeywordFilters()
+        private void ResetSearchState(bool clearTagFilters = true)
         {
             SearchKeyword = null;
             CompanySearchKeyword = null;
@@ -479,19 +472,12 @@ namespace PlustekBCR.ViewModels
             StartDate = null;
             EndDate = null;
             SelectedRecentPreset = null;
-        }
 
-        private void ClearSearchCore()
-        {
-            SearchKeyword = null;
-            CompanySearchKeyword = null;
-            NameSearchKeyword = null;
-            SelectedTagFilter = null;
-            TagSearchKeyword = null;
-            AdvancedTagSearchKeywords = Array.Empty<string>();
-            StartDate = null;
-            EndDate = null;
-            SelectedRecentPreset = null;
+            if (clearTagFilters)
+            {
+                SelectedTagFilter = null;
+                TagSearchKeyword = null;
+            }
         }
 
         private void NotifySearchChanged()
