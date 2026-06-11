@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Extensions.Configuration;
 using PlustekBCR.Models;
 
 namespace PlustekBCR.Services
@@ -9,12 +8,13 @@ namespace PlustekBCR.Services
     public class BusinessCardFieldService : IBusinessCardFieldService
     {
         private readonly List<BusinessCardFieldDefinition> _fields;
+        private readonly IApplicationSettingsService _settingsService;
 
-        public MarketCode CurrentMarket { get; }
+        public MarketCode CurrentMarket => _settingsService.CurrentMarket;
 
-        public BusinessCardFieldService(IConfiguration configuration)
+        public BusinessCardFieldService(IApplicationSettingsService settingsService)
         {
-            CurrentMarket = ParseMarket(configuration["BusinessCard:CurrentMarket"]);
+            _settingsService = settingsService;
             _fields = BuildFields();
         }
 
@@ -51,11 +51,6 @@ namespace PlustekBCR.Services
             };
         }
 
-        private static MarketCode ParseMarket(string? configured)
-        {
-            return Enum.TryParse<MarketCode>(configured, true, out var market) ? market : MarketCode.JP;
-        }
-
         private static List<BusinessCardFieldDefinition> BuildFields()
         {
             static HashSet<MarketCode> Markets(params MarketCode[] markets) => new(markets);
@@ -76,8 +71,8 @@ namespace PlustekBCR.Services
                 new() { Key = "full_name", Label = "Full Name", PropertyName = nameof(BusinessCard.FullName), EditMarkets = Markets(MarketCode.JP, MarketCode.US), DetailMarkets = Markets(MarketCode.JP, MarketCode.US), ImportMarkets = Markets(MarketCode.JP, MarketCode.US), ExportMarkets = Markets(MarketCode.JP, MarketCode.US) },
                 new() { Key = "zip_code", Label = "Zip Code", PropertyName = nameof(BusinessCard.ZipCode), EditMarkets = Markets(MarketCode.JP, MarketCode.US), DetailMarkets = Markets(MarketCode.JP, MarketCode.US), ImportMarkets = Markets(MarketCode.JP, MarketCode.US), ExportMarkets = Markets(MarketCode.JP, MarketCode.US) },
                 new() { Key = "country", Label = "Country", PropertyName = nameof(BusinessCard.Country), EditMarkets = Markets(MarketCode.US), DetailMarkets = Markets(MarketCode.US), ImportMarkets = Markets(MarketCode.US), ExportMarkets = Markets(MarketCode.US) },
-                new() { Key = "state", Label = "State", PropertyName = nameof(BusinessCard.State), EditMarkets = Markets(MarketCode.JP, MarketCode.US), DetailMarkets = Markets(MarketCode.JP, MarketCode.US), ImportMarkets = Markets(MarketCode.JP, MarketCode.US), ExportMarkets = Markets(MarketCode.JP, MarketCode.US) },
-                new() { Key = "city", Label = "City", PropertyName = nameof(BusinessCard.City), EditMarkets = Markets(MarketCode.JP, MarketCode.US), DetailMarkets = Markets(MarketCode.JP, MarketCode.US), ImportMarkets = Markets(MarketCode.JP, MarketCode.US), ExportMarkets = Markets(MarketCode.JP, MarketCode.US) },
+                new() { Key = "state", Label = "State", PropertyName = nameof(BusinessCard.State), EditMarkets = Markets(MarketCode.US), DetailMarkets = Markets(MarketCode.US), ImportMarkets = Markets(MarketCode.US), ExportMarkets = Markets(MarketCode.US) },
+                new() { Key = "city", Label = "City", PropertyName = nameof(BusinessCard.City), EditMarkets = Markets(MarketCode.US), DetailMarkets = Markets(MarketCode.US), ImportMarkets = Markets(MarketCode.US), ExportMarkets = Markets(MarketCode.US) },
                 new() { Key = "address_line_1", Label = "Address Line 1", PropertyName = nameof(BusinessCard.AddressLine1), EditMarkets = Markets(MarketCode.JP, MarketCode.US), DetailMarkets = Markets(MarketCode.JP, MarketCode.US), ImportMarkets = Markets(MarketCode.JP, MarketCode.US), ExportMarkets = Markets(MarketCode.JP, MarketCode.US) },
                 new() { Key = "address_line_2", Label = "Address Line 2", PropertyName = nameof(BusinessCard.AddressLine2), EditMarkets = Markets(MarketCode.US), DetailMarkets = Markets(MarketCode.US), ImportMarkets = Markets(MarketCode.US), ExportMarkets = Markets(MarketCode.US) },
                 new() { Key = "full_address", Label = "Full Address", PropertyName = nameof(BusinessCard.FullAddress), EditMarkets = Markets(MarketCode.JP, MarketCode.US), DetailMarkets = Markets(MarketCode.JP, MarketCode.US), ImportMarkets = Markets(MarketCode.JP, MarketCode.US), ExportMarkets = Markets(MarketCode.JP, MarketCode.US) },

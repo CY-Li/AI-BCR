@@ -53,7 +53,8 @@ namespace PlustekBCR.ViewModels
         public bool ShowDepartment3 => DepartmentInputCount >= 3;
         public bool ShowDepartment4 => DepartmentInputCount >= 4;
         public bool CanAddDepartmentInput => DepartmentInputCount < 4;
-        public bool IsJapanMarket => _fieldService.CurrentMarket == MarketCode.JP;
+        public MarketCode CurrentMarket => _fieldService.CurrentMarket;
+        public bool IsJapanMarket => CurrentMarket == MarketCode.JP;
 
         public Func<BusinessCard, Task<bool>>? ConfirmDeleteCardAsync { get; set; }
         public Action? NavigateBackRequested { get; set; }
@@ -208,7 +209,7 @@ namespace PlustekBCR.ViewModels
                 SelectedCard.MarketCode = MarketCode.JP;
                 SelectedCard.ZipCode = result.Zipcode ?? normalizedZip;
                 SelectedCard.AddressLine1 = string.Concat(result.Address1 ?? string.Empty, result.Address2 ?? string.Empty, result.Address3 ?? string.Empty);
-                SelectedCard.FullAddress = BusinessCardAddressHelper.ComposeFullAddress(SelectedCard.AddressLine1, SelectedCard.AddressLine2, SelectedCard.City, SelectedCard.State, SelectedCard.ZipCode, SelectedCard.Country);
+                SelectedCard.FullAddress = BusinessCardAddressHelper.ComposeFullAddress(SelectedCard.MarketCode, SelectedCard.AddressLine1, SelectedCard.AddressLine2, SelectedCard.City, SelectedCard.State, SelectedCard.ZipCode, SelectedCard.Country);
                 ZipLookupStatusMessage = "Address updated.";
             }
             catch (OperationCanceledException)

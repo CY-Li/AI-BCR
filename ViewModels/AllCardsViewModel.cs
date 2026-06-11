@@ -47,9 +47,13 @@ namespace PlustekBCR.ViewModels
                     EditingFieldKey = string.Empty;
                     SyncDepartmentInputCount(value);
                     ZipLookupStatusMessage = string.Empty;
+                    OnPropertyChanged(nameof(HasDetailNameText));
                     OnPropertyChanged(nameof(DetailAddressText));
+                    OnPropertyChanged(nameof(HasDetailAddressText));
                     OnPropertyChanged(nameof(DetailDepartmentText));
                     OnPropertyChanged(nameof(HasDetailDepartmentText));
+                    OnPropertyChanged(nameof(DetailTelephoneText));
+                    OnPropertyChanged(nameof(HasDetailTelephoneText));
                 }
             }
         }
@@ -70,6 +74,7 @@ namespace PlustekBCR.ViewModels
                     OnPropertyChanged(nameof(IsEditingName));
                     OnPropertyChanged(nameof(IsEditingDepartment));
                     OnPropertyChanged(nameof(IsEditingAddress));
+                    OnPropertyChanged(nameof(IsEditingTelephone));
                 }
             }
         }
@@ -104,16 +109,28 @@ namespace PlustekBCR.ViewModels
         public bool IsEditingName => string.Equals(EditingFieldKey, "Name", StringComparison.Ordinal);
         public bool IsEditingDepartment => string.Equals(EditingFieldKey, "Department", StringComparison.Ordinal);
         public bool IsEditingAddress => string.Equals(EditingFieldKey, "Address", StringComparison.Ordinal);
+        public bool IsEditingTelephone => string.Equals(EditingFieldKey, "Telephone", StringComparison.Ordinal);
         public bool ShowDepartment2 => DepartmentInputCount >= 2;
         public bool ShowDepartment3 => DepartmentInputCount >= 3;
         public bool ShowDepartment4 => DepartmentInputCount >= 4;
         public bool CanAddDepartmentInput => DepartmentInputCount < 4;
-        public bool IsJapanMarket => _fieldService.CurrentMarket == MarketCode.JP;
+        public MarketCode CurrentMarket => _fieldService.CurrentMarket;
+        public bool IsJapanMarket => CurrentMarket == MarketCode.JP;
+
+        public bool HasDetailNameText => !string.IsNullOrWhiteSpace(SelectedCard?.FullName);
 
         public string DetailDepartmentText =>
             SelectedCard?.DepartmentFull ?? string.Empty;
 
         public bool HasDetailDepartmentText => !string.IsNullOrWhiteSpace(SelectedCard?.DepartmentFull);
+        public bool HasDetailAddressText =>
+            !string.IsNullOrWhiteSpace(SelectedCard?.ZipCode)
+            || !string.IsNullOrWhiteSpace(SelectedCard?.AddressLine1)
+            || !string.IsNullOrWhiteSpace(SelectedCard?.AddressLine2)
+            || !string.IsNullOrWhiteSpace(SelectedCard?.City)
+            || !string.IsNullOrWhiteSpace(SelectedCard?.State)
+            || !string.IsNullOrWhiteSpace(SelectedCard?.Country)
+            || !string.IsNullOrWhiteSpace(SelectedCard?.FullAddress);
 
         public string DetailAddressText
         {
@@ -121,33 +138,79 @@ namespace PlustekBCR.ViewModels
             {
                 if (SelectedCard == null)
                 {
-                    return "Click to enter address";
+                    return string.Empty;
                 }
 
-                var segments = new List<string>();
-                if (!string.IsNullOrWhiteSpace(SelectedCard.ZipCode))
+                if (CurrentMarket == MarketCode.JP)
                 {
-                    segments.Add(SelectedCard.ZipCode.Trim());
+                    var segments = new List<string>();
+                    if (!string.IsNullOrWhiteSpace(SelectedCard.ZipCode))
+                    {
+                        segments.Add(SelectedCard.ZipCode.Trim());
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(SelectedCard.AddressLine1))
+                    {
+                        segments.Add(SelectedCard.AddressLine1.Trim());
+                    }
+
+                    if (segments.Count > 0)
+                    {
+                        return string.Join(" ", segments);
+                    }
                 }
 
-                if (!string.IsNullOrWhiteSpace(SelectedCard.AddressLine1))
+                var composedAddress = BusinessCardAddressHelper.ComposeFullAddress(
+                    CurrentMarket,
+                    SelectedCard.AddressLine1,
+                    SelectedCard.AddressLine2,
+                    SelectedCard.City,
+                    SelectedCard.State,
+                    SelectedCard.ZipCode,
+                    SelectedCard.Country);
+
+                if (!string.IsNullOrWhiteSpace(composedAddress))
                 {
-                    segments.Add(SelectedCard.AddressLine1.Trim());
+                    return composedAddress;
                 }
 
-                if (segments.Count > 0)
-                {
-                    return string.Join(" ", segments);
-                }
-
-                if (!string.IsNullOrWhiteSpace(SelectedCard.FullAddress))
-                {
-                    return SelectedCard.FullAddress;
-                }
-
-                return "Click to enter address";
+                return !string.IsNullOrWhiteSpace(SelectedCard.FullAddress) ? SelectedCard.FullAddress : string.Empty;
             }
         }
+
+        public string DetailTelephoneText
+        {
+            get
+            {
+                if (SelectedCard == null)
+                {
+                    return "Click to enter telephone";
+                }
+
+                var tel = (SelectedCard.Tel ?? string.Empty).Trim();
+                var extension = (SelectedCard.Extension ?? string.Empty).Trim();
+
+                if (string.IsNullOrWhiteSpace(tel) && string.IsNullOrWhiteSpace(extension))
+                {
+                    return "Click to enter telephone";
+                }
+
+                if (string.IsNullOrWhiteSpace(extension))
+                {
+                    return tel;
+                }
+
+                if (string.IsNullOrWhiteSpace(tel))
+                {
+                    return extension;
+                }
+
+                return $"{tel} ext. {extension}";
+            }
+        }
+
+        public bool HasDetailTelephoneText =>
+            !string.IsNullOrWhiteSpace(SelectedCard?.Tel) || !string.IsNullOrWhiteSpace(SelectedCard?.Extension);
 
         public MainViewModel MainViewModel { get; }
 
@@ -405,7 +468,7 @@ namespace PlustekBCR.ViewModels
                 SelectedCard.MarketCode = MarketCode.JP;
                 SelectedCard.ZipCode = result.Zipcode ?? normalizedZip;
                 SelectedCard.AddressLine1 = string.Concat(result.Address1 ?? string.Empty, result.Address2 ?? string.Empty, result.Address3 ?? string.Empty);
-                SelectedCard.FullAddress = BusinessCardAddressHelper.ComposeFullAddress(SelectedCard.AddressLine1, SelectedCard.AddressLine2, SelectedCard.City, SelectedCard.State, SelectedCard.ZipCode, SelectedCard.Country);
+                SelectedCard.FullAddress = BusinessCardAddressHelper.ComposeFullAddress(SelectedCard.MarketCode, SelectedCard.AddressLine1, SelectedCard.AddressLine2, SelectedCard.City, SelectedCard.State, SelectedCard.ZipCode, SelectedCard.Country);
                 ZipLookupStatusMessage = "Address updated.";
                 OnPropertyChanged(nameof(DetailAddressText));
             }
@@ -641,10 +704,10 @@ namespace PlustekBCR.ViewModels
                         card.AddressLine2 = $"Suite {rand.Next(10, 500)}";
                         card.City = "San Jose";
                         card.State = "CA";
-                        card.FullAddress = $"{card.AddressLine1}, {card.AddressLine2}, {card.City}, {card.State}";
-                        card.Country = "United States";
-                        card.Website = $"www.{card.CompanyName.Replace(" ", "").ToLower()}.com";
                         card.MarketCode = MarketCode.US;
+                        card.Country = "United States";
+                        card.FullAddress = BusinessCardAddressHelper.ComposeFullAddress(card.MarketCode, card.AddressLine1, card.AddressLine2, card.City, card.State, card.ZipCode, card.Country);
+                        card.Website = $"www.{card.CompanyName.Replace(" ", "").ToLower()}.com";
 
                         card.Notes.Add(new Note { Content = "Automatically recognized and parsed by AI BCR Engine." });
                         card.Status = ProcessingStatus.Done;
@@ -694,15 +757,29 @@ namespace PlustekBCR.ViewModels
             switch (e.PropertyName)
             {
                 case nameof(BusinessCard.ZipCode):
+                    OnPropertyChanged(nameof(HasDetailAddressText));
                     OnPropertyChanged(nameof(DetailAddressText));
                     if (!_isApplyingZipLookupResult)
                     {
                         _ = TriggerZipLookupAsync(card.ZipCode);
                     }
                     break;
+                case nameof(BusinessCard.FullName):
+                    OnPropertyChanged(nameof(HasDetailNameText));
+                    break;
                 case nameof(BusinessCard.AddressLine1):
+                case nameof(BusinessCard.AddressLine2):
+                case nameof(BusinessCard.City):
+                case nameof(BusinessCard.State):
+                case nameof(BusinessCard.Country):
                 case nameof(BusinessCard.FullAddress):
+                    OnPropertyChanged(nameof(HasDetailAddressText));
                     OnPropertyChanged(nameof(DetailAddressText));
+                    break;
+                case nameof(BusinessCard.Tel):
+                case nameof(BusinessCard.Extension):
+                    OnPropertyChanged(nameof(DetailTelephoneText));
+                    OnPropertyChanged(nameof(HasDetailTelephoneText));
                     break;
                 case nameof(BusinessCard.Department1):
                 case nameof(BusinessCard.Department2):

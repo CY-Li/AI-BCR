@@ -31,6 +31,7 @@ namespace PlustekBCR
                 // Register Services
                 services.AddSingleton<IUpdateService, UpdateService>();
                 services.AddSingleton<ITagCatalogService, TagCatalogService>();
+                services.AddSingleton<IApplicationSettingsService, ApplicationSettingsService>();
                 services.AddSingleton<IBusinessCardFieldService, BusinessCardFieldService>();
                 services.AddSingleton<IZipCodeLookupService, ZipCloudLookupService>();
             })

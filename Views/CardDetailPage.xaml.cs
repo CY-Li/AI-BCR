@@ -7,6 +7,7 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.UI.Xaml.Media.Animation;
+using Microsoft.UI.Xaml.Input;
 using Windows.System;
 using Windows.Storage;
 using Windows.Storage.Pickers;
@@ -16,6 +17,7 @@ using PlustekBCR.Models;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using PlustekBCR.Services;
 
 namespace PlustekBCR.Views
 {
@@ -27,12 +29,14 @@ namespace PlustekBCR.Views
         private const double PageExitOffsetX = 36d;
         public CardDetailViewModel ViewModel { get; }
         public ObservableCollection<TagFlowItem> EditTagFlowItems { get; } = new();
+        private readonly IApplicationSettingsService _settingsService;
         private bool _isTransitionRunning;
 
         public CardDetailPage()
         {
             this.InitializeComponent();
             ViewModel = App.GetService<CardDetailViewModel>();
+            _settingsService = App.GetService<IApplicationSettingsService>();
 
             ViewModel.ConfirmDeleteCardAsync = async (card) =>
             {
@@ -58,6 +62,8 @@ namespace PlustekBCR.Views
             };
 
             ViewModel.SelectedTags.CollectionChanged += OnSelectedTagsCollectionChanged;
+            _settingsService.CurrentMarketChanged += OnCurrentMarketChanged;
+            Unloaded += OnPageUnloaded;
             RebuildEditTagFlowItems();
         }
 
@@ -90,6 +96,20 @@ namespace PlustekBCR.Views
         private void OnSelectedTagsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
             RebuildEditTagFlowItems();
+        }
+
+        private void OnCurrentMarketChanged(MarketCode market)
+        {
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                Bindings.Update();
+            });
+        }
+
+        private void OnPageUnloaded(object sender, RoutedEventArgs e)
+        {
+            _settingsService.CurrentMarketChanged -= OnCurrentMarketChanged;
+            Unloaded -= OnPageUnloaded;
         }
 
         private void RebuildEditTagFlowItems()
@@ -228,6 +248,47 @@ namespace PlustekBCR.Views
             {
                 ViewModel.SelectedCard.BackImageData = null;
             }
+        }
+
+        private void OnNewNoteTextBoxKeyDown(object sender, KeyRoutedEventArgs e)
+        {
+            if (e.Key != VirtualKey.Enter)
+            {
+                return;
+            }
+
+            if (sender is TextBox textBox)
+            {
+                ViewModel.NewNoteContent = textBox.Text;
+            }
+
+            if (ViewModel.AddNoteCommand.CanExecute(null))
+            {
+                ViewModel.AddNoteCommand.Execute(null);
+            }
+
+            UpdateNewNotePlaceholderVisibility(ViewModel.NewNoteContent);
+            e.Handled = true;
+        }
+
+        private void OnNewNoteTextBoxTextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (sender is TextBox textBox)
+            {
+                UpdateNewNotePlaceholderVisibility(textBox.Text);
+            }
+        }
+
+        private void UpdateNewNotePlaceholderVisibility(string? text)
+        {
+            if (NewNotePlaceholderText == null)
+            {
+                return;
+            }
+
+            NewNotePlaceholderText.Visibility = string.IsNullOrWhiteSpace(text)
+                ? Visibility.Visible
+                : Visibility.Collapsed;
         }
 
         private async void OnAiReprocessClicked(object sender, RoutedEventArgs e)

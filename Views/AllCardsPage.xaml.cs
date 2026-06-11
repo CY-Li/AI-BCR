@@ -23,6 +23,7 @@ namespace PlustekBCR.Views
         public AllCardsViewModel ViewModel { get; }
         private readonly ITagCatalogService _tagCatalogService;
         private readonly IBusinessCardFieldService _fieldService;
+        private readonly IApplicationSettingsService _settingsService;
         public ObservableCollection<string> SidebarSelectedTags { get; } = new();
         public ObservableCollection<TagFlowItem> SidebarTagFlowItems { get; } = new();
 
@@ -31,10 +32,12 @@ namespace PlustekBCR.Views
             ViewModel = App.GetService<AllCardsViewModel>();
             _tagCatalogService = App.GetService<ITagCatalogService>();
             _fieldService = App.GetService<IBusinessCardFieldService>();
+            _settingsService = App.GetService<IApplicationSettingsService>();
             this.InitializeComponent();
             this.NavigationCacheMode = Microsoft.UI.Xaml.Navigation.NavigationCacheMode.Required;
             ViewModel.PropertyChanged += OnViewModelPropertyChanged;
             _tagCatalogService.TagsChanged += OnTagCatalogChanged;
+            _settingsService.CurrentMarketChanged += OnCurrentMarketChanged;
 
             ViewModel.ConfirmDeleteCardAsync = async (card) =>
             {
@@ -61,6 +64,14 @@ namespace PlustekBCR.Views
         protected override void OnNavigatedFrom(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
         {
             base.OnNavigatedFrom(e);
+        }
+
+        private void OnCurrentMarketChanged(MarketCode market)
+        {
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                Bindings.Update();
+            });
         }
 
         private void OnCardClick(object sender, ItemClickEventArgs e)
@@ -609,6 +620,11 @@ namespace PlustekBCR.Views
                 return "Address";
             }
 
+            if (IsDescendantOf(element, TelephoneEditContainer))
+            {
+                return "Telephone";
+            }
+
             return null;
         }
 
@@ -619,6 +635,7 @@ namespace PlustekBCR.Views
                 "Name" => NameEditContainer,
                 "Department" => DepartmentEditContainer,
                 "Address" => AddressEditContainer,
+                "Telephone" => TelephoneEditContainer,
                 _ => null
             };
         }

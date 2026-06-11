@@ -210,7 +210,7 @@ namespace PlustekBCR.Models
 
             if (string.IsNullOrWhiteSpace(FullAddress))
             {
-                FullAddress = BusinessCardAddressHelper.ComposeFullAddress(AddressLine1, AddressLine2, City, State, ZipCode, Country);
+                FullAddress = BusinessCardAddressHelper.ComposeFullAddress(MarketCode, AddressLine1, AddressLine2, City, State, ZipCode, Country);
             }
 
             OnPropertyChanged(nameof(DisplayName));
@@ -219,7 +219,14 @@ namespace PlustekBCR.Models
         private void SyncDerivedIdentityAndAddress()
         {
             var composedName = BusinessCardAddressHelper.ComposeFullName(MarketCode, FirstName, MiddleName, LastName, Suffix);
-            if (!string.IsNullOrWhiteSpace(composedName))
+            if (string.IsNullOrWhiteSpace(FirstName)
+                && string.IsNullOrWhiteSpace(MiddleName)
+                && string.IsNullOrWhiteSpace(LastName)
+                && string.IsNullOrWhiteSpace(Suffix))
+            {
+                FullName = string.Empty;
+            }
+            else if (!string.IsNullOrWhiteSpace(composedName))
             {
                 FullName = composedName;
             }
@@ -237,8 +244,17 @@ namespace PlustekBCR.Models
                 DepartmentFull = composedDepartment;
             }
 
-            var composedAddress = BusinessCardAddressHelper.ComposeFullAddress(AddressLine1, AddressLine2, City, State, ZipCode, Country);
-            if (!string.IsNullOrWhiteSpace(composedAddress))
+            var composedAddress = BusinessCardAddressHelper.ComposeFullAddress(MarketCode, AddressLine1, AddressLine2, City, State, ZipCode, Country);
+            if (string.IsNullOrWhiteSpace(AddressLine1)
+                && string.IsNullOrWhiteSpace(AddressLine2)
+                && string.IsNullOrWhiteSpace(City)
+                && string.IsNullOrWhiteSpace(State)
+                && string.IsNullOrWhiteSpace(ZipCode)
+                && string.IsNullOrWhiteSpace(Country))
+            {
+                FullAddress = string.Empty;
+            }
+            else if (!string.IsNullOrWhiteSpace(composedAddress))
             {
                 FullAddress = composedAddress;
             }

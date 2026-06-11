@@ -22,9 +22,13 @@ namespace PlustekBCR.Helpers
                 return Visibility.Visible;
             }
 
-            var surface = segments[0].Equals("detail", StringComparison.OrdinalIgnoreCase)
-                ? BusinessCardSurface.Detail
-                : BusinessCardSurface.Edit;
+            var surface = segments[0].ToLowerInvariant() switch
+            {
+                "detail" => BusinessCardSurface.Detail,
+                "import" => BusinessCardSurface.Import,
+                "export" => BusinessCardSurface.Export,
+                _ => BusinessCardSurface.Edit
+            };
 
             var fieldService = App.GetService<IBusinessCardFieldService>();
             return fieldService.IsVisible(segments[1], surface) ? Visibility.Visible : Visibility.Collapsed;

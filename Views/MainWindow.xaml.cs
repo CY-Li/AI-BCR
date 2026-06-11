@@ -9,6 +9,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace PlustekBCR.Views
 {
@@ -22,6 +23,11 @@ namespace PlustekBCR.Views
         private readonly ITagCatalogService _tagCatalogService;
         private bool _isSyncingFilterUi;
         private readonly ObservableCollection<string> _advancedSelectedTags = new();
+        private bool _isInSettingsWorkspace;
+        private Type _lastCardsPageType = typeof(EmptyPage);
+        private object? _lastCardsNavigationItem;
+        private string _currentSettingsSection = "General";
+        private bool _isRestoringWorkspaceSelection;
 
         public MainWindow()
         {
@@ -171,6 +177,7 @@ namespace PlustekBCR.Views
             ContentFrame.Navigate(typeof(EmptyPage));
             RebuildTagFilterMenu();
             RebuildAdvancedTagFlowItems();
+            ApplyWorkspaceState();
 
             // Navigate to AllCards when cards are imported or scanned
             WeakReferenceMessenger.Default.Register<CardsImportedMessage>(this, (r, m) =>
@@ -270,6 +277,11 @@ namespace PlustekBCR.Views
                 return;
             }
 
+            if (_isRestoringWorkspaceSelection)
+            {
+                return;
+            }
+
             if (args.IsSettingsSelected)
             {
                 // Navigate to settings if implemented
@@ -279,31 +291,43 @@ namespace PlustekBCR.Views
             var selectedItem = args.SelectedItemContainer as NavigationViewItem;
             if (selectedItem?.Tag is string tag)
             {
+                if (tag.StartsWith("Settings:", StringComparison.Ordinal))
+                {
+                    EnterSettingsWorkspace(tag["Settings:".Length..]);
+                    return;
+                }
+
                 switch (tag)
                 {
                     case "Dashboard":
+                        ExitSettingsWorkspaceIfNeeded();
                         ContentFrame.Navigate(typeof(EmptyPage));
                         break;
                     case "AllCards":
+                        ExitSettingsWorkspaceIfNeeded();
                         ClearCardFilters();
                         ContentFrame.Navigate(typeof(AllCardsPage));
                         break;
                     case "TagsRoot":
+                        ExitSettingsWorkspaceIfNeeded();
                         ContentFrame.Navigate(typeof(AllCardsPage));
                         break;
                     case "TagAction:Add":
+                        ExitSettingsWorkspaceIfNeeded();
                         _ = AddTagFromSidebarAsync();
                         ContentFrame.Navigate(typeof(AllCardsPage));
                         break;
                     default:
                         if (tag.StartsWith("TagFilter:", StringComparison.Ordinal))
                         {
+                            ExitSettingsWorkspaceIfNeeded();
                             var selectedTag = tag["TagFilter:".Length..];
                             ApplyTagSearchShortcutFromSidebar(selectedTag);
                             ContentFrame.Navigate(typeof(AllCardsPage));
                         }
                         else if (tag.StartsWith("RecentPreset:", StringComparison.Ordinal))
                         {
+                            ExitSettingsWorkspaceIfNeeded();
                             var preset = tag["RecentPreset:".Length..];
                             ApplyRecentPresetFromSidebar(preset);
                             ContentFrame.Navigate(typeof(AllCardsPage));
@@ -320,6 +344,126 @@ namespace PlustekBCR.Views
                 RebuildTagFilterMenu();
                 PruneAdvancedSelectedTags();
             });
+        }
+
+        private void OnSettingsClicked(object sender, RoutedEventArgs e)
+        {
+            EnterSettingsWorkspace(_currentSettingsSection);
+        }
+
+        public void ReturnToCardsWorkspace()
+        {
+            ExitSettingsWorkspaceIfNeeded();
+
+            try
+            {
+                _isRestoringWorkspaceSelection = true;
+                RootNavigationView.SelectedItem = AllCardsItem;
+                ContentFrame.Navigate(typeof(AllCardsPage));
+            }
+            finally
+            {
+                _isRestoringWorkspaceSelection = false;
+            }
+        }
+
+        private void EnterSettingsWorkspace(string section)
+        {
+            RememberCardsWorkspaceState();
+
+            _isInSettingsWorkspace = true;
+            _currentSettingsSection = string.IsNullOrWhiteSpace(section) ? "General" : section;
+            ApplyWorkspaceState();
+            SelectSettingsNavigationItem(_currentSettingsSection);
+            ContentFrame.Navigate(typeof(SettingsPage), _currentSettingsSection);
+        }
+
+        private void ExitSettingsWorkspaceIfNeeded()
+        {
+            if (!_isInSettingsWorkspace)
+            {
+                return;
+            }
+
+            _isInSettingsWorkspace = false;
+            ApplyWorkspaceState();
+        }
+
+        private void RememberCardsWorkspaceState()
+        {
+            if (_isInSettingsWorkspace)
+            {
+                return;
+            }
+
+            if (ContentFrame.SourcePageType != null && ContentFrame.SourcePageType != typeof(SettingsPage))
+            {
+                _lastCardsPageType = ContentFrame.SourcePageType;
+            }
+
+            if (RootNavigationView.SelectedItem is NavigationViewItem selectedItem
+                && selectedItem.Tag is string tag
+                && !tag.StartsWith("Settings:", StringComparison.Ordinal))
+            {
+                _lastCardsNavigationItem = selectedItem;
+            }
+        }
+
+        private void ApplyWorkspaceState()
+        {
+            var cardsVisibility = _isInSettingsWorkspace ? Visibility.Collapsed : Visibility.Visible;
+            var settingsVisibility = _isInSettingsWorkspace ? Visibility.Visible : Visibility.Collapsed;
+            var headerWorkspaceVisibility = _isInSettingsWorkspace ? Visibility.Collapsed : Visibility.Visible;
+
+            DashboardItem.Visibility = cardsVisibility;
+            AllCardsItem.Visibility = cardsVisibility;
+            CardsNavSeparator.Visibility = cardsVisibility;
+            ByDateItem.Visibility = cardsVisibility;
+            ByCompanyItem.Visibility = cardsVisibility;
+            ByNameItem.Visibility = cardsVisibility;
+            TagsItem.Visibility = cardsVisibility;
+
+            SettingsNavSeparator.Visibility = settingsVisibility;
+            SettingsGeneralItem.Visibility = settingsVisibility;
+            SettingsImportItem.Visibility = settingsVisibility;
+            SettingsOcrItem.Visibility = settingsVisibility;
+            SettingsScannerItem.Visibility = settingsVisibility;
+            SettingsAboutItem.Visibility = settingsVisibility;
+
+            SearchRoot.Visibility = headerWorkspaceVisibility;
+            HeaderGridButton.Visibility = headerWorkspaceVisibility;
+            HeaderListButton.Visibility = headerWorkspaceVisibility;
+            HeaderViewDivider.Visibility = headerWorkspaceVisibility;
+
+            HeaderSettingButton.Background = _isInSettingsWorkspace
+                ? (Brush)Application.Current.Resources["SubtleFillColorSecondaryBrush"]
+                : new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+            HeaderSettingButton.BorderBrush = _isInSettingsWorkspace
+                ? (Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"]
+                : new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+            HeaderSettingButton.BorderThickness = _isInSettingsWorkspace
+                ? new Thickness(1)
+                : new Thickness(0);
+        }
+
+        private void SelectSettingsNavigationItem(string section)
+        {
+            var settingsItems = new Dictionary<string, NavigationViewItem>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["General"] = SettingsGeneralItem,
+                ["Import"] = SettingsImportItem,
+                ["OcrAi"] = SettingsOcrItem,
+                ["Scanner"] = SettingsScannerItem,
+                ["About"] = SettingsAboutItem
+            };
+
+            if (!settingsItems.TryGetValue(section, out var navigationItem))
+            {
+                navigationItem = SettingsGeneralItem;
+                _currentSettingsSection = "General";
+            }
+
+            RootNavigationView.SelectedItem = navigationItem;
         }
 
         private void RebuildTagFilterMenu()

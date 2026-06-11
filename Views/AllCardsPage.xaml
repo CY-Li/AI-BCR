@@ -389,35 +389,57 @@
                                             Tapped="OnDetailFieldTapped"
                                             Tag="Name"
                                             Visibility="{x:Bind ViewModel.IsEditingName, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}">
-                                        <TextBlock Text="{x:Bind ViewModel.SelectedCard.FullName, Mode=OneWay}" FontSize="24" FontWeight="Bold" TextWrapping="WrapWholeWords"/>
+                                        <Grid>
+                                            <TextBlock Text="{x:Bind ViewModel.SelectedCard.FullName, Mode=OneWay}"
+                                                       FontSize="24"
+                                                       FontWeight="Bold"
+                                                       TextWrapping="WrapWholeWords"
+                                                       Visibility="{x:Bind ViewModel.HasDetailNameText, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"/>
+                                            <TextBlock Text="Click to enter name"
+                                                       Style="{StaticResource BcrEditableFieldPlaceholderTextStyle}"
+                                                       FontSize="24"
+                                                       Visibility="{x:Bind ViewModel.HasDetailNameText, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}"/>
+                                        </Grid>
                                     </Border>
                                     <Grid x:Name="NameEditContainer"
                                           Visibility="{x:Bind ViewModel.IsEditingName, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="12"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <TextBox Grid.Column="0"
-                                                 Text="{x:Bind ViewModel.SelectedCard.LastName, Mode=TwoWay}"
-                                                 PlaceholderText="Last name"
-                                                 Visibility="{x:Bind ViewModel.IsJapanMarket, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"
-                                                 LosingFocus="OnCompositeFieldLosingFocus"/>
-                                        <TextBox Grid.Column="2"
-                                                 Text="{x:Bind ViewModel.SelectedCard.FirstName, Mode=TwoWay}"
-                                                 PlaceholderText="First name"
-                                                 Visibility="{x:Bind ViewModel.IsJapanMarket, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"
-                                                 LosingFocus="OnCompositeFieldLosingFocus"/>
-                                        <TextBox Grid.Column="0"
-                                                 Text="{x:Bind ViewModel.SelectedCard.FirstName, Mode=TwoWay}"
-                                                 PlaceholderText="First name"
-                                                 Visibility="{x:Bind ViewModel.IsJapanMarket, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}"
-                                                 LosingFocus="OnCompositeFieldLosingFocus"/>
-                                        <TextBox Grid.Column="2"
-                                                 Text="{x:Bind ViewModel.SelectedCard.LastName, Mode=TwoWay}"
-                                                 PlaceholderText="Last name"
-                                                 Visibility="{x:Bind ViewModel.IsJapanMarket, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}"
-                                                 LosingFocus="OnCompositeFieldLosingFocus"/>
+                                        <StackPanel Spacing="6">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="12"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBox Grid.Column="0"
+                                                         Text="{x:Bind ViewModel.SelectedCard.LastName, Mode=TwoWay}"
+                                                         PlaceholderText="Last name"
+                                                         Visibility="{x:Bind ViewModel.IsJapanMarket, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"
+                                                         LosingFocus="OnCompositeFieldLosingFocus"/>
+                                                <TextBox Grid.Column="2"
+                                                         Text="{x:Bind ViewModel.SelectedCard.FirstName, Mode=TwoWay}"
+                                                         PlaceholderText="First name"
+                                                         Visibility="{x:Bind ViewModel.IsJapanMarket, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"
+                                                         LosingFocus="OnCompositeFieldLosingFocus"/>
+                                                <TextBox Grid.Column="0"
+                                                         Text="{x:Bind ViewModel.SelectedCard.FirstName, Mode=TwoWay}"
+                                                         PlaceholderText="First name"
+                                                         Visibility="{x:Bind ViewModel.IsJapanMarket, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}"
+                                                         LosingFocus="OnCompositeFieldLosingFocus"/>
+                                                <TextBox Grid.Column="2"
+                                                         Text="{x:Bind ViewModel.SelectedCard.LastName, Mode=TwoWay}"
+                                                         PlaceholderText="Last name"
+                                                         Visibility="{x:Bind ViewModel.IsJapanMarket, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}"
+                                                         LosingFocus="OnCompositeFieldLosingFocus"/>
+                                            </Grid>
+                                            <TextBox Text="{x:Bind ViewModel.SelectedCard.MiddleName, Mode=TwoWay}"
+                                                     PlaceholderText="Middle name"
+                                                     Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:middle_name, Mode=OneTime}"
+                                                     LosingFocus="OnCompositeFieldLosingFocus"/>
+                                            <TextBox Text="{x:Bind ViewModel.SelectedCard.Suffix, Mode=TwoWay}"
+                                                     PlaceholderText="Suffix"
+                                                     Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:suffix, Mode=OneTime}"
+                                                     LosingFocus="OnCompositeFieldLosingFocus"/>
+                                        </StackPanel>
                                     </Grid>
                             </Grid>
 
@@ -490,18 +512,28 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Text="Address" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center"/>
-                                <Grid Grid.Column="1">
+                                <Grid Grid.Column="1" VerticalAlignment="Center">
                                     <Border Background="Transparent"
-                                            Padding="0,2"
+                                            Padding="0"
                                             Tapped="OnDetailFieldTapped"
                                             Tag="Address"
                                             Visibility="{x:Bind ViewModel.IsEditingAddress, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}">
-                                        <TextBlock Text="{x:Bind ViewModel.DetailAddressText, Mode=OneWay}" FontSize="14" TextWrapping="WrapWholeWords"/>
+                                        <Grid>
+                                            <TextBlock Text="{x:Bind ViewModel.DetailAddressText, Mode=OneWay}"
+                                                       Style="{StaticResource BcrEditableFieldTextStyle}"
+                                                       TextWrapping="WrapWholeWords"
+                                                       Visibility="{x:Bind ViewModel.HasDetailAddressText, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"/>
+                                            <TextBlock Text="Click to enter address"
+                                                       Style="{StaticResource BcrEditableFieldPlaceholderTextStyle}"
+                                                       TextWrapping="WrapWholeWords"
+                                                       Visibility="{x:Bind ViewModel.HasDetailAddressText, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}"/>
+                                        </Grid>
                                     </Border>
                                     <StackPanel x:Name="AddressEditContainer"
                                                 Spacing="4"
                                                 Visibility="{x:Bind ViewModel.IsEditingAddress, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
-                                        <Grid ColumnSpacing="8">
+                                        <Grid ColumnSpacing="8"
+                                              Visibility="{x:Bind ViewModel.IsJapanMarket, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="140"/>
                                                 <ColumnDefinition Width="*"/>
@@ -511,8 +543,60 @@
                                                      PlaceholderText="Zip code"
                                                      LosingFocus="OnCompositeFieldLosingFocus"/>
                                             <TextBox Grid.Column="1"
-                                                     Text="{x:Bind ViewModel.SelectedCard.AddressLine1, Mode=TwoWay}"
+                                                    Text="{x:Bind ViewModel.SelectedCard.AddressLine1, Mode=TwoWay}"
                                                      PlaceholderText="Address"
+                                                     LosingFocus="OnCompositeFieldLosingFocus"/>
+                                        </Grid>
+                                        <StackPanel Spacing="4"
+                                                    Visibility="{x:Bind ViewModel.IsJapanMarket, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}">
+                                            <TextBox Text="{x:Bind ViewModel.SelectedCard.AddressLine1, Mode=TwoWay}"
+                                                     PlaceholderText="Address line 1"
+                                                     LosingFocus="OnCompositeFieldLosingFocus"/>
+                                            <TextBox Text="{x:Bind ViewModel.SelectedCard.AddressLine2, Mode=TwoWay}"
+                                                     PlaceholderText="Address line 2"
+                                                     Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:address_line_2, Mode=OneTime}"
+                                                     LosingFocus="OnCompositeFieldLosingFocus"/>
+                                            <Grid ColumnSpacing="8">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="140"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBox Grid.Column="0"
+                                                         Text="{x:Bind ViewModel.SelectedCard.City, Mode=TwoWay}"
+                                                         PlaceholderText="City"
+                                                         Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:city, Mode=OneTime}"
+                                                         LosingFocus="OnCompositeFieldLosingFocus"/>
+                                                <TextBox Grid.Column="1"
+                                                         Text="{x:Bind ViewModel.SelectedCard.State, Mode=TwoWay}"
+                                                         PlaceholderText="State"
+                                                         Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:state, Mode=OneTime}"
+                                                         LosingFocus="OnCompositeFieldLosingFocus"/>
+                                                <TextBox Grid.Column="2"
+                                                         Text="{x:Bind ViewModel.SelectedCard.ZipCode, Mode=TwoWay}"
+                                                         PlaceholderText="ZIP code"
+                                                         LosingFocus="OnCompositeFieldLosingFocus"/>
+                                            </Grid>
+                                            <TextBox Text="{x:Bind ViewModel.SelectedCard.Country, Mode=TwoWay}"
+                                                     PlaceholderText="Country"
+                                                     Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:country, Mode=OneTime}"
+                                                     LosingFocus="OnCompositeFieldLosingFocus"/>
+                                        </StackPanel>
+                                        <Grid ColumnSpacing="8"
+                                              Visibility="{x:Bind ViewModel.IsJapanMarket, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox Grid.Column="0"
+                                                     Text="{x:Bind ViewModel.SelectedCard.City, Mode=TwoWay}"
+                                                     PlaceholderText="City"
+                                                     Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:city, Mode=OneTime}"
+                                                     LosingFocus="OnCompositeFieldLosingFocus"/>
+                                            <TextBox Grid.Column="1"
+                                                     Text="{x:Bind ViewModel.SelectedCard.State, Mode=TwoWay}"
+                                                     PlaceholderText="State"
+                                                     Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:state, Mode=OneTime}"
                                                      LosingFocus="OnCompositeFieldLosingFocus"/>
                                         </Grid>
                                         <StackPanel Orientation="Horizontal" Spacing="8"
@@ -538,15 +622,51 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Text="Telephone" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center"/>
-                                <controls:EditableField Grid.Column="1"
-                                                        EditStarted="OnSimpleFieldEditStarted"
-                                                        Text="{x:Bind ViewModel.SelectedCard.Tel, Mode=TwoWay}"
-                                                        PlaceholderText="Click to enter telephone"
-                                                        FontSize="14"
-                                                        VerticalAlignment="Center"/>
+                                <Grid Grid.Column="1">
+                                    <Border Background="Transparent"
+                                            Padding="0,2"
+                                            Tapped="OnDetailFieldTapped"
+                                            Tag="Telephone"
+                                            Visibility="{x:Bind ViewModel.IsEditingTelephone, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}">
+                                        <Grid ColumnSpacing="8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="180"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid Grid.Column="0">
+                                                <TextBlock Text="{x:Bind ViewModel.DetailTelephoneText, Mode=OneWay}"
+                                                           FontSize="14"
+                                                           TextWrapping="WrapWholeWords"
+                                                           Visibility="{x:Bind ViewModel.HasDetailTelephoneText, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"/>
+                                                <TextBlock Text="Click to enter telephone"
+                                                           Style="{StaticResource BcrEditableFieldPlaceholderTextStyle}"
+                                                           FontSize="14"
+                                                           Visibility="{x:Bind ViewModel.HasDetailTelephoneText, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}"/>
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
+                                    <Grid x:Name="TelephoneEditContainer"
+                                          ColumnSpacing="8"
+                                          Visibility="{x:Bind ViewModel.IsEditingTelephone, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="180"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox Grid.Column="0"
+                                                 Text="{x:Bind ViewModel.SelectedCard.Tel, Mode=TwoWay}"
+                                                 PlaceholderText="Telephone"
+                                                 LosingFocus="OnCompositeFieldLosingFocus"/>
+                                        <TextBox Grid.Column="1"
+                                                 Text="{x:Bind ViewModel.SelectedCard.Extension, Mode=TwoWay}"
+                                                 PlaceholderText="Extension"
+                                                 Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:extension, Mode=OneTime}"
+                                                 LosingFocus="OnCompositeFieldLosingFocus"/>
+                                    </Grid>
+                                </Grid>
                             </Grid>
 
-                            <Grid ColumnSpacing="16">
+                            <Grid ColumnSpacing="16"
+                                  Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:mobile, Mode=OneTime}">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="96"/>
                                     <ColumnDefinition Width="*"/>
@@ -573,6 +693,36 @@
                                                         FontSize="14"
                                                         VerticalAlignment="Center"/>
                             </Grid>
+
+                            <Grid ColumnSpacing="16"
+                                  Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:fax, Mode=OneTime}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="96"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Fax" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center"/>
+                                <controls:EditableField Grid.Column="1"
+                                                        EditStarted="OnSimpleFieldEditStarted"
+                                                        Text="{x:Bind ViewModel.SelectedCard.Fax, Mode=TwoWay}"
+                                                        PlaceholderText="Click to enter fax"
+                                                        FontSize="14"
+                                                        VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <Grid ColumnSpacing="16"
+                                  Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:website, Mode=OneTime}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="96"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Website" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center"/>
+                                <controls:EditableField Grid.Column="1"
+                                                        EditStarted="OnSimpleFieldEditStarted"
+                                                        Text="{x:Bind ViewModel.SelectedCard.Website, Mode=TwoWay}"
+                                                        PlaceholderText="Click to enter website"
+                                                        FontSize="14"
+                                                        VerticalAlignment="Center"/>
+                            </Grid>
                         </StackPanel>
 
                         <MenuFlyoutSeparator Margin="-24,0"/>
@@ -594,7 +744,7 @@
                                                         CornerRadius="10"
                                                         Height="34"
                                                         Padding="10,0"
-                                                        Visibility="{x:Bind IsAddButton, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}">
+                                                        Visibility="{x:Bind IsAddButton, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneTime}">
                                                     <Grid ColumnSpacing="8">
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="*"/>
