@@ -1,0 +1,545 @@
+{
+  "info": {
+    "_postman_id": "339c15e0-370b-48eb-8ff5-3096e834f66b",
+    "name": "Plustek Console - Escan + Naming Demo (Single File)",
+    "description": "Single-file collection for demo: manual api_key/api_secret + manual service IDs -> project token -> upload file -> confirm -> create document -> create escan job -> get escan result -> create naming job -> get naming result.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "25034440"
+  },
+  "item": [
+    {
+      "name": "01 Issue Project Token",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "var body = pm.response.json();",
+              "pm.test('has project token', function () {",
+              "  pm.expect(body).to.have.property('data');",
+              "  pm.expect(body.data).to.have.property('access_token');",
+              "});",
+              "",
+              "pm.collectionVariables.set('project_token', body.data.access_token);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "client_id",
+              "value": "{{api_key}}",
+              "type": "text"
+            },
+            {
+              "key": "client_secret",
+              "value": "{{api_secret}}",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/projects/token",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "projects",
+            "token"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "02 Create Upload URL",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "var body = pm.response.json();",
+              "pm.test('has signed URL', function () {",
+              "  pm.expect(body.data.urls.length).to.be.greaterThan(0);",
+              "});",
+              "",
+              "pm.collectionVariables.set('file_id', body.data.urls[0].file_id);",
+              "pm.collectionVariables.set('upload_signed_url', body.data.urls[0].signed_url);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{project_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"files\": [\n    {\n      \"file_name\": \"{{upload_file_name}}\",\n      \"content_type\": \"{{upload_content_type}}\"\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/files/upload-url",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "files",
+            "upload-url"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "03 Upload File To Signed URL",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status is 200/201/204', function () {",
+              "  pm.expect([200, 201, 204]).to.include(pm.response.code);",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "{{upload_content_type}}"
+          }
+        ],
+        "body": {
+          "mode": "file",
+          "file": {
+            "src": "postman-cloud:///1eff4b11-2386-4810-98f1-be084c11be65"
+          }
+        },
+        "url": {
+          "raw": "{{upload_signed_url}}",
+          "host": [
+            "{{upload_signed_url}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "04 Confirm Upload",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "var body = pm.response.json();",
+              "pm.test('confirm success', function () {",
+              "  pm.expect(body.data.files.length).to.be.greaterThan(0);",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{project_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"files\": [\n    {\n      \"file_id\": \"{{file_id}}\",\n      \"file_name\": \"{{upload_file_name}}\",\n      \"content_type\": \"{{upload_content_type}}\"\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/files/confirm-upload",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "files",
+            "confirm-upload"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "05 Create Document",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "var body = pm.response.json();",
+              "pm.test('has document id', function () {",
+              "  pm.expect(body.data).to.have.property('id');",
+              "});",
+              "",
+              "pm.collectionVariables.set('document_id', body.data.id);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{project_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"files\": [\n    \"{{file_id}}\"\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/documents",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "documents"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "06 Create Escan Job",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status is 202', function () {",
+              "  pm.response.to.have.status(202);",
+              "});",
+              "",
+              "var body = pm.response.json();",
+              "pm.collectionVariables.set('escan_job_id', body.data.job_id);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{project_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"service_id\": \"{{escan_service_id}}\",\n  \"payload\": {\n    \"document_id\": \"{{document_id}}\",\n    \"parameters\": {\n    }\n  }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/jobs",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "jobs"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "07 Get Escan Job Result",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{project_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/jobs/{{escan_job_id}}/results",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "jobs",
+            "{{escan_job_id}}",
+            "results"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "08 Create Naming Job",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "var ocr = pm.collectionVariables.get('ocr_content_json');",
+              "if (typeof ocr !== 'string') {",
+              "  pm.collectionVariables.set('ocr_content_json', JSON.stringify(ocr));",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status is 202', function () {",
+              "  pm.response.to.have.status(202);",
+              "});",
+              "",
+              "var body = pm.response.json();",
+              "pm.collectionVariables.set('naming_job_id', body.data.job_id);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{project_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"service_id\": \"{{naming_service_id}}\",\n    \"payload\": {\n        \"content\": \"[{\\\"Ocr Result\\\":[{\\\"Location\\\":[1625,151,1874,210],\\\"Text\\\":\\\"TacticSmart\\\"},{\\\"Location\\\":[1992,151,2335,210],\\\"Text\\\":\\\"19095℧Bonita℧Rd\\\"},{\\\"Location\\\":[1635,206,1874,268],\\\"Text\\\":\\\"022553711\\\"},{\\\"Location\\\":[1923,210,2335,268],\\\"Text\\\":\\\"Red℧Bluff,℧California\\\"},{\\\"Location\\\":[180,234,1150,567],\\\"Text\\\":\\\"EWInG\\\"},{\\\"Location\\\":[2190,261,2339,327],\\\"Text\\\":\\\"96080\\\"},{\\\"Location\\\":[2061,320,2349,382],\\\"Text\\\":\\\"United℧States\\\"},{\\\"Location\\\":[201,533,1116,626],\\\"Text\\\":\\\"Irrigation℧&℧Landscape℧Supply\\\"},{\\\"Location\\\":[193,773,392,846],\\\"Text\\\":\\\"Billed℧To\\\"},{\\\"Location\\\":[897,780,1178,842],\\\"Text\\\":\\\"Date℧of℧Issue\\\"},{\\\"Location\\\":[1365,784,1694,842],\\\"Text\\\":\\\"Invoice℧Number\\\"},{\\\"Location\\\":[1951,784,2342,842],\\\"Text\\\":\\\"Deposit℧Due℧(USD)\\\"},{\\\"Location\\\":[890,824,1144,905],\\\"Text\\\":\\\"10/0/2022\\\"},{\\\"Location\\\":[201,839,450,901],\\\"Text\\\":\\\"Ed℧Gognzie\\\"},{\\\"Location\\\":[1365,839,1556,901],\\\"Text\\\":\\\"0000001\\\"},{\\\"Location\\\":[1975,832,2353,956],\\\"Text\\\":\\\"$29.64\\\"},{\\\"Location\\\":[194,883,745,963],\\\"Text\\\":\\\"Red℧Bluff℧Auto℧Dismantling\\\"},{\\\"Location\\\":[893,927,1110,1008],\\\"Text\\\":\\\"Due℧Date\\\"},{\\\"Location\\\":[194,949,558,1018],\\\"Text\\\":\\\"20750℧Minch℧Rd,\\\"},{\\\"Location\\\":[2055,949,2353,1031],\\\"Text\\\":\\\"of℧$122.86\\\"},{\\\"Location\\\":[194,1000,610,1069],\\\"Text\\\":\\\"Red℧Bluff,℧California\\\"},{\\\"Location\\\":[897,997,1136,1059],\\\"Text\\\":\\\"12/03/2022\\\"},{\\\"Location\\\":[197,1062,346,1128],\\\"Text\\\":\\\"96080\\\"},{\\\"Location\\\":[193,1113,486,1183],\\\"Text\\\":\\\"United℧States\\\"},{\\\"Location\\\":[1930,1387,2044,1478],\\\"Text\\\":\\\"Qty\\\"},{\\\"Location\\\":[201,1403,443,1464],\\\"Text\\\":\\\"Description\\\"},{\\\"Location\\\":[1604,1399,1729,1464],\\\"Text\\\":\\\"Rate\\\"},{\\\"Location\\\":[2131,1403,2349,1461],\\\"Text\\\":\\\"Line℧Total\\\"},{\\\"Location\\\":[201,1516,534,1578],\\\"Text\\\":\\\"FireFox℧NO.155\\\"},{\\\"Location\\\":[1559,1516,1725,1581],\\\"Text\\\":\\\"$15.99\\\"},{\\\"Location\\\":[1982,1519,2041,1581],\\\"Text\\\":\\\"1\\\"},{\\\"Location\\\":[2186,1513,2353,1588],\\\"Text\\\":\\\"$15.99\\\"},{\\\"Location\\\":[1514,1571,1729,1633],\\\"Text\\\":\\\"+Sales℧Tax\\\"},{\\\"Location\\\":[197,1688,582,1757],\\\"Text\\\":\\\"Sample℧Occpueirs\\\"},{\\\"Location\\\":[1556,1681,1729,1757],\\\"Text\\\":\\\"$15.99\\\"},{\\\"Location\\\":[1982,1688,2041,1757],\\\"Text\\\":\\\"3\\\"},{\\\"Location\\\":[2183,1681,2349,1760],\\\"Text\\\":\\\"$47.97\\\"},{\\\"Location\\\":[1514,1743,1729,1805],\\\"Text\\\":\\\"+Sales℧Tax\\\"},{\\\"Location\\\":[197,1860,547,1928],\\\"Text\\\":\\\"NewF℧GG12X53\\\"},{\\\"Location\\\":[1531,1853,1729,1928],\\\"Text\\\":\\\"$1.3006\\\"},{\\\"Location\\\":[1954,1856,2044,1932],\\\"Text\\\":\\\"51\\\"},{\\\"Location\\\":[2186,1860,2353,1925],\\\"Text\\\":\\\"$66.33\\\"},{\\\"Location\\\":[1468,1907,1733,1988],\\\"Text\\\":\\\"+Country℧Tax\\\"},{\\\"Location\\\":[1843,2107,2044,2179],\\\"Text\\\":\\\"Subtotal\\\"},{\\\"Location\\\":[2186,2111,2353,2173],\\\"Text\\\":\\\"130.29\\\"},{\\\"Location\\\":[1760,2162,2044,2234],\\\"Text\\\":\\\"9%℧Discount\\\"},{\\\"Location\\\":[2183,2162,2356,2238],\\\"Text\\\":\\\"-11.73\\\"},{\\\"Location\\\":[1715,2241,2041,2313],\\\"Text\\\":\\\"Sales℧Tax℧(2%)\\\"},{\\\"Location\\\":[2231,2234,2356,2313],\\\"Text\\\":\\\"1.16\\\"},{\\\"Location\\\":[1635,2310,2041,2390],\\\"Text\\\":\\\"Country℧Tax℧(5.2%)\\\"},{\\\"Location\\\":[2231,2310,2356,2389],\\\"Text\\\":\\\"3.14\\\"},{\\\"Location\\\":[1916,2437,2044,2506],\\\"Text\\\":\\\"Total\\\"},{\\\"Location\\\":[2190,2437,2353,2503],\\\"Text\\\":\\\"122.86\\\"},{\\\"Location\\\":[1639,2496,2041,2564],\\\"Text\\\":\\\"Deposit℧Requested\\\"},{\\\"Location\\\":[2207,2496,2353,2561],\\\"Text\\\":\\\"29.64\\\"},{\\\"Location\\\":[1757,2554,2037,2616],\\\"Text\\\":\\\"Amount℧Paid\\\"},{\\\"Location\\\":[2231,2551,2353,2619],\\\"Text\\\":\\\"0.00\\\"},{\\\"Location\\\":[1639,2671,2041,2740],\\\"Text\\\":\\\"Payment℧Schedule\\\"},{\\\"Location\\\":[1289,2747,2034,2815],\\\"Text\\\":\\\"Payment℧(1℧of℧3Due℧Feb℧25,℧2022\\\"},{\\\"Location\\\":[2183,2743,2353,2819],\\\"Text\\\":\\\"$46.61\\\"},{\\\"Location\\\":[1289,2805,2016,2874],\\\"Text\\\":\\\"Payment℧(2℧of℧Due℧Mar℧4,℧2022\\\"},{\\\"Location\\\":[2186,2805,2353,2870],\\\"Text\\\":\\\"$23.30\\\"},{\\\"Location\\\":[1288,2853,1657,2933],\\\"Text\\\":\\\"Paym☺nt℧( ℧of℧3)\\\"},{\\\"Location\\\":[1628,2860,2027,2929],\\\"Text\\\":\\\"Due℧Apr℧22,℧2022\\\"},{\\\"Location\\\":[2186,2857,2353,2932],\\\"Text\\\":\\\"$23.31\\\"},{\\\"Location\\\":[1635,2980,2034,3053],\\\"Text\\\":\\\"Deposit℧Due℧(USD)\\\"},{\\\"Location\\\":[2190,2984,2349,3049],\\\"Text\\\":\\\"$29.64\\\"}],\\\"Page\\\":1},{\\\"Ocr Result\\\":[{\\\"Location\\\":[256,355,591,401],\\\"Text\\\":\\\"Beaut☺fulDays℧Inc.\\\"},{\\\"Location\\\":[905,355,1444,477],\\\"Text\\\":\\\"INVOICE\\\"},{\\\"Location\\\":[254,401,566,454],\\\"Text\\\":\\\"4968℧Dogwood℧Lane\\\"},{\\\"Location\\\":[60,458,229,500],\\\"Text\\\":\\\"BeautifulDays\\\"},{\\\"Location\\\":[261,451,536,490],\\\"Text\\\":\\\"Tucson,℧AZ,℧85724\\\"},{\\\"Location\\\":[65,658,263,699],\\\"Text\\\":\\\"INVOICE℧TO:\\\"},{\\\"Location\\\":[65,713,286,752],\\\"Text\\\":\\\"Name:℧Patrick\\\"},{\\\"Location\\\":[62,754,400,805],\\\"Text\\\":\\\"Company:℧Plustek℧Inc\\\"},{\\\"Location\\\":[65,804,571,843],\\\"Text\\\":\\\"Address:℧1986℧Plustek℧Avenue,℧CA\\\"},{\\\"Location\\\":[949,800,1160,839],\\\"Text\\\":\\\"Invoice℧Date:\\\"},{\\\"Location\\\":[1199,798,1421,836],\\\"Text\\\":\\\"JUNE℧19,℧2025\\\"},{\\\"Location\\\":[64,850,367,896],\\\"Text\\\":\\\"Phone:℧1-1986-1986\\\"},{\\\"Location\\\":[947,841,1370,887],\\\"Text\\\":\\\"Invoice℧Number:℧2A159Q52\\\"},{\\\"Location\\\":[67,1018,169,1061],\\\"Text\\\":\\\"REF#\\\"}]}]\"\n            }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/jobs",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "jobs"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "09 Get Naming Job Result",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{project_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/jobs/{{naming_job_id}}/results",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "jobs",
+            "{{naming_job_id}}",
+            "results"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://demo.us.dematbox.com/api/v1"
+    },
+    {
+      "key": "api_key",
+      "value": ""
+    },
+    {
+      "key": "api_secret",
+      "value": ""
+    },
+    {
+      "key": "escan_service_id",
+      "value": ""
+    },
+    {
+      "key": "naming_service_id",
+      "value": "5805c050-4a94-4985-81ba-4a91ca51d814"
+    },
+    {
+      "key": "upload_file_name",
+      "value": "test1.jpg"
+    },
+    {
+      "key": "upload_content_type",
+      "value": "image/jpeg"
+    },
+    {
+      "key": "upload_file_path",
+      "value": ""
+    },
+    {
+      "key": "upload_signed_url",
+      "value": ""
+    },
+    {
+      "key": "file_id",
+      "value": ""
+    },
+    {
+      "key": "document_id",
+      "value": ""
+    },
+    {
+      "key": "metadata_fields_json",
+      "value": "[]"
+    },
+    {
+      "key": "escan_job_id",
+      "value": ""
+    },
+    {
+      "key": "naming_job_id",
+      "value": ""
+    },
+    {
+      "key": "ocr_content_json",
+      "value": ""
+    },
+    {
+      "key": "project_token",
+      "value": ""
+    }
+  ]
+}

@@ -388,6 +388,14 @@
                                                 <TextBox Grid.Column="0" Text="{x:Bind ViewModel.SelectedCard.LastName, Mode=TwoWay}" PlaceholderText="Last Name"/>
                                                 <TextBox Grid.Column="1" Text="{x:Bind ViewModel.SelectedCard.FirstName, Mode=TwoWay}" PlaceholderText="First Name"/>
                                             </Grid>
+                                            <Grid ColumnSpacing="12" Visibility="{x:Bind ViewModel.IsJapanMarket, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBox Grid.Column="0" Text="{x:Bind ViewModel.SelectedCard.LastNameKana, Mode=TwoWay}" PlaceholderText="Last Name Kana"/>
+                                                <TextBox Grid.Column="1" Text="{x:Bind ViewModel.SelectedCard.FirstNameKana, Mode=TwoWay}" PlaceholderText="First Name Kana"/>
+                                            </Grid>
                                             <Grid ColumnSpacing="12" Visibility="{x:Bind ViewModel.IsJapanMarket, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*"/>

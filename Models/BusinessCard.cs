@@ -74,6 +74,15 @@ namespace PlustekBCR.Models
         public partial string FullName { get; set; }
 
         [ObservableProperty]
+        public partial string LastNameKana { get; set; }
+
+        [ObservableProperty]
+        public partial string FirstNameKana { get; set; }
+
+        [ObservableProperty]
+        public partial string FullNameKana { get; set; }
+
+        [ObservableProperty]
         public partial string ZipCode { get; set; }
 
         [ObservableProperty]
@@ -154,6 +163,8 @@ namespace PlustekBCR.Models
         partial void OnStateChanged(string value) => SyncDerivedIdentityAndAddress();
         partial void OnZipCodeChanged(string value) => SyncDerivedIdentityAndAddress();
         partial void OnCountryChanged(string value) => SyncDerivedIdentityAndAddress();
+        partial void OnFirstNameKanaChanged(string value) => SyncKanaIdentity();
+        partial void OnLastNameKanaChanged(string value) => SyncKanaIdentity();
 
         partial void OnFullNameChanged(string value)
         {
@@ -177,6 +188,9 @@ namespace PlustekBCR.Models
             FirstName = string.Empty;
             Suffix = string.Empty;
             FullName = string.Empty;
+            LastNameKana = string.Empty;
+            FirstNameKana = string.Empty;
+            FullNameKana = string.Empty;
             ZipCode = string.Empty;
             Country = string.Empty;
             State = string.Empty;
@@ -206,6 +220,11 @@ namespace PlustekBCR.Models
             if (string.IsNullOrWhiteSpace(DepartmentFull))
             {
                 DepartmentFull = BusinessCardAddressHelper.ComposeDepartmentFull(Department1, Department2, Department3, Department4);
+            }
+
+            if (string.IsNullOrWhiteSpace(FullNameKana))
+            {
+                FullNameKana = ComposeFullNameKana(MarketCode, FirstNameKana, LastNameKana);
             }
 
             if (string.IsNullOrWhiteSpace(FullAddress))
@@ -258,6 +277,35 @@ namespace PlustekBCR.Models
             {
                 FullAddress = composedAddress;
             }
+        }
+
+        private void SyncKanaIdentity()
+        {
+            var composedNameKana = ComposeFullNameKana(MarketCode, FirstNameKana, LastNameKana);
+            if (string.IsNullOrWhiteSpace(FirstNameKana)
+                && string.IsNullOrWhiteSpace(LastNameKana))
+            {
+                FullNameKana = string.Empty;
+            }
+            else if (!string.IsNullOrWhiteSpace(composedNameKana))
+            {
+                FullNameKana = composedNameKana;
+            }
+        }
+
+        private static string ComposeFullNameKana(MarketCode marketCode, string? firstNameKana, string? lastNameKana)
+        {
+            var first = (firstNameKana ?? string.Empty).Trim();
+            var last = (lastNameKana ?? string.Empty).Trim();
+
+            if (string.IsNullOrWhiteSpace(first) && string.IsNullOrWhiteSpace(last))
+            {
+                return string.Empty;
+            }
+
+            return marketCode == MarketCode.JP
+                ? string.Join(" ", new[] { last, first }.Where(x => !string.IsNullOrWhiteSpace(x)))
+                : string.Join(" ", new[] { first, last }.Where(x => !string.IsNullOrWhiteSpace(x)));
         }
     }
 

@@ -121,7 +121,26 @@
                             </Border>
 
                             <!-- Business Card Info -->
-                            <TextBlock Text="{x:Bind FullName, Mode=OneWay}" FontSize="18" FontWeight="Bold" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0"
+                                           Text="{x:Bind FullName, Mode=OneWay}"
+                                           FontSize="18"
+                                           FontWeight="Bold"
+                                           TextWrapping="NoWrap"
+                                           TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Grid.Column="1"
+                                           Text="{x:Bind JobTitle, Mode=OneWay}"
+                                           FontSize="12"
+                                           Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                           VerticalAlignment="Center"
+                                           TextWrapping="NoWrap"
+                                           TextTrimming="CharacterEllipsis"
+                                           Visibility="{x:Bind JobTitle, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
+                            </Grid>
                             <TextBlock Text="{x:Bind CompanyName, Mode=OneWay}" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
 
                             <!-- Status Badge -->
@@ -224,7 +243,26 @@
 
                         <!-- Business Card Info -->
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="{x:Bind FullName, Mode=OneWay}" FontSize="18" FontWeight="Bold" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0"
+                                           Text="{x:Bind FullName, Mode=OneWay}"
+                                           FontSize="18"
+                                           FontWeight="Bold"
+                                           TextWrapping="NoWrap"
+                                           TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Grid.Column="1"
+                                           Text="{x:Bind JobTitle, Mode=OneWay}"
+                                           FontSize="12"
+                                           Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                           VerticalAlignment="Center"
+                                           TextWrapping="NoWrap"
+                                           TextTrimming="CharacterEllipsis"
+                                           Visibility="{x:Bind JobTitle, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
+                            </Grid>
                             <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,2,0,0">
                                 <TextBlock Text="{x:Bind CompanyName, Mode=OneWay}" FontSize="14" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Visibility="{x:Bind CompanyName, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}"/>
                             </StackPanel>
@@ -328,7 +366,7 @@
               Grid.Column="0"
               Background="Transparent" 
               Visibility="{x:Bind ViewModel.IsSidebarOpen, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
-              PointerPressed="OnOverlayClicked"
+              IsHitTestVisible="False"
               Canvas.ZIndex="5"/>
 
         <!-- Grid Splitter (Custom Thumb) -->
@@ -429,11 +467,24 @@
                                             Tag="Name"
                                             Visibility="{x:Bind ViewModel.IsEditingName, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}">
                                         <Grid>
-                                            <TextBlock Text="{x:Bind ViewModel.SelectedCard.FullName, Mode=OneWay}"
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0"
+                                                       Text="{x:Bind ViewModel.SelectedCard.FullName, Mode=OneWay}"
                                                        FontSize="24"
                                                        FontWeight="Bold"
                                                        TextWrapping="WrapWholeWords"
                                                        Visibility="{x:Bind ViewModel.HasDetailNameText, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"/>
+                                            <TextBlock Grid.Column="1"
+                                                       Margin="8,8,0,0"
+                                                       Text="{x:Bind ViewModel.DetailNameKanaText, Mode=OneWay}"
+                                                       FontSize="13"
+                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                       TextWrapping="WrapWholeWords"
+                                                       VerticalAlignment="Top"
+                                                       Visibility="{x:Bind ViewModel.HasDetailNameKanaText, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"/>
                                             <TextBlock Text="Click to enter name"
                                                        Style="{StaticResource BcrEditableFieldPlaceholderTextStyle}"
                                                        FontSize="24"
@@ -468,6 +519,21 @@
                                                          Text="{x:Bind ViewModel.SelectedCard.LastName, Mode=TwoWay}"
                                                          PlaceholderText="Last name"
                                                          Visibility="{x:Bind ViewModel.IsJapanMarket, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}"
+                                                         LosingFocus="OnCompositeFieldLosingFocus"/>
+                                            </Grid>
+                                            <Grid ColumnSpacing="12"
+                                                  Visibility="{x:Bind ViewModel.IsJapanMarket, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBox Grid.Column="0"
+                                                         Text="{x:Bind ViewModel.SelectedCard.LastNameKana, Mode=TwoWay}"
+                                                         PlaceholderText="Last name kana"
+                                                         LosingFocus="OnCompositeFieldLosingFocus"/>
+                                                <TextBox Grid.Column="1"
+                                                         Text="{x:Bind ViewModel.SelectedCard.FirstNameKana, Mode=TwoWay}"
+                                                         PlaceholderText="First name kana"
                                                          LosingFocus="OnCompositeFieldLosingFocus"/>
                                             </Grid>
                                             <TextBox Text="{x:Bind ViewModel.SelectedCard.MiddleName, Mode=TwoWay}"

@@ -49,6 +49,8 @@ namespace PlustekBCR.ViewModels
                     SyncDepartmentInputCount(value);
                     ZipLookupStatusMessage = string.Empty;
                     OnPropertyChanged(nameof(HasDetailNameText));
+                    OnPropertyChanged(nameof(DetailNameKanaText));
+                    OnPropertyChanged(nameof(HasDetailNameKanaText));
                     OnPropertyChanged(nameof(DetailAddressText));
                     OnPropertyChanged(nameof(HasDetailAddressText));
                     OnPropertyChanged(nameof(DetailDepartmentText));
@@ -119,6 +121,8 @@ namespace PlustekBCR.ViewModels
         public bool IsJapanMarket => CurrentMarket == MarketCode.JP;
 
         public bool HasDetailNameText => !string.IsNullOrWhiteSpace(SelectedCard?.FullName);
+        public string DetailNameKanaText => SelectedCard?.FullNameKana ?? string.Empty;
+        public bool HasDetailNameKanaText => !string.IsNullOrWhiteSpace(SelectedCard?.FullNameKana);
 
         public string DetailDepartmentText =>
             SelectedCard?.DepartmentFull ?? string.Empty;
@@ -754,6 +758,12 @@ namespace PlustekBCR.ViewModels
                     break;
                 case nameof(BusinessCard.FullName):
                     OnPropertyChanged(nameof(HasDetailNameText));
+                    break;
+                case nameof(BusinessCard.FirstNameKana):
+                case nameof(BusinessCard.LastNameKana):
+                case nameof(BusinessCard.FullNameKana):
+                    OnPropertyChanged(nameof(DetailNameKanaText));
+                    OnPropertyChanged(nameof(HasDetailNameKanaText));
                     break;
                 case nameof(BusinessCard.AddressLine1):
                 case nameof(BusinessCard.AddressLine2):
