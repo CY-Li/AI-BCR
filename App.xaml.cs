@@ -1,9 +1,13 @@
 #nullable enable
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using PlustekBCR.Services.Parsing;
+using PlustekBCR.Services.Plustek;
+using PlustekBCR.Services.Recognition;
 using PlustekBCR.Services;
 using PlustekBCR.ViewModels;
 using PlustekBCR.Views;
@@ -22,6 +26,8 @@ namespace PlustekBCR
         public static IHost Host { get; } = Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder()
             .ConfigureServices((context, services) =>
             {
+                var configuration = context.Configuration;
+
                 // Register ViewModels
                 services.AddSingleton<MainViewModel>();
                 services.AddTransient<EmptyViewModel>();
@@ -35,6 +41,14 @@ namespace PlustekBCR
                 services.AddSingleton<IBusinessCardFieldService, BusinessCardFieldService>();
                 services.AddSingleton<IZipCodeLookupService, ZipCloudLookupService>();
                 services.AddSingleton<JapanZipLookupCoordinator>();
+                services.AddSingleton(new HttpClient());
+                services.AddSingleton<IPlustekOptionsProvider, PlustekOptionsProvider>();
+                services.AddSingleton<IOcrResultParser, OcrResultParser>();
+                services.AddSingleton<IPlustekConsoleClient, PlustekConsoleClient>();
+                services.AddSingleton<IPlustekOcrCoordinator, PlustekOcrCoordinator>();
+                services.AddSingleton<IBusinessCardRecognitionService, BusinessCardRecognitionService>();
+                services.AddSingleton<IRecognitionDiagnosticsService, RecognitionDiagnosticsService>();
+                services.AddSingleton<IRecognitionQueueService, RecognitionQueueService>();
             })
             .Build();
 

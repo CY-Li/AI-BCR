@@ -256,7 +256,7 @@ namespace PlustekBCR.Views
                 return;
             }
 
-            await CardPageUiHelper.RunMockAiReprocessAsync(ViewModel.SelectedCard);
+            await ViewModel.ReprocessAiAsync(ViewModel.SelectedCard);
         }
 
         private async void OnAddTagClicked(object sender, RoutedEventArgs e)

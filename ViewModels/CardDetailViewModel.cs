@@ -7,9 +7,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using PlustekBCR.Helpers;
 using PlustekBCR.Models;
 using PlustekBCR.Services;
+using PlustekBCR.Services.Recognition;
 
 namespace PlustekBCR.ViewModels
 {
@@ -29,6 +31,7 @@ namespace PlustekBCR.ViewModels
         private readonly IZipCodeLookupService _zipCodeLookupService;
         private readonly IBusinessCardFieldService _fieldService;
         private readonly JapanZipLookupCoordinator _zipLookupCoordinator;
+        private readonly IRecognitionQueueService _recognitionQueueService;
 
         private ObservableCollection<BusinessCard>? _originalCards;
         private BusinessCard? _subscribedCard;
@@ -67,6 +70,7 @@ namespace PlustekBCR.ViewModels
             _zipCodeLookupService = App.GetService<IZipCodeLookupService>();
             _fieldService = App.GetService<IBusinessCardFieldService>();
             _zipLookupCoordinator = App.GetService<JapanZipLookupCoordinator>();
+            _recognitionQueueService = App.GetService<IRecognitionQueueService>();
             AllCards = new ObservableCollection<BusinessCard>();
             NewNoteContent = string.Empty;
             AvailableTags = new ObservableCollection<string>(_tagCatalogService.GetAllTags());
@@ -235,6 +239,35 @@ namespace PlustekBCR.ViewModels
             }
         }
 
+        public async Task ReprocessAiAsync(BusinessCard? card)
+        {
+            if (card == null || card.Status == ProcessingStatus.Recognizing)
+            {
+                return;
+            }
+
+            if (card.FrontImageData == null || card.FrontImageData.Length == 0)
+            {
+                WeakReferenceMessenger.Default.Send(new RecognitionWarningMessage(
+                    "AI re-recognition unavailable",
+                    "AI re-recognition requires a front card image."));
+                return;
+            }
+
+            try
+            {
+                await _recognitionQueueService.EnqueueAsync(card);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error reprocessing AI OCR: {ex.Message}");
+            }
+            finally
+            {
+                RefreshSelectedCardDetails();
+            }
+        }
+
         public void RemoveSelectedTag(string? tag)
         {
             if (!TagTextHelper.RemoveFirstIgnoreCase(SelectedTags, tag))
@@ -316,7 +349,7 @@ namespace PlustekBCR.ViewModels
                 return;
             }
 
-            if (e.PropertyName == nameof(BusinessCard.ZipCode))
+            if (e.PropertyName == nameof(BusinessCard.ZipCode) && !card.SuppressAutoZipLookup)
             {
                 _ = TriggerZipLookupAsync(card.ZipCode);
             }
@@ -354,6 +387,11 @@ namespace PlustekBCR.ViewModels
         private static string NormalizeTag(string? value)
         {
             return TagTextHelper.Normalize(value);
+        }
+
+        private void RefreshSelectedCardDetails()
+        {
+            SyncDepartmentInputCount(SelectedCard);
         }
     }
 }

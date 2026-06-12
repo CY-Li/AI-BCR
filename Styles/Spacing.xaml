@@ -15,6 +15,9 @@
     <Thickness x:Key="BcrSpace.Md">12</Thickness>
     <Thickness x:Key="BcrSpace.Lg">16</Thickness>
     <Thickness x:Key="BcrSpace.Xl">24</Thickness>
+    <Thickness x:Key="BcrPageOuterPadding">32,20,32,48</Thickness>
+    <Thickness x:Key="BcrPageHeaderContentIndent">48,0,0,0</Thickness>
+    <Thickness x:Key="BcrPageSectionTopMargin">48,26,0,0</Thickness>
 
     <!-- BCR Design System Radius -->
     <CornerRadius x:Key="BcrRadius.Control">6</CornerRadius>

@@ -139,6 +139,8 @@ namespace PlustekBCR.Models
         [ObservableProperty]
         public partial bool IsAutoScanSession { get; set; }
 
+        public bool SuppressAutoZipLookup { get; set; }
+
         public bool IsRecognizing => Status == ProcessingStatus.Recognizing;
         public bool IsAiReprocessAvailable => !IsRecognizing;
         public string DisplayName => !string.IsNullOrWhiteSpace(FullName) ? FullName : BusinessCardAddressHelper.ComposeFullName(MarketCode, FirstName, MiddleName, LastName, Suffix);
@@ -316,6 +318,28 @@ namespace PlustekBCR.Models
         public CardsImportedMessage(List<BusinessCard> cards)
         {
             Cards = cards;
+        }
+    }
+
+    public class AutoScanRecognitionCountChangedMessage
+    {
+        public int Delta { get; }
+
+        public AutoScanRecognitionCountChangedMessage(int delta)
+        {
+            Delta = delta;
+        }
+    }
+
+    public class RecognitionWarningMessage
+    {
+        public string Title { get; }
+        public string Message { get; }
+
+        public RecognitionWarningMessage(string title, string message)
+        {
+            Title = title;
+            Message = message;
         }
     }
 }

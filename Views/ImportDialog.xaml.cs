@@ -311,7 +311,7 @@ namespace PlustekBCR.Views
                     ScanDate = DateTime.Now,
                     MarketCode = _fieldService.CurrentMarket,
                     FrontImageData = imageBytes,
-                    Status = ProcessingStatus.Recognizing,
+                    Status = ProcessingStatus.Pending,
                     FullName = Path.GetFileNameWithoutExtension(file.Name),
                     CompanyName = "Ingested Image"
                 };

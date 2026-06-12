@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading;
@@ -11,15 +12,16 @@ using CommunityToolkit.Mvvm.Messaging;
 using PlustekBCR.Helpers;
 using PlustekBCR.Models;
 using PlustekBCR.Services;
+using PlustekBCR.Services.Recognition;
 
 namespace PlustekBCR.ViewModels
 {
     public partial class AllCardsViewModel : ObservableObject
     {
-        private readonly System.Threading.SemaphoreSlim _queueSemaphore = new(3);
         private readonly IZipCodeLookupService _zipCodeLookupService;
         private readonly IBusinessCardFieldService _fieldService;
         private readonly JapanZipLookupCoordinator _zipLookupCoordinator;
+        private readonly IRecognitionQueueService _recognitionQueueService;
         private ObservableCollection<BusinessCard> _allCards = new();
         private BusinessCard? _selectedCard;
         private BusinessCard? _subscribedCard;
@@ -34,7 +36,20 @@ namespace PlustekBCR.ViewModels
         public ObservableCollection<BusinessCard> AllCards
         {
             get => _allCards;
-            set => SetProperty(ref _allCards, value);
+            set
+            {
+                if (ReferenceEquals(_allCards, value))
+                {
+                    return;
+                }
+
+                var previousCards = _allCards;
+                if (SetProperty(ref _allCards, value))
+                {
+                    SubscribeToAllCardsCollection(previousCards, value);
+                    HandleAllCardsCollectionChanged();
+                }
+            }
         }
 
         public BusinessCard? SelectedCard
@@ -225,9 +240,9 @@ namespace PlustekBCR.ViewModels
             _zipCodeLookupService = App.GetService<IZipCodeLookupService>();
             _fieldService = App.GetService<IBusinessCardFieldService>();
             _zipLookupCoordinator = App.GetService<JapanZipLookupCoordinator>();
+            _recognitionQueueService = App.GetService<IRecognitionQueueService>();
             AllCards = new ObservableCollection<BusinessCard>();
             MainViewModel.SearchChanged += OnSearchChanged;
-            LoadSampleData();
 
             WeakReferenceMessenger.Default.Register<CardsImportedMessage>(this, (r, m) =>
             {
@@ -643,6 +658,39 @@ namespace PlustekBCR.ViewModels
             RefreshSearchResults();
         }
 
+        private void SubscribeToAllCardsCollection(ObservableCollection<BusinessCard>? previousCards, ObservableCollection<BusinessCard>? currentCards)
+        {
+            if (previousCards != null)
+            {
+                previousCards.CollectionChanged -= OnAllCardsCollectionChanged;
+            }
+
+            if (currentCards != null)
+            {
+                currentCards.CollectionChanged += OnAllCardsCollectionChanged;
+            }
+        }
+
+        private void OnAllCardsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            HandleAllCardsCollectionChanged();
+        }
+
+        private void HandleAllCardsCollectionChanged()
+        {
+            if (SelectedCard != null && !AllCards.Contains(SelectedCard))
+            {
+                SelectedCard = null;
+            }
+
+            if (SelectedCard == null && AllCards.Count == 0)
+            {
+                IsSidebarOpen = false;
+            }
+
+            RefreshSearchResults();
+        }
+
         private void RefreshSearchResults()
         {
             OnPropertyChanged(nameof(FilteredCards));
@@ -657,71 +705,47 @@ namespace PlustekBCR.ViewModels
 
         private async Task ProcessOcrQueueAsync(List<BusinessCard> cardsToProcess)
         {
-            var tasks = cardsToProcess.Select(async card =>
+            try
             {
-                await _queueSemaphore.WaitAsync();
-                try
-                {
-                    App.Window?.DispatcherQueue.TryEnqueue(() =>
-                    {
-                        card.Status = ProcessingStatus.Recognizing;
-                    });
+                await _recognitionQueueService.EnqueueAsync(cardsToProcess);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error processing AI OCR: {ex.Message}");
+            }
+            finally
+            {
+                App.Window?.DispatcherQueue.TryEnqueue(RefreshSearchResults);
+            }
+        }
 
-                    await Task.Delay(3000);
+        public async Task ReprocessAiAsync(BusinessCard? card)
+        {
+            if (card == null || card.Status == ProcessingStatus.Recognizing)
+            {
+                return;
+            }
 
-                    string[] names = { "Liam Davis", "Noah Miller", "Oliver Wilson", "Elijah Moore", "William Taylor", "James Anderson", "Benjamin Thomas", "Lucas Jackson", "Henry White", "Alexander Harris" };
-                    string[] companies = { "Apex Global", "Zenith Solutions", "BlueSky Tech", "Nova Industries", "Horizon Venture", "Summit Capital", "Quantum Digital", "Pinnacle Group", "Vanguard Media", "Matrix Systems" };
-                    string[] titles = { "CEO", "VP of Sales", "Marketing Director", "Lead Engineer", "Product Manager", "Managing Partner", "Chief Architect", "Senior Consultant", "HR Manager", "Creative Director" };
+            if (card.FrontImageData == null || card.FrontImageData.Length == 0)
+            {
+                WeakReferenceMessenger.Default.Send(new RecognitionWarningMessage(
+                    "AI re-recognition unavailable",
+                    "AI re-recognition requires a front card image."));
+                return;
+            }
 
-                    var rand = new Random(card.Id.GetHashCode());
-                    string randomName = names[rand.Next(names.Length)];
-                    string randomCompany = companies[rand.Next(companies.Length)];
-                    string randomTitle = titles[rand.Next(titles.Length)];
-
-                    App.Window?.DispatcherQueue.TryEnqueue(() =>
-                    {
-                        if (string.IsNullOrEmpty(card.FullName) || card.FullName.StartsWith("BusinessCard") || card.CompanyName == "Ingested Image")
-                        {
-                            card.FullName = randomName;
-                            var nameParts = randomName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                            card.FirstName = nameParts.FirstOrDefault() ?? string.Empty;
-                            card.LastName = nameParts.Skip(1).FirstOrDefault() ?? string.Empty;
-                            card.CompanyName = randomCompany;
-                        }
-
-                        card.JobTitle = randomTitle;
-                        card.Email = $"{card.FullName.Replace(" ", ".").ToLower()}@{card.CompanyName.Replace(" ", "").ToLower()}.com";
-                        card.Tel = $"+1 (555) {rand.Next(100, 999)}-{rand.Next(1000, 9999)}";
-                        card.AddressLine1 = $"{rand.Next(100, 9999)} Silicon Valley Rd";
-                        card.AddressLine2 = $"Suite {rand.Next(10, 500)}";
-                        card.City = "San Jose";
-                        card.State = "CA";
-                        card.MarketCode = MarketCode.US;
-                        card.Country = "United States";
-                        card.FullAddress = BusinessCardAddressHelper.ComposeFullAddress(card.MarketCode, card.AddressLine1, card.AddressLine2, card.City, card.State, card.ZipCode, card.Country);
-                        card.Website = $"www.{card.CompanyName.Replace(" ", "").ToLower()}.com";
-
-                        card.Notes.Add(new Note { Content = "Automatically recognized and parsed by AI BCR Engine." });
-                        card.Status = ProcessingStatus.Done;
-                        if (card.IsAutoScanSession)
-                        {
-                            MainViewModel.MarkRecognizingCompleted();
-                        }
-
-                        RefreshSearchResults();
-                    });
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Error processing AI OCR: {ex.Message}");
-                }
-                finally
-                {
-                    _queueSemaphore.Release();
-                }
-            });
-
-            await Task.WhenAll(tasks);
+            try
+            {
+                await _recognitionQueueService.EnqueueAsync(card);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error reprocessing AI OCR: {ex.Message}");
+            }
+            finally
+            {
+                App.Window?.DispatcherQueue.TryEnqueue(RefreshSearchResults);
+            }
         }
 
         private void SubscribeToSelectedCard(BusinessCard? card)
@@ -751,7 +775,7 @@ namespace PlustekBCR.ViewModels
                 case nameof(BusinessCard.ZipCode):
                     OnPropertyChanged(nameof(HasDetailAddressText));
                     OnPropertyChanged(nameof(DetailAddressText));
-                    if (!_isApplyingZipLookupResult)
+                    if (!_isApplyingZipLookupResult && !card.SuppressAutoZipLookup)
                     {
                         _ = TriggerZipLookupAsync(card.ZipCode);
                     }

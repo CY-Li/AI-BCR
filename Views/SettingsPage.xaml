@@ -8,22 +8,21 @@
     Background="Transparent">
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <Grid Padding="28,20,32,48">
+        <Grid Padding="{StaticResource BcrPageOuterPadding}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <StackPanel Margin="26,12,0,0"
-                        HorizontalAlignment="Left"
+            <StackPanel HorizontalAlignment="Left"
                         Spacing="14">
                 <Button HorizontalAlignment="Left"
                         VerticalAlignment="Center"
                         Style="{StaticResource DetailBackButtonStyle}"
                         Click="OnBackToCardsClicked"/>
 
-                <StackPanel Margin="48,0,0,0"
+                <StackPanel Margin="{StaticResource BcrPageHeaderContentIndent}"
                             Spacing="6"
                             HorizontalAlignment="Left">
                     <TextBlock x:Name="SectionTitleTextBlock" Text="General" FontSize="30" FontWeight="SemiBold"/>
@@ -37,7 +36,7 @@
 
             <Grid x:Name="GeneralContentPanel"
                   Grid.Row="1"
-                  Margin="74,26,0,0"
+                  Margin="{StaticResource BcrPageSectionTopMargin}"
                   MaxWidth="720"
                   HorizontalAlignment="Left">
                 <Border Padding="24"
@@ -67,7 +66,7 @@
 
             <Border x:Name="SectionHintBorder"
                     Grid.Row="2"
-                    Margin="0,16,0,0"
+                    Margin="48,16,0,0"
                     Padding="12,8"
                     Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"

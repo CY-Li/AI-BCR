@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
@@ -26,16 +27,25 @@ namespace PlustekBCR.ViewModels
     public partial class MainViewModel : ObservableObject
     {
         private readonly ITagCatalogService _tagCatalogService;
+        private readonly IApplicationSettingsService _applicationSettingsService;
+        private static byte[]? _prototypeScanImageData;
         private ObservableCollection<NavItemModel> _navItems = new();
         public ObservableCollection<NavItemModel> NavItems { get => _navItems; set => SetProperty(ref _navItems, value); }
 
         public MainViewModel()
         {
             _tagCatalogService = App.GetService<ITagCatalogService>();
+            _applicationSettingsService = App.GetService<IApplicationSettingsService>();
             InitializeNavigation();
             InitializeSearch();
             _tagCatalogService.TagsChanged += OnTagCatalogChanged;
             RefreshTagFilters();
+            _isAiEnabled = _applicationSettingsService.IsAiEnabled;
+
+            WeakReferenceMessenger.Default.Register<AutoScanRecognitionCountChangedMessage>(this, (recipient, message) =>
+            {
+                ApplyAutoScanRecognizingDelta(message.Delta);
+            });
         }
 
         private void InitializeNavigation()
@@ -130,6 +140,7 @@ namespace PlustekBCR.ViewModels
             {
                 if (SetProperty(ref _isAiEnabled, value))
                 {
+                    _ = PersistAiEnabledAsync(value);
                     OnPropertyChanged(nameof(AiOnVisibility));
                     OnPropertyChanged(nameof(AiOffVisibility));
                 }
@@ -789,13 +800,13 @@ namespace PlustekBCR.ViewModels
                     {
                         FullName = "Scanned Document",
                         CompanyName = "Processing...",
-                        Status = ProcessingStatus.Recognizing,
+                        Status = ProcessingStatus.Pending,
                         ScanDate = DateTime.Now,
-                        IsAutoScanSession = true
+                        IsAutoScanSession = true,
+                        FrontImageData = TryGetPrototypeScanImageData()
                     };
 
                     AutoScanScannedCount++;
-                    AutoScanRecognizingCount++;
                     WeakReferenceMessenger.Default.Send(new CardsImportedMessage(new System.Collections.Generic.List<BusinessCard> { scanningCard }));
                 }
             }
@@ -834,14 +845,13 @@ namespace PlustekBCR.ViewModels
                 {
                     FullName = "Scanned Document",
                     CompanyName = "Processing...",
-                    Status = ProcessingStatus.Recognizing,
+                    Status = ProcessingStatus.Pending,
                     ScanDate = DateTime.Now,
-                    IsAutoScanSession = true
+                    IsAutoScanSession = true,
+                    FrontImageData = TryGetPrototypeScanImageData()
                 };
 
                 AutoScanScannedCount++;
-                AutoScanRecognizingCount++;
-
                 WeakReferenceMessenger.Default.Send(new CardsImportedMessage(new System.Collections.Generic.List<BusinessCard> { scanningCard }));
                 AutoScanState = AutoScanState.Ready;
             }
@@ -885,12 +895,67 @@ namespace PlustekBCR.ViewModels
             {
                 FullName = "Scanned Document",
                 CompanyName = "Processing...",
-                Status = ProcessingStatus.Recognizing,
+                Status = ProcessingStatus.Pending,
                 ScanDate = DateTime.Now,
-                IsAutoScanSession = true
+                IsAutoScanSession = true,
+                FrontImageData = TryGetPrototypeScanImageData()
             };
 
             WeakReferenceMessenger.Default.Send(new CardsImportedMessage(new System.Collections.Generic.List<BusinessCard> { scanningCard }));
+        }
+
+        private async Task PersistAiEnabledAsync(bool isAiEnabled)
+        {
+            try
+            {
+                await _applicationSettingsService.SetAiEnabledAsync(isAiEnabled);
+            }
+            catch
+            {
+            }
+        }
+
+        private void ApplyAutoScanRecognizingDelta(int delta)
+        {
+            if (delta == 0)
+            {
+                return;
+            }
+
+            AutoScanRecognizingCount = Math.Max(0, AutoScanRecognizingCount + delta);
+        }
+
+        private static byte[]? TryGetPrototypeScanImageData()
+        {
+            if (_prototypeScanImageData != null)
+            {
+                return _prototypeScanImageData.ToArray();
+            }
+
+            var candidatePaths = new[]
+            {
+                Path.Combine(AppContext.BaseDirectory, "Assets", "BusinessCard_01.jpg"),
+                Path.Combine(AppContext.BaseDirectory, "Assets", "BusinessCard_jp_01.jpg")
+            };
+
+            foreach (var path in candidatePaths)
+            {
+                if (!File.Exists(path))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    _prototypeScanImageData = File.ReadAllBytes(path);
+                    return _prototypeScanImageData.ToArray();
+                }
+                catch
+                {
+                }
+            }
+
+            return null;
         }
     }
 }

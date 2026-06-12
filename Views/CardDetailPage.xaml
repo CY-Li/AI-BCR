@@ -27,56 +27,46 @@
 
         <!-- Left Sider: Card List Thumbnails -->
         <Border Grid.Column="0" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}" BorderThickness="0,0,1,0" Background="{ThemeResource LayerFillColorDefaultBrush}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
+            <ListView ItemsSource="{x:Bind GroupedCardsSource.View, Mode=OneWay}"
+                      SelectionMode="Single"
+                      SelectedItem="{x:Bind ViewModel.SelectedCard, Mode=TwoWay}"
+                      ItemContainerStyle="{StaticResource CardListViewItemStyle}"
+                      Padding="0,0,0,24">
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="models:BusinessCard">
+                        <Grid Padding="8" Background="Transparent" HorizontalAlignment="Stretch">
+                            <Border HorizontalAlignment="Stretch" Height="140" CornerRadius="6" 
+                                    BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}" 
+                                    BorderThickness="1" 
+                                    Background="{ThemeResource LayerFillColorDefaultBrush}" 
+                                    ToolTipService.ToolTip="{x:Bind FullName}">
+                                <Image Source="{x:Bind FrontImageData, Converter={StaticResource ByteArrayToImageSourceConverter}, Mode=OneWay}" 
+                                       Stretch="Uniform" Margin="8"/>
+                            </Border>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
                 
-                <Button x:Name="BackButton" Click="OnBackClicked" Style="{StaticResource DetailBackButtonStyle}" Margin="12,12,0,0"/>
-                
-                <ListView Grid.Row="1" 
-                          ItemsSource="{x:Bind GroupedCardsSource.View, Mode=OneWay}"
-                          SelectionMode="Single"
-                          SelectedItem="{x:Bind ViewModel.SelectedCard, Mode=TwoWay}"
-                          ItemContainerStyle="{StaticResource CardListViewItemStyle}"
-                          Padding="0,0,0,24">
-                    <ListView.ItemTemplate>
-                        <DataTemplate x:DataType="models:BusinessCard">
-                            <Grid Padding="8" Background="Transparent" HorizontalAlignment="Stretch">
-                                <Border HorizontalAlignment="Stretch" Height="140" CornerRadius="6" 
-                                        BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}" 
-                                        BorderThickness="1" 
-                                        Background="{ThemeResource LayerFillColorDefaultBrush}" 
-                                        ToolTipService.ToolTip="{x:Bind FullName}">
-                                    <Image Source="{x:Bind FrontImageData, Converter={StaticResource ByteArrayToImageSourceConverter}, Mode=OneWay}" 
-                                           Stretch="Uniform" Margin="8"/>
-                                </Border>
-                            </Grid>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                    
-                    <ListView.GroupStyle>
-                        <GroupStyle>
-                            <GroupStyle.HeaderContainerStyle>
-                                <StaticResource ResourceKey="CardDetailListGroupHeaderItemStyle"/>
-                            </GroupStyle.HeaderContainerStyle>
-                            <GroupStyle.HeaderTemplate>
-                                <DataTemplate x:DataType="viewmodels:CardGroup">
-                                    <TextBlock Text="{x:Bind Key}" FontSize="11" FontWeight="SemiBold" 
-                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" 
-                                               CharacterSpacing="50"/>
-                                </DataTemplate>
-                            </GroupStyle.HeaderTemplate>
-                        </GroupStyle>
-                    </ListView.GroupStyle>
-                </ListView>
-            </Grid>
+                <ListView.GroupStyle>
+                    <GroupStyle>
+                        <GroupStyle.HeaderContainerStyle>
+                            <StaticResource ResourceKey="CardDetailListGroupHeaderItemStyle"/>
+                        </GroupStyle.HeaderContainerStyle>
+                        <GroupStyle.HeaderTemplate>
+                            <DataTemplate x:DataType="viewmodels:CardGroup">
+                                <TextBlock Text="{x:Bind Key}" FontSize="11" FontWeight="SemiBold" 
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" 
+                                           CharacterSpacing="50"/>
+                            </DataTemplate>
+                        </GroupStyle.HeaderTemplate>
+                    </GroupStyle>
+                </ListView.GroupStyle>
+            </ListView>
         </Border>
 
         <!-- Main Content Area -->
         <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
-            <Grid Padding="32" RowSpacing="24">
+            <Grid Padding="32,20,32,48" RowSpacing="24">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/> <!-- Header: Name and Actions -->
                     <RowDefinition Height="Auto"/> <!-- Top: Card Images -->
@@ -86,11 +76,22 @@
                 <!-- Header: Card Name and Delete Card Action -->
                 <Grid Grid.Row="0" Margin="0,0,0,8">
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    
-                    <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+
+                    <Button x:Name="BackButton"
+                            Grid.Column="0"
+                            Click="OnBackClicked"
+                            Style="{StaticResource DetailBackButtonStyle}"
+                            VerticalAlignment="Center"/>
+
+                    <StackPanel Grid.Column="1"
+                                Orientation="Horizontal"
+                                Spacing="16"
+                                VerticalAlignment="Center"
+                                Margin="20,0,0,0">
                         <TextBlock Text="{x:Bind ViewModel.SelectedCard.FullName, Mode=OneWay}" FontSize="28" FontWeight="Bold"/>
                         <Border Style="{StaticResource BcrStatusPillBorderStyle}" Background="{x:Bind ViewModel.SelectedCard.Status, Converter={StaticResource StatusToBackgroundBrushConverter}, Mode=OneWay}">
                             <TextBlock Text="{x:Bind ViewModel.SelectedCard.Status, Converter={StaticResource StatusToStringConverter}, Mode=OneWay}" 
@@ -100,7 +101,7 @@
                         </Border>
                     </StackPanel>
 
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
                         <Button Style="{StaticResource HeaderActionIconButtonStyle}"
                                 ToolTipService.ToolTip="Re-run AI to update card info"
                                 IsEnabled="{x:Bind ViewModel.SelectedCard.IsAiReprocessAvailable, Mode=OneWay}"
@@ -133,7 +134,7 @@
                 </Grid>
 
                 <!-- Top: Front and Back Thumbnails -->
-                <Grid Grid.Row="1" ColumnSpacing="32">
+                <Grid Grid.Row="1" Margin="48,0,0,0" ColumnSpacing="32">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
@@ -343,7 +344,7 @@
                 </Grid>
 
                 <!-- Bottom: Details and Notes -->
-                <Grid Grid.Row="2" ColumnSpacing="24">
+                <Grid Grid.Row="2" Margin="48,0,0,0" ColumnSpacing="24">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>

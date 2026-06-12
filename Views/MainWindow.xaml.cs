@@ -140,6 +140,26 @@ namespace PlustekBCR.Views
                 });
             });
 
+            WeakReferenceMessenger.Default.Register<RecognitionWarningMessage>(this, (r, m) =>
+            {
+                DispatcherQueue.TryEnqueue(async () =>
+                {
+                    var root = this.Content?.XamlRoot;
+                    if (root == null)
+                    {
+                        return;
+                    }
+
+                    var dialog = DialogHelper.CreateDialog(
+                        root,
+                        m.Title,
+                        m.Message,
+                        primaryButtonText: "OK");
+
+                    await dialog.ShowAsync();
+                });
+            });
+
             Activated += async (_, _) => await EnsureUpdateCheckAsync();
             Closed += OnWindowClosed;
             _tagCatalogService.TagsChanged += OnTagCatalogChanged;
