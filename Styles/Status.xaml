@@ -6,7 +6,7 @@
     <SolidColorBrush x:Key="BcrStatus.Ready" Color="#14804A" />
     <SolidColorBrush x:Key="BcrStatus.DetectingPaper" Color="#B7791F" />
     <SolidColorBrush x:Key="BcrStatus.Scanning" Color="#2563EB" />
-    <SolidColorBrush x:Key="BcrStatus.OcrProcessing" Color="#7C3AED" />
+    <SolidColorBrush x:Key="BcrStatus.RecognitionProcessing" Color="#7C3AED" />
     <SolidColorBrush x:Key="BcrStatus.Uploading" Color="#0E7490" />
     <SolidColorBrush x:Key="BcrStatus.Success" Color="#14804A" />
     <SolidColorBrush x:Key="BcrStatus.Error" Color="#D92D20" />

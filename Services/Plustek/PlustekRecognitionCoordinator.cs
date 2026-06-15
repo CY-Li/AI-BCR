@@ -1,18 +1,17 @@
 using System.Text.Json;
 using PlustekBCR.Models;
-using PlustekBCR.Models.Ocr;
 using PlustekBCR.Models.Plustek;
 using PlustekBCR.Models.Recognition;
 
 namespace PlustekBCR.Services.Plustek
 {
-    public class PlustekOcrCoordinator : IPlustekOcrCoordinator
+    public class PlustekRecognitionCoordinator : IPlustekRecognitionCoordinator
     {
         private readonly IPlustekConsoleClient _plustekConsoleClient;
         private readonly IPlustekOptionsProvider _optionsProvider;
         private readonly Recognition.IRecognitionDiagnosticsService _diagnosticsService;
 
-        public PlustekOcrCoordinator(
+        public PlustekRecognitionCoordinator(
             IPlustekConsoleClient plustekConsoleClient,
             IPlustekOptionsProvider optionsProvider,
             Recognition.IRecognitionDiagnosticsService diagnosticsService)
@@ -22,7 +21,7 @@ namespace PlustekBCR.Services.Plustek
             _diagnosticsService = diagnosticsService;
         }
 
-        public async Task<OcrDocumentResult> RecognizeAsync(RecognitionRequest request, CancellationToken cancellationToken = default)
+        public async Task<RecognitionDocumentResult> RecognizeAsync(RecognitionRequest request, CancellationToken cancellationToken = default)
         {
             var options = _optionsProvider.Get(request.Market);
 
@@ -59,12 +58,9 @@ namespace PlustekBCR.Services.Plustek
                     throw new RecognitionException(RecognitionFailureKind.JobFailed, errorMessage);
                 }
 
-                if (documentResult.StructuredData != null || documentResult.Pages.Count > 0)
+                if (documentResult.StructuredData != null)
                 {
-                    if (documentResult.StructuredData != null)
-                    {
-                        await _diagnosticsService.LogAsync("StructuredParse", $"Card={request.BusinessCardId} market={request.Market} structured branch={(request.Market == MarketCode.US ? "US" : "JP")} selected.", cancellationToken);
-                    }
+                    await _diagnosticsService.LogAsync("StructuredParse", $"Card={request.BusinessCardId} market={request.Market} structured branch={(request.Market == MarketCode.US ? "US" : "JP")} selected.", cancellationToken);
 
                     await _diagnosticsService.LogAsync("PlustekCoordinator", $"Card={request.BusinessCardId} market={request.Market} escan result ready after {pollCount} polls.", cancellationToken);
                     return documentResult;
@@ -74,16 +70,18 @@ namespace PlustekBCR.Services.Plustek
                 {
                     await _diagnosticsService.LogAsync(
                         "StructuredParse",
-                        $"Card={request.BusinessCardId} market={request.Market} completed with empty/unreadable result. Payload={BuildPayloadPreview(response.Data)}",
+                        $"Card={request.BusinessCardId} market={request.Market} completed with empty structured result. Payload={BuildPayloadPreview(response.Data)}",
                         cancellationToken);
-                    throw new RecognitionException(RecognitionFailureKind.UnreadableResult, "AI returned an unreadable result.");
+                    documentResult.StructuredData = new RecognizedBusinessCardData();
+                    await _diagnosticsService.LogAsync("PlustekCoordinator", $"Card={request.BusinessCardId} market={request.Market} escan result completed without structured fields after {pollCount} polls.", cancellationToken);
+                    return documentResult;
                 }
 
                 if (pollCount <= 3 || pollCount % 10 == 0)
                 {
                     await _diagnosticsService.LogAsync(
                         "PlustekCoordinator",
-                        $"Card={request.BusinessCardId} market={request.Market} poll {pollCount} returned no parsable OCR pages. Payload={BuildPayloadPreview(response.Data)}",
+                        $"Card={request.BusinessCardId} market={request.Market} poll {pollCount} returned no parsable recognition payload yet. Payload={BuildPayloadPreview(response.Data)}",
                         cancellationToken);
                 }
 
@@ -97,9 +95,9 @@ namespace PlustekBCR.Services.Plustek
             }
         }
 
-        private static OcrDocumentResult TryParseDocumentResult(JsonElement data, MarketCode market)
+        private static RecognitionDocumentResult TryParseDocumentResult(JsonElement data, MarketCode market)
         {
-            var result = new OcrDocumentResult
+            var result = new RecognitionDocumentResult
             {
                 Market = market,
                 JobStatus = GetString(data, "status")
@@ -125,7 +123,7 @@ namespace PlustekBCR.Services.Plustek
             return result;
         }
 
-        private static bool TryCollectPages(JsonElement element, List<OcrPageResult> pages)
+        private static bool TryCollectPages(JsonElement element, List<RecognitionPageResult> pages)
         {
             if (element.ValueKind == JsonValueKind.Array)
             {
@@ -293,7 +291,7 @@ namespace PlustekBCR.Services.Plustek
             return errors;
         }
 
-        private static bool TryCollectPagesFromString(JsonElement element, List<OcrPageResult> pages)
+        private static bool TryCollectPagesFromString(JsonElement element, List<RecognitionPageResult> pages)
         {
             if (element.ValueKind == JsonValueKind.String)
             {
@@ -337,9 +335,9 @@ namespace PlustekBCR.Services.Plustek
             return false;
         }
 
-        private static bool TryParsePage(JsonElement element, out OcrPageResult page)
+        private static bool TryParsePage(JsonElement element, out RecognitionPageResult page)
         {
-            page = new OcrPageResult();
+            page = new RecognitionPageResult();
             if (element.ValueKind != JsonValueKind.Object)
             {
                 return false;
@@ -370,7 +368,7 @@ namespace PlustekBCR.Services.Plustek
                     continue;
                 }
 
-                var block = new OcrTextBlock
+                var block = new RecognitionTextBlock
                 {
                     Text = text,
                     Page = page.Page

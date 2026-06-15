@@ -5,7 +5,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
-using PlustekBCR.Services.Parsing;
 using PlustekBCR.Services.Plustek;
 using PlustekBCR.Services.Recognition;
 using PlustekBCR.Services;
@@ -43,9 +42,8 @@ namespace PlustekBCR
                 services.AddSingleton<JapanZipLookupCoordinator>();
                 services.AddSingleton(new HttpClient());
                 services.AddSingleton<IPlustekOptionsProvider, PlustekOptionsProvider>();
-                services.AddSingleton<IOcrResultParser, OcrResultParser>();
                 services.AddSingleton<IPlustekConsoleClient, PlustekConsoleClient>();
-                services.AddSingleton<IPlustekOcrCoordinator, PlustekOcrCoordinator>();
+                services.AddSingleton<IPlustekRecognitionCoordinator, PlustekRecognitionCoordinator>();
                 services.AddSingleton<IBusinessCardRecognitionService, BusinessCardRecognitionService>();
                 services.AddSingleton<IRecognitionDiagnosticsService, RecognitionDiagnosticsService>();
                 services.AddSingleton<IRecognitionQueueService, RecognitionQueueService>();

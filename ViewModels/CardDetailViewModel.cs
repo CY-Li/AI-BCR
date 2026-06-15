@@ -260,7 +260,7 @@ namespace PlustekBCR.ViewModels
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error reprocessing AI OCR: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error reprocessing AI recognition: {ex.Message}");
             }
             finally
             {

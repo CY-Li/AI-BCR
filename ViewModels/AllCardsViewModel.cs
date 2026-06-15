@@ -533,7 +533,7 @@ namespace PlustekBCR.ViewModels
 
             if (cardsToProcess.Count > 0)
             {
-                Task.Run(() => ProcessOcrQueueAsync(cardsToProcess));
+                Task.Run(() => ProcessRecognitionQueueAsync(cardsToProcess));
             }
         }
 
@@ -703,7 +703,7 @@ namespace PlustekBCR.ViewModels
             OnPropertyChanged(nameof(HasNoSearchResults));
         }
 
-        private async Task ProcessOcrQueueAsync(List<BusinessCard> cardsToProcess)
+        private async Task ProcessRecognitionQueueAsync(List<BusinessCard> cardsToProcess)
         {
             try
             {
@@ -711,7 +711,7 @@ namespace PlustekBCR.ViewModels
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error processing AI OCR: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error processing AI recognition: {ex.Message}");
             }
             finally
             {
@@ -740,7 +740,7 @@ namespace PlustekBCR.ViewModels
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error reprocessing AI OCR: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error reprocessing AI recognition: {ex.Message}");
             }
             finally
             {

@@ -75,7 +75,7 @@ namespace PlustekBCR.Views
             SectionTitleTextBlock.Text = normalizedSection switch
             {
                 "Import" => "Import",
-                "OcrAi" => "OCR / AI",
+                "RecognitionAi" => "Recognition / AI",
                 "Scanner" => "Scanner",
                 "About" => "About",
                 _ => "General"
@@ -88,7 +88,7 @@ namespace PlustekBCR.Views
             SectionHintTextBlock.Text = normalizedSection switch
             {
                 "Import" => "Import settings will be added in the next prototype iteration.",
-                "OcrAi" => "OCR / AI settings will be added in the next prototype iteration.",
+                "RecognitionAi" => "Recognition / AI settings will be added in the next prototype iteration.",
                 "Scanner" => "Scanner settings will be added in the next prototype iteration.",
                 "About" => "About information will be added in the next prototype iteration.",
                 _ => "General settings are shown below."

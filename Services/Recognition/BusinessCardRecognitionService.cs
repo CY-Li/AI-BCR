@@ -4,23 +4,19 @@ using PlustekBCR.Helpers;
 using PlustekBCR.Models;
 using PlustekBCR.Models.Recognition;
 using PlustekBCR.Services.Plustek;
-using PlustekBCR.Services.Parsing;
 
 namespace PlustekBCR.Services.Recognition
 {
     public class BusinessCardRecognitionService : IBusinessCardRecognitionService
     {
-        private readonly IPlustekOcrCoordinator _ocrCoordinator;
-        private readonly IOcrResultParser _ocrResultParser;
+        private readonly IPlustekRecognitionCoordinator _recognitionCoordinator;
         private readonly IRecognitionDiagnosticsService _diagnosticsService;
 
         public BusinessCardRecognitionService(
-            IPlustekOcrCoordinator ocrCoordinator,
-            IOcrResultParser ocrResultParser,
+            IPlustekRecognitionCoordinator recognitionCoordinator,
             IRecognitionDiagnosticsService diagnosticsService)
         {
-            _ocrCoordinator = ocrCoordinator;
-            _ocrResultParser = ocrResultParser;
+            _recognitionCoordinator = recognitionCoordinator;
             _diagnosticsService = diagnosticsService;
         }
 
@@ -45,11 +41,11 @@ namespace PlustekBCR.Services.Recognition
             };
 
             await _diagnosticsService.LogAsync("BusinessCardRecognition", $"Card={card.Id} start recognition. Market={request.Market}, Source={request.SourceType}, Bytes={request.ImageBytes.Length}, ContentType={request.ContentType}.", cancellationToken);
-            var documentResult = await _ocrCoordinator.RecognizeAsync(request, cancellationToken);
-            await _diagnosticsService.LogAsync("BusinessCardRecognition", $"Card={card.Id} OCR returned {documentResult.Pages.Count} pages.", cancellationToken);
-            var recognizedData = _ocrResultParser.Parse(documentResult);
+            var documentResult = await _recognitionCoordinator.RecognizeAsync(request, cancellationToken);
+            await _diagnosticsService.LogAsync("BusinessCardRecognition", $"Card={card.Id} recognition response received. Structured={documentResult.StructuredData != null}, Pages={documentResult.Pages.Count}.", cancellationToken);
+            var recognizedData = documentResult.StructuredData ?? new RecognizedBusinessCardData();
             await _diagnosticsService.LogAsync("BusinessCardRecognition",
-                $"Card={card.Id} market={documentResult.Market} parsed fields: Name='{recognizedData.FullName}', Company='{recognizedData.CompanyName}', Email='{recognizedData.Email}'.",
+                $"Card={card.Id} market={documentResult.Market} structured-only mode fields: Name='{recognizedData.FullName}', Company='{recognizedData.CompanyName}', Email='{recognizedData.Email}'.",
                 cancellationToken);
             await _diagnosticsService.LogAsync("StructuredParse",
                 $"Card={card.Id} market={documentResult.Market} parsed address: Line1='{recognizedData.AddressLine1}', Line2='{recognizedData.AddressLine2}', City='{recognizedData.City}', State='{recognizedData.State}', Zip='{recognizedData.ZipCode}', Country='{recognizedData.Country}', FullAddress='{recognizedData.FullAddress}'.",

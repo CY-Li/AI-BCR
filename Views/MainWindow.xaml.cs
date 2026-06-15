@@ -383,7 +383,7 @@ namespace PlustekBCR.Views
             SettingsNavSeparator.Visibility = settingsVisibility;
             SettingsGeneralItem.Visibility = settingsVisibility;
             SettingsImportItem.Visibility = settingsVisibility;
-            SettingsOcrItem.Visibility = settingsVisibility;
+            SettingsRecognitionItem.Visibility = settingsVisibility;
             SettingsScannerItem.Visibility = settingsVisibility;
             SettingsAboutItem.Visibility = settingsVisibility;
 
@@ -409,7 +409,7 @@ namespace PlustekBCR.Views
             {
                 ["General"] = SettingsGeneralItem,
                 ["Import"] = SettingsImportItem,
-                ["OcrAi"] = SettingsOcrItem,
+                ["RecognitionAi"] = SettingsRecognitionItem,
                 ["Scanner"] = SettingsScannerItem,
                 ["About"] = SettingsAboutItem
             };
