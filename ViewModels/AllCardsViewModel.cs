@@ -22,6 +22,7 @@ namespace PlustekBCR.ViewModels
         private readonly IBusinessCardFieldService _fieldService;
         private readonly JapanZipLookupCoordinator _zipLookupCoordinator;
         private readonly IRecognitionQueueService _recognitionQueueService;
+        private readonly ILocalizationService _localizationService;
         private ObservableCollection<BusinessCard> _allCards = new();
         private BusinessCard? _selectedCard;
         private BusinessCard? _subscribedCard;
@@ -204,7 +205,7 @@ namespace PlustekBCR.ViewModels
             {
                 if (SelectedCard == null)
                 {
-                    return "Click to enter telephone";
+                    return _localizationService.GetString("Placeholder.ClickToEnterTelephone");
                 }
 
                 var tel = (SelectedCard.Tel ?? string.Empty).Trim();
@@ -212,7 +213,7 @@ namespace PlustekBCR.ViewModels
 
                 if (string.IsNullOrWhiteSpace(tel) && string.IsNullOrWhiteSpace(extension))
                 {
-                    return "Click to enter telephone";
+                    return _localizationService.GetString("Placeholder.ClickToEnterTelephone");
                 }
 
                 if (string.IsNullOrWhiteSpace(extension))
@@ -241,8 +242,10 @@ namespace PlustekBCR.ViewModels
             _fieldService = App.GetService<IBusinessCardFieldService>();
             _zipLookupCoordinator = App.GetService<JapanZipLookupCoordinator>();
             _recognitionQueueService = App.GetService<IRecognitionQueueService>();
+            _localizationService = App.GetService<ILocalizationService>();
             AllCards = new ObservableCollection<BusinessCard>();
             MainViewModel.SearchChanged += OnSearchChanged;
+            _localizationService.LanguageChanged += OnLanguageChanged;
 
             WeakReferenceMessenger.Default.Register<CardsImportedMessage>(this, (r, m) =>
             {
@@ -390,15 +393,15 @@ namespace PlustekBCR.ViewModels
         public bool ShowCardsContent => FilteredCardCount > 0;
 
         public string SearchResultSummary => MainViewModel.IsSearchActive
-            ? $"{FilteredCardCount} result{(FilteredCardCount == 1 ? string.Empty : "s")} | {MainViewModel.SearchSummaryText}"
-            : $"{AllCards.Count} cards";
+            ? _localizationService.Format("Search.Result.Filtered", FilteredCardCount, FilteredCardCount == 1 ? string.Empty : "s", MainViewModel.SearchSummaryText)
+            : _localizationService.Format("Search.Result.Count", AllCards.Count);
 
         public bool HasNoSearchResults => MainViewModel.IsSearchActive && FilteredCardCount == 0;
 
         public List<CardGroup> GroupedCards =>
             FilteredCards.OrderByDescending(c => c.ScanDate)
                 .GroupBy(c => c.ScanDate.Date)
-                .Select(g => new CardGroup(g.Key.ToString("MMMM dd, yyyy", System.Globalization.CultureInfo.InvariantCulture), g))
+                .Select(g => new CardGroup(g.Key.ToString("D", _localizationService.CurrentCulture), g))
                 .ToList();
 
         private IRelayCommand? _selectCardCommand;
@@ -552,10 +555,10 @@ namespace PlustekBCR.ViewModels
 
             return MainViewModel.SelectedSearchScope switch
             {
-                "Company" => Contains(card.CompanyName, keyword),
-                "Name" => Contains(card.FullName, keyword),
-                "Tag" => ContainsTag(card, keyword, exact: false),
-                "Date" => true,
+                MainViewModel.SearchScopeCompany => Contains(card.CompanyName, keyword),
+                MainViewModel.SearchScopeName => Contains(card.FullName, keyword),
+                MainViewModel.SearchScopeTag => ContainsTag(card, keyword, exact: false),
+                MainViewModel.SearchScopeDate => true,
                 _ => ContainsAnyMainField(card, keyword)
             };
         }
@@ -729,8 +732,8 @@ namespace PlustekBCR.ViewModels
             if (card.FrontImageData == null || card.FrontImageData.Length == 0)
             {
                 WeakReferenceMessenger.Default.Send(new RecognitionWarningMessage(
-                    "AI re-recognition unavailable",
-                    "AI re-recognition requires a front card image."));
+                    _localizationService.GetString("Recognition.ReprocessUnavailable.Title"),
+                    _localizationService.GetString("Recognition.ReprocessUnavailable.Content")));
                 return;
             }
 
@@ -851,6 +854,13 @@ namespace PlustekBCR.ViewModels
         private void SyncDepartmentInputCount(BusinessCard? card)
         {
             DepartmentInputCount = BusinessCardDepartmentHelper.GetVisibleDepartmentCount(card);
+        }
+
+        private void OnLanguageChanged()
+        {
+            OnPropertyChanged(nameof(DetailTelephoneText));
+            OnPropertyChanged(nameof(SearchResultSummary));
+            OnPropertyChanged(nameof(GroupedCards));
         }
     }
 

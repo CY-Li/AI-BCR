@@ -25,7 +25,7 @@
         <PublishProfile Condition="'$(Platform)' == 'AnyCPU' or '$(Platform)' == ''">win-x64.pubxml</PublishProfile>
         <PublishProfile Condition="'$(Platform)' != 'AnyCPU' and '$(Platform)' != ''">win-$(Platform).pubxml</PublishProfile>
         <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
-        <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+        <SatelliteResourceLanguages>en;ja</SatelliteResourceLanguages>
 
         <!-- Windows App SDK Single File / Self-Contained Publishing Options -->
         <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>

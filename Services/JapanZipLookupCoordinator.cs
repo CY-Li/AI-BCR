@@ -9,10 +9,10 @@ namespace PlustekBCR.Services
 {
     public sealed class JapanZipLookupCoordinator
     {
-        public const string LookingUpMessage = "Looking up address...";
-        public const string NotFoundMessage = "Address not found.";
-        public const string UpdatedMessage = "Address updated.";
-        public const string FailedMessage = "Address lookup failed.";
+        public static string LookingUpMessage => App.GetService<ILocalizationService>().GetString("ZipLookup.LookingUp");
+        public static string NotFoundMessage => App.GetService<ILocalizationService>().GetString("ZipLookup.NotFound");
+        public static string UpdatedMessage => App.GetService<ILocalizationService>().GetString("ZipLookup.Updated");
+        public static string FailedMessage => App.GetService<ILocalizationService>().GetString("ZipLookup.Failed");
 
         public static string NormalizeZip(string? zipCode)
         {

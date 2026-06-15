@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using PlustekBCR.Services;
 
 namespace PlustekBCR.Helpers
 {
@@ -27,13 +28,13 @@ namespace PlustekBCR.Helpers
             };
         }
 
-        public static Task<ContentDialogResult> ShowMessageAsync(XamlRoot? xamlRoot, string title, string content, string closeButtonText = "OK")
+        public static Task<ContentDialogResult> ShowMessageAsync(XamlRoot? xamlRoot, string title, string content, string? closeButtonText = null)
         {
             var dialog = CreateDialog(
                 xamlRoot,
                 title,
                 content,
-                closeButtonText: closeButtonText,
+                closeButtonText: closeButtonText ?? App.GetService<ILocalizationService>().GetString("Button.OK"),
                 defaultButton: ContentDialogButton.Close);
 
             return dialog.ShowAsync().AsTask();

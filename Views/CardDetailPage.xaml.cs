@@ -31,13 +31,16 @@ namespace PlustekBCR.Views
         public CardDetailViewModel ViewModel { get; }
         public ObservableCollection<TagFlowItem> EditTagFlowItems { get; } = new();
         private readonly IApplicationSettingsService _settingsService;
+        private readonly ILocalizationService _localizationService;
         private bool _isTransitionRunning;
 
         public CardDetailPage()
         {
             this.InitializeComponent();
+            DataContext = App.GetService<LocalizedStrings>();
             ViewModel = App.GetService<CardDetailViewModel>();
             _settingsService = App.GetService<IApplicationSettingsService>();
+            _localizationService = App.GetService<ILocalizationService>();
 
             ViewModel.ConfirmDeleteCardAsync = async (card) =>
             {
@@ -56,6 +59,7 @@ namespace PlustekBCR.Views
 
             ViewModel.SelectedTags.CollectionChanged += OnSelectedTagsCollectionChanged;
             _settingsService.CurrentMarketChanged += OnCurrentMarketChanged;
+            _localizationService.LanguageChanged += OnLanguageChanged;
             Unloaded += OnPageUnloaded;
             RebuildEditTagFlowItems();
         }
@@ -102,6 +106,7 @@ namespace PlustekBCR.Views
         private void OnPageUnloaded(object sender, RoutedEventArgs e)
         {
             _settingsService.CurrentMarketChanged -= OnCurrentMarketChanged;
+            _localizationService.LanguageChanged -= OnLanguageChanged;
             Unloaded -= OnPageUnloaded;
         }
 
@@ -281,7 +286,7 @@ namespace PlustekBCR.Views
                 flyout.Items.Add(new MenuFlyoutSeparator());
             }
 
-            var newTagItem = new MenuFlyoutItem { Text = "+ New tag" };
+            var newTagItem = new MenuFlyoutItem { Text = _localizationService.GetString("Tag.New") };
             newTagItem.Click += async (_, __) =>
             {
                 var value = await TagDialogHelper.PromptForNewTagAsync(this.XamlRoot);
@@ -305,7 +310,7 @@ namespace PlustekBCR.Views
             if (e.DataView.Contains(Windows.ApplicationModel.DataTransfer.StandardDataFormats.StorageItems))
             {
                 e.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.Copy;
-                e.DragUIOverride.Caption = "Drop to upload image";
+                e.DragUIOverride.Caption = _localizationService.GetString("View.Drop.UploadImage");
                 e.DragUIOverride.IsCaptionVisible = true;
                 e.DragUIOverride.IsContentVisible = true;
                 e.Handled = true;
@@ -566,6 +571,11 @@ namespace PlustekBCR.Views
             storyboard.Completed += OnCompleted;
             storyboard.Begin();
             return tcs.Task;
+        }
+
+        private void OnLanguageChanged()
+        {
+            DispatcherQueue.TryEnqueue(Bindings.Update);
         }
     }
 

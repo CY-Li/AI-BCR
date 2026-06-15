@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Microsoft.UI;
@@ -7,25 +8,28 @@ using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using PlustekBCR.Models;
+using PlustekBCR.Services;
 
 namespace PlustekBCR.Helpers
 {
     public class StatusToStringConverter : IValueConverter
     {
+        private static ILocalizationService Localization => App.GetService<ILocalizationService>();
+
         public object Convert(object value, Type targetType, object parameter, string language)
         {
             if (value is ProcessingStatus status)
             {
                 return status switch
                 {
-                    PlustekBCR.Models.ProcessingStatus.Done => "AI Parsed",
-                    PlustekBCR.Models.ProcessingStatus.Recognizing => "Processing...",
-                    PlustekBCR.Models.ProcessingStatus.Pending => "Queued",
-                    PlustekBCR.Models.ProcessingStatus.Manual => "Manual",
-                    _ => "Unknown"
+                    PlustekBCR.Models.ProcessingStatus.Done => Localization.GetString("Processing.Done"),
+                    PlustekBCR.Models.ProcessingStatus.Recognizing => Localization.GetString("Processing.Recognizing"),
+                    PlustekBCR.Models.ProcessingStatus.Pending => Localization.GetString("Processing.Pending"),
+                    PlustekBCR.Models.ProcessingStatus.Manual => Localization.GetString("Processing.Manual"),
+                    _ => Localization.GetString("Processing.Unknown")
                 };
             }
-            return "";
+            return string.Empty;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
@@ -155,9 +159,9 @@ namespace PlustekBCR.Helpers
         {
             if (value is DateTime dt)
             {
-                return dt.ToString("yyyy/MM/dd HH:mm");
+                return dt.ToString("g", CultureInfo.CurrentCulture);
             }
-            return "";
+            return string.Empty;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();

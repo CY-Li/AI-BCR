@@ -13,18 +13,22 @@ namespace PlustekBCR.Services
     {
         private readonly string _settingsPath;
         private MarketCode _currentMarket;
+        private string _currentUiLanguage;
         private bool _isAiEnabled;
 
         public event Action<MarketCode>? CurrentMarketChanged;
+        public event Action<string>? CurrentUiLanguageChanged;
         public event Action<bool>? AiEnabledChanged;
 
         public MarketCode CurrentMarket => _currentMarket;
+        public string CurrentUiLanguage => _currentUiLanguage;
         public bool IsAiEnabled => _isAiEnabled;
 
         public ApplicationSettingsService()
         {
             _settingsPath = Path.Combine(AppContext.BaseDirectory, "appsettings.json");
             _currentMarket = LoadCurrentMarket();
+            _currentUiLanguage = LoadCurrentUiLanguage();
             _isAiEnabled = LoadAiEnabled();
         }
 
@@ -38,6 +42,19 @@ namespace PlustekBCR.Services
             _currentMarket = market;
             await SaveCurrentMarketAsync(market);
             CurrentMarketChanged?.Invoke(_currentMarket);
+        }
+
+        public async Task SetCurrentUiLanguageAsync(string languageTag)
+        {
+            var normalized = NormalizeLanguageTag(languageTag);
+            if (string.Equals(_currentUiLanguage, normalized, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            _currentUiLanguage = normalized;
+            await SaveCurrentUiLanguageAsync(normalized);
+            CurrentUiLanguageChanged?.Invoke(_currentUiLanguage);
         }
 
         public async Task SetAiEnabledAsync(bool isEnabled)
@@ -70,6 +87,26 @@ namespace PlustekBCR.Services
             {
                 Debug.WriteLine($"Load current market failed: {ex.Message}");
                 return MarketCode.JP;
+            }
+        }
+
+        private string LoadCurrentUiLanguage()
+        {
+            try
+            {
+                if (!File.Exists(_settingsPath))
+                {
+                    return string.Empty;
+                }
+
+                var text = File.ReadAllText(_settingsPath);
+                var root = JsonNode.Parse(text) as JsonObject;
+                return NormalizeLanguageTag(root?["Localization"]?["UiLanguage"]?.ToString());
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Load current UI language failed: {ex.Message}");
+                return string.Empty;
             }
         }
 
@@ -122,6 +159,34 @@ namespace PlustekBCR.Services
             }
         }
 
+        private async Task SaveCurrentUiLanguageAsync(string languageTag)
+        {
+            try
+            {
+                JsonObject root;
+                if (File.Exists(_settingsPath))
+                {
+                    var text = await File.ReadAllTextAsync(_settingsPath);
+                    root = JsonNode.Parse(text) as JsonObject ?? new JsonObject();
+                }
+                else
+                {
+                    root = new JsonObject();
+                }
+
+                var localization = root["Localization"] as JsonObject ?? new JsonObject();
+                localization["UiLanguage"] = languageTag;
+                root["Localization"] = localization;
+
+                var json = root.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
+                await File.WriteAllTextAsync(_settingsPath, json);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Save current UI language failed: {ex.Message}");
+            }
+        }
+
         private async Task SaveAiEnabledAsync(bool isEnabled)
         {
             try
@@ -153,6 +218,11 @@ namespace PlustekBCR.Services
         private static MarketCode ParseMarket(string? configured)
         {
             return Enum.TryParse(configured, true, out MarketCode market) ? market : MarketCode.JP;
+        }
+
+        private static string NormalizeLanguageTag(string? configured)
+        {
+            return configured?.Trim() ?? string.Empty;
         }
     }
 }

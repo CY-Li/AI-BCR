@@ -29,7 +29,7 @@
 
             <!-- HEADER SECTION -->
             <Grid Grid.Row="0" Margin="24,20,24,12">
-                <TextBlock x:Name="DialogTitleText" Text="Import Business Cards" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                <TextBlock x:Name="DialogTitleText" Text="{Binding [Import.DialogTitle]}" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Center"/>
             </Grid>
 
             <!-- CONTENT SECTION -->
@@ -38,7 +38,7 @@
                 <Grid x:Name="LoadingShield" Canvas.ZIndex="10" Style="{StaticResource BcrImportLoadingShieldStyle}">
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="16">
                         <ProgressRing x:Name="LoadingProgressRing" Width="48" Height="48" IsActive="True" Foreground="{StaticResource BrandBlueBrush}"/>
-                        <TextBlock x:Name="LoadingStatusText" Text="Parsing document..." FontSize="15" FontWeight="Medium" HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="LoadingStatusText" Text="{Binding [Import.Loading.ParseDocument]}" FontSize="15" FontWeight="Medium" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </Grid>
 
@@ -69,10 +69,10 @@
                                           Fill="{StaticResource BrandBlueBrush}" Stretch="Uniform" Width="28" Height="28" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Grid>
                                 <StackPanel Spacing="4" HorizontalAlignment="Center">
-                                    <TextBlock Text="Excel/CSV" FontSize="15" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="Drop .xlsx or .csv files here" FontSize="12" Foreground="{ThemeResource SecondaryTextBrush}" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding [Import.ExcelCsv]}" FontSize="15" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding [Import.DropSpreadsheet]}" FontSize="12" Foreground="{ThemeResource SecondaryTextBrush}" HorizontalAlignment="Center"/>
                                 </StackPanel>
-                                <Button Content="Select Excel/CSV" Style="{StaticResource PrimaryActionStyle}" HorizontalAlignment="Center" Width="160" Click="OnSelectExcelCsvClick"/>
+                                <Button Content="{Binding [Button.SelectExcelCsv]}" Style="{StaticResource PrimaryActionStyle}" HorizontalAlignment="Center" Width="160" Click="OnSelectExcelCsvClick"/>
                                 <Button x:Name="DownloadTemplateButton"
                                         Style="{StaticResource ImportTemplateButtonStyle}"
                                         Click="OnDownloadTemplateClick">
@@ -94,7 +94,7 @@
                                               Width="14" 
                                               Height="14" 
                                               VerticalAlignment="Center"/>
-                                        <TextBlock Text="Get CSV Template" 
+                                        <TextBlock Text="{Binding [Button.GetCsvTemplate]}" 
                                                    FontSize="12" 
                                                    Foreground="{Binding Foreground, ElementName=DownloadTemplateButton}" 
                                                    FontWeight="Medium" 
@@ -128,10 +128,10 @@
                                           VerticalAlignment="Center"/>
                                 </Grid>
                                 <StackPanel Spacing="4" HorizontalAlignment="Center">
-                                    <TextBlock Text="Card Images" FontSize="15" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="Drop .jpg, .png files here" FontSize="12" Foreground="{ThemeResource SecondaryTextBrush}" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding [Import.CardImages]}" FontSize="15" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding [Import.DropImages]}" FontSize="12" Foreground="{ThemeResource SecondaryTextBrush}" HorizontalAlignment="Center"/>
                                 </StackPanel>
-                                <Button Content="Select Card Images" Style="{StaticResource SecondaryActionStyle}" Height="40" HorizontalAlignment="Center" Width="160" Click="OnSelectImagesClick"/>
+                                <Button Content="{Binding [Button.SelectCardImages]}" Style="{StaticResource SecondaryActionStyle}" Height="40" HorizontalAlignment="Center" Width="160" Click="OnSelectImagesClick"/>
                             </StackPanel>
                         </Grid>
                     </Border>
@@ -140,3 +140,4 @@
         </Grid>
     </Border>
 </ContentDialog>
+

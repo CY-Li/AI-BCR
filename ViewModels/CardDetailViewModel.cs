@@ -32,6 +32,7 @@ namespace PlustekBCR.ViewModels
         private readonly IBusinessCardFieldService _fieldService;
         private readonly JapanZipLookupCoordinator _zipLookupCoordinator;
         private readonly IRecognitionQueueService _recognitionQueueService;
+        private readonly ILocalizationService _localizationService;
 
         private ObservableCollection<BusinessCard>? _originalCards;
         private BusinessCard? _subscribedCard;
@@ -71,6 +72,7 @@ namespace PlustekBCR.ViewModels
             _fieldService = App.GetService<IBusinessCardFieldService>();
             _zipLookupCoordinator = App.GetService<JapanZipLookupCoordinator>();
             _recognitionQueueService = App.GetService<IRecognitionQueueService>();
+            _localizationService = App.GetService<ILocalizationService>();
             AllCards = new ObservableCollection<BusinessCard>();
             NewNoteContent = string.Empty;
             AvailableTags = new ObservableCollection<string>(_tagCatalogService.GetAllTags());
@@ -135,7 +137,7 @@ namespace PlustekBCR.ViewModels
         public List<CardGroup> GroupedCards =>
             AllCards.OrderByDescending(c => c.ScanDate)
                 .GroupBy(c => c.ScanDate.Date)
-                .Select(g => new CardGroup(g.Key.ToString("MMMM dd, yyyy", System.Globalization.CultureInfo.InvariantCulture), g))
+                .Select(g => new CardGroup(g.Key.ToString("D", _localizationService.CurrentCulture), g))
                 .ToList();
 
         [RelayCommand]
@@ -249,8 +251,8 @@ namespace PlustekBCR.ViewModels
             if (card.FrontImageData == null || card.FrontImageData.Length == 0)
             {
                 WeakReferenceMessenger.Default.Send(new RecognitionWarningMessage(
-                    "AI re-recognition unavailable",
-                    "AI re-recognition requires a front card image."));
+                    _localizationService.GetString("Recognition.ReprocessUnavailable.Title"),
+                    _localizationService.GetString("Recognition.ReprocessUnavailable.Content")));
                 return;
             }
 

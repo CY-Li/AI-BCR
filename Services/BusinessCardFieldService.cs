@@ -9,12 +9,14 @@ namespace PlustekBCR.Services
     {
         private readonly List<BusinessCardFieldDefinition> _fields;
         private readonly IApplicationSettingsService _settingsService;
+        private readonly ILocalizationService _localizationService;
 
         public MarketCode CurrentMarket => _settingsService.CurrentMarket;
 
         public BusinessCardFieldService(IApplicationSettingsService settingsService)
         {
             _settingsService = settingsService;
+            _localizationService = App.GetService<ILocalizationService>();
             _fields = BuildFields();
         }
 
@@ -31,7 +33,16 @@ namespace PlustekBCR.Services
 
         public string GetLabel(string key)
         {
-            return _fields.FirstOrDefault(x => string.Equals(x.Key, key, StringComparison.Ordinal))?.Label ?? key;
+            var definition = _fields.FirstOrDefault(x => string.Equals(x.Key, key, StringComparison.Ordinal));
+            if (definition == null)
+            {
+                return key;
+            }
+
+            var localized = _localizationService.GetString($"Field.{definition.Key}");
+            return string.Equals(localized, $"Field.{definition.Key}", StringComparison.Ordinal)
+                ? definition.Label
+                : localized;
         }
 
         public string[] GetCsvHeaders(BusinessCardSurface surface)

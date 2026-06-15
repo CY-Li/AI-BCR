@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Button.Add" xml:space="preserve"><value>追加</value></data>
+  <data name="Button.AddTag" xml:space="preserve"><value>+ タグを追加</value></data>
+  <data name="Button.Cancel" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="Button.Clear" xml:space="preserve"><value>クリア</value></data>
+  <data name="Button.ContinueManually" xml:space="preserve"><value>手動で続行</value></data>
+  <data name="Button.Delete" xml:space="preserve"><value>削除</value></data>
+  <data name="Button.ExportCsv" xml:space="preserve"><value>.csv で出力</value></data>
+  <data name="Button.ExportTxt" xml:space="preserve"><value>.txt で出力</value></data>
+  <data name="Button.GetCsvTemplate" xml:space="preserve"><value>CSV テンプレートを取得</value></data>
+  <data name="Button.Import" xml:space="preserve"><value>取り込み</value></data>
+  <data name="Button.OK" xml:space="preserve"><value>OK</value></data>
+  <data name="Button.Scan" xml:space="preserve"><value>スキャン</value></data>
+  <data name="Button.ScanFromScanner" xml:space="preserve"><value>スキャナーからスキャン</value></data>
+  <data name="Button.Search" xml:space="preserve"><value>検索</value></data>
+  <data name="Button.SelectCardImages" xml:space="preserve"><value>名刺画像を選択</value></data>
+  <data name="Button.SelectExcelCsv" xml:space="preserve"><value>Excel/CSV を選択</value></data>
+  <data name="Button.StopAutoScan" xml:space="preserve"><value>自動スキャン停止</value></data>
+  <data name="Button.Today" xml:space="preserve"><value>今日</value></data>
+  <data name="Button.TurnOnAi" xml:space="preserve"><value>AI を有効化</value></data>
+  <data name="Button.UploadFromFile" xml:space="preserve"><value>ファイルからアップロード</value></data>
+  <data name="Button.ViewDetails" xml:space="preserve"><value>詳細を表示</value></data>
+  <data name="Button.Within3Days" xml:space="preserve"><value>3日以内</value></data>
+  <data name="Button.Within7Days" xml:space="preserve"><value>7日以内</value></data>
+  <data name="Dialog.AiDisabled.Content" xml:space="preserve"><value>名刺は自動認識されません。データを手入力する必要があります。</value></data>
+  <data name="Dialog.AiDisabled.Title" xml:space="preserve"><value>AI はオフです</value></data>
+  <data name="Dialog.DeleteCard.Message" xml:space="preserve"><value>「{0}」の名刺を削除してもよろしいですか。この操作は元に戻せません。</value></data>
+  <data name="Dialog.DeleteCard.Title" xml:space="preserve"><value>名刺を削除</value></data>
+  <data name="Dialog.ScanConfirm.Instruction" xml:space="preserve"><value>名刺を表向きにしてスキャナーにセットしてください。</value></data>
+  <data name="Dialog.ScanConfirm.Skip" xml:space="preserve"><value>次回から表示しない</value></data>
+  <data name="Dialog.ScanConfirm.Title" xml:space="preserve"><value>スキャンを開始します</value></data>
+  <data name="Empty.FirstCard.Description" xml:space="preserve"><value>開始は簡単です。名刺をスキャナーにセットして、下のボタンから最初のスキャンを開始してください。</value></data>
+  <data name="Empty.FirstCard.Title" xml:space="preserve"><value>最初の名刺をスキャン</value></data>
+  <data name="Field.address_line_1" xml:space="preserve"><value>住所1</value></data>
+  <data name="Field.address_line_2" xml:space="preserve"><value>住所2</value></data>
+  <data name="Field.city" xml:space="preserve"><value>市区町村</value></data>
+  <data name="Field.company_name" xml:space="preserve"><value>会社名</value></data>
+  <data name="Field.country" xml:space="preserve"><value>国</value></data>
+  <data name="Field.department_1" xml:space="preserve"><value>部署1</value></data>
+  <data name="Field.department_2" xml:space="preserve"><value>部署2</value></data>
+  <data name="Field.department_3" xml:space="preserve"><value>部署3</value></data>
+  <data name="Field.department_4" xml:space="preserve"><value>部署4</value></data>
+  <data name="Field.department_full" xml:space="preserve"><value>部署</value></data>
+  <data name="Field.email" xml:space="preserve"><value>メール</value></data>
+  <data name="Field.extension" xml:space="preserve"><value>内線</value></data>
+  <data name="Field.fax" xml:space="preserve"><value>FAX</value></data>
+  <data name="Field.first_name" xml:space="preserve"><value>名</value></data>
+  <data name="Field.first_name_kana" xml:space="preserve"><value>名カナ</value></data>
+  <data name="Field.full_address" xml:space="preserve"><value>住所</value></data>
+  <data name="Field.full_name" xml:space="preserve"><value>氏名</value></data>
+  <data name="Field.full_name_kana" xml:space="preserve"><value>氏名カナ</value></data>
+  <data name="Field.job_title" xml:space="preserve"><value>役職</value></data>
+  <data name="Field.last_name" xml:space="preserve"><value>姓</value></data>
+  <data name="Field.last_name_kana" xml:space="preserve"><value>姓カナ</value></data>
+  <data name="Field.middle_name" xml:space="preserve"><value>ミドルネーム</value></data>
+  <data name="Field.mobile" xml:space="preserve"><value>携帯電話</value></data>
+  <data name="Field.notes" xml:space="preserve"><value>メモ</value></data>
+  <data name="Field.state" xml:space="preserve"><value>都道府県/州</value></data>
+  <data name="Field.suffix" xml:space="preserve"><value>敬称</value></data>
+  <data name="Field.tag" xml:space="preserve"><value>タグ</value></data>
+  <data name="Field.tel" xml:space="preserve"><value>電話番号</value></data>
+  <data name="Field.website" xml:space="preserve"><value>Webサイト</value></data>
+  <data name="Field.zip_code" xml:space="preserve"><value>郵便番号</value></data>
+  <data name="Import.CardImages" xml:space="preserve"><value>名刺画像</value></data>
+  <data name="Import.DialogTitle" xml:space="preserve"><value>名刺を取り込み</value></data>
+  <data name="Import.DropImages" xml:space="preserve"><value>.jpg、.png ファイルをここにドロップ</value></data>
+  <data name="Import.DropSpreadsheet" xml:space="preserve"><value>.xlsx または .csv ファイルをここにドロップ</value></data>
+  <data name="Import.ExcelCsv" xml:space="preserve"><value>Excel/CSV</value></data>
+  <data name="Import.Loading.ImportRows" xml:space="preserve"><value>構造化データ行を取り込んでいます...</value></data>
+  <data name="Import.Loading.ParseDocument" xml:space="preserve"><value>ドキュメントを解析しています...</value></data>
+  <data name="Import.Loading.QueueImages" xml:space="preserve"><value>名刺画像をキューに登録しています...</value></data>
+  <data name="Import.Loading.ReadFile" xml:space="preserve"><value>ファイル内容を読み込んでいます...</value></data>
+  <data name="Import.Message.UnsupportedContent" xml:space="preserve"><value>スプレッドシートに有効な列ヘッダーがありません。正しい形式のためにテンプレートをご利用ください。</value></data>
+  <data name="Import.Message.UnsupportedTitle" xml:space="preserve"><value>未対応または空のファイル</value></data>
+  <data name="Import.Mock.ImportedContact" xml:space="preserve"><value>取り込み済み連絡先</value></data>
+  <data name="Import.Mock.IngestedImage" xml:space="preserve"><value>取り込み画像</value></data>
+  <data name="Import.Template.FileLabel" xml:space="preserve"><value>CSV (カンマ区切り)</value></data>
+  <data name="Import.Template.FileName" xml:space="preserve"><value>business_cards_template</value></data>
+  <data name="Main.AutoScan.Mode" xml:space="preserve"><value>自動スキャンモード</value></data>
+  <data name="Main.AutoScan.PlaceCard" xml:space="preserve"><value>名刺を表向きにしてスキャナーにセットしてください。</value></data>
+  <data name="Main.Ai.Off" xml:space="preserve"><value>AI オフ</value></data>
+  <data name="Main.Ai.On" xml:space="preserve"><value>AI オン</value></data>
+  <data name="Main.Help" xml:space="preserve"><value>ヘルプ</value></data>
+  <data name="Main.Mock.ScannedDocument" xml:space="preserve"><value>スキャン済みドキュメント</value></data>
+  <data name="Main.Navigation.About" xml:space="preserve"><value>このアプリについて</value></data>
+  <data name="Main.Navigation.ByCompany" xml:space="preserve"><value>会社別</value></data>
+  <data name="Main.Navigation.ByDate" xml:space="preserve"><value>日付別</value></data>
+  <data name="Main.Navigation.ByName" xml:space="preserve"><value>名前別</value></data>
+  <data name="Main.Navigation.General" xml:space="preserve"><value>一般</value></data>
+  <data name="Main.Navigation.Import" xml:space="preserve"><value>取り込み</value></data>
+  <data name="Main.Navigation.RecognitionAi" xml:space="preserve"><value>認識 / AI</value></data>
+  <data name="Main.Navigation.Scanner" xml:space="preserve"><value>スキャナー</value></data>
+  <data name="Main.Navigation.Tags" xml:space="preserve"><value>タグ</value></data>
+  <data name="Main.Navigation.Export" xml:space="preserve"><value>出力</value></data>
+  <data name="Main.NoAvailableTags" xml:space="preserve"><value>追加できるタグがありません</value></data>
+  <data name="Main.Search.Advanced" xml:space="preserve"><value>詳細検索</value></data>
+  <data name="Main.Search.AdvancedTooltip" xml:space="preserve"><value>詳細検索</value></data>
+  <data name="Main.Search.ClearDateTooltip" xml:space="preserve"><value>日付フィルターをクリア</value></data>
+  <data name="Main.Search.Date" xml:space="preserve"><value>日付</value></data>
+  <data name="Main.Search.DateTooltip" xml:space="preserve"><value>日付範囲を検索</value></data>
+  <data name="Main.Search.End" xml:space="preserve"><value>終了</value></data>
+  <data name="Main.Search.Name" xml:space="preserve"><value>名前</value></data>
+  <data name="Main.Search.Placeholder" xml:space="preserve"><value>検索</value></data>
+  <data name="Main.Search.Recent" xml:space="preserve"><value>最近の検索</value></data>
+  <data name="Main.Search.Scope.AllCards" xml:space="preserve"><value>すべての名刺</value></data>
+  <data name="Main.Search.Scope.Company" xml:space="preserve"><value>会社</value></data>
+  <data name="Main.Search.Scope.Date" xml:space="preserve"><value>日付</value></data>
+  <data name="Main.Search.Scope.Name" xml:space="preserve"><value>名前</value></data>
+  <data name="Main.Search.Scope.Tag" xml:space="preserve"><value>タグ</value></data>
+  <data name="Main.Search.Start" xml:space="preserve"><value>開始</value></data>
+  <data name="Main.Search.Tag" xml:space="preserve"><value>タグ</value></data>
+  <data name="Main.Scanner.ToggleTooltip" xml:space="preserve"><value>スキャナー状態を切り替え</value></data>
+  <data name="Main.Setting" xml:space="preserve"><value>設定</value></data>
+  <data name="Main.View.Grid" xml:space="preserve"><value>グリッド</value></data>
+  <data name="Main.View.List" xml:space="preserve"><value>リスト</value></data>
+  <data name="Placeholder.Address" xml:space="preserve"><value>住所</value></data>
+  <data name="Placeholder.AddressLine1" xml:space="preserve"><value>住所1</value></data>
+  <data name="Placeholder.AddressLine2" xml:space="preserve"><value>住所2</value></data>
+  <data name="Placeholder.City" xml:space="preserve"><value>市区町村</value></data>
+  <data name="Placeholder.ClickToEnterAddress" xml:space="preserve"><value>住所を入力</value></data>
+  <data name="Placeholder.ClickToEnterCompany" xml:space="preserve"><value>会社名を入力</value></data>
+  <data name="Placeholder.ClickToEnterDepartment" xml:space="preserve"><value>部署を入力</value></data>
+  <data name="Placeholder.ClickToEnterEmail" xml:space="preserve"><value>メールを入力</value></data>
+  <data name="Placeholder.ClickToEnterFax" xml:space="preserve"><value>FAX を入力</value></data>
+  <data name="Placeholder.ClickToEnterMobile" xml:space="preserve"><value>携帯電話を入力</value></data>
+  <data name="Placeholder.ClickToEnterName" xml:space="preserve"><value>氏名を入力</value></data>
+  <data name="Placeholder.ClickToEnterTelephone" xml:space="preserve"><value>電話番号を入力</value></data>
+  <data name="Placeholder.ClickToEnterWebsite" xml:space="preserve"><value>Webサイトを入力</value></data>
+  <data name="Placeholder.CompanyName" xml:space="preserve"><value>会社名</value></data>
+  <data name="Placeholder.Country" xml:space="preserve"><value>国</value></data>
+  <data name="Placeholder.Department1" xml:space="preserve"><value>部署1</value></data>
+  <data name="Placeholder.Department2" xml:space="preserve"><value>部署2</value></data>
+  <data name="Placeholder.Department3" xml:space="preserve"><value>部署3</value></data>
+  <data name="Placeholder.Department4" xml:space="preserve"><value>部署4</value></data>
+  <data name="Placeholder.EmailAddress" xml:space="preserve"><value>メールアドレス</value></data>
+  <data name="Placeholder.Extension" xml:space="preserve"><value>内線</value></data>
+  <data name="Placeholder.FirstName" xml:space="preserve"><value>名</value></data>
+  <data name="Placeholder.FirstNameKana" xml:space="preserve"><value>名カナ</value></data>
+  <data name="Placeholder.JobTitle" xml:space="preserve"><value>役職</value></data>
+  <data name="Placeholder.LastName" xml:space="preserve"><value>姓</value></data>
+  <data name="Placeholder.LastNameKana" xml:space="preserve"><value>姓カナ</value></data>
+  <data name="Placeholder.MiddleName" xml:space="preserve"><value>ミドルネーム</value></data>
+  <data name="Placeholder.NewNote" xml:space="preserve"><value>メモを追加...</value></data>
+  <data name="Placeholder.State" xml:space="preserve"><value>都道府県/州</value></data>
+  <data name="Placeholder.Suffix" xml:space="preserve"><value>敬称</value></data>
+  <data name="Placeholder.Telephone" xml:space="preserve"><value>電話番号</value></data>
+  <data name="Placeholder.WebsiteUrl" xml:space="preserve"><value>Webサイト URL</value></data>
+  <data name="Placeholder.ZipCode" xml:space="preserve"><value>郵便番号</value></data>
+  <data name="Processing.Done" xml:space="preserve"><value>AI 解析済み</value></data>
+  <data name="Processing.Manual" xml:space="preserve"><value>手動</value></data>
+  <data name="Processing.Pending" xml:space="preserve"><value>待機中</value></data>
+  <data name="Processing.Recognizing" xml:space="preserve"><value>処理中...</value></data>
+  <data name="Processing.Unknown" xml:space="preserve"><value>不明</value></data>
+  <data name="Recognition.ReprocessUnavailable.Content" xml:space="preserve"><value>AI 再認識には表面画像が必要です。</value></data>
+  <data name="Recognition.ReprocessUnavailable.Title" xml:space="preserve"><value>AI 再認識を実行できません</value></data>
+  <data name="Search.Scope.AllCards" xml:space="preserve"><value>すべての名刺</value></data>
+  <data name="Search.Scope.Company" xml:space="preserve"><value>会社</value></data>
+  <data name="Search.Scope.Date" xml:space="preserve"><value>日付</value></data>
+  <data name="Search.Scope.Name" xml:space="preserve"><value>名前</value></data>
+  <data name="Search.Scope.Tag" xml:space="preserve"><value>タグ</value></data>
+  <data name="Search.Summary.All" xml:space="preserve"><value>全体</value></data>
+  <data name="Search.Summary.Any" xml:space="preserve"><value>指定なし</value></data>
+  <data name="Search.Summary.Date" xml:space="preserve"><value>日付: {0}</value></data>
+  <data name="Search.Summary.Empty" xml:space="preserve"><value>すべての名刺</value></data>
+  <data name="Search.Summary.Part" xml:space="preserve"><value>{0}: {1}</value></data>
+  <data name="Search.Summary.Range" xml:space="preserve"><value>{0} - {1}</value></data>
+  <data name="Search.Summary.RangeWithPreset" xml:space="preserve"><value>{0} ({1} - {2})</value></data>
+  <data name="Search.Result.Count" xml:space="preserve"><value>{0} 件</value></data>
+  <data name="Search.Result.Filtered" xml:space="preserve"><value>{0} 件 | {2}</value></data>
+  <data name="Settings.About.Hint" xml:space="preserve"><value>この情報は次のプロトタイプで追加予定です。</value></data>
+  <data name="Settings.General.Description" xml:space="preserve"><value>この環境で作業するオペレーター向けに、UI 言語と項目表示の既定値を設定します。</value></data>
+  <data name="Settings.General.Hint" xml:space="preserve"><value>一般設定を表示しています。</value></data>
+  <data name="Settings.General.Title" xml:space="preserve"><value>一般</value></data>
+  <data name="Settings.Import.Hint" xml:space="preserve"><value>取り込み設定は次のプロトタイプで追加予定です。</value></data>
+  <data name="Settings.Market.Description" xml:space="preserve"><value>詳細、編集、取り込みで使う既定の項目セットと取り込みマッピングを制御します。</value></data>
+  <data name="Settings.Market.English" xml:space="preserve"><value>英語圏</value></data>
+  <data name="Settings.Market.Japanese" xml:space="preserve"><value>日本</value></data>
+  <data name="Settings.Market.Title" xml:space="preserve"><value>市場設定</value></data>
+  <data name="Settings.RecognitionAi.Hint" xml:space="preserve"><value>認識 / AI 設定は次のプロトタイプで追加予定です。</value></data>
+  <data name="Settings.Scanner.Hint" xml:space="preserve"><value>スキャナー設定は次のプロトタイプで追加予定です。</value></data>
+  <data name="Settings.UiLanguage.Description" xml:space="preserve"><value>市場別の項目ルールを変えずに、オペレーター画面の表示言語を切り替えます。</value></data>
+  <data name="Settings.UiLanguage.English" xml:space="preserve"><value>English</value></data>
+  <data name="Settings.UiLanguage.Japanese" xml:space="preserve"><value>日本語</value></data>
+  <data name="Settings.UiLanguage.Title" xml:space="preserve"><value>UI 言語</value></data>
+  <data name="Status.AutoScan.Error" xml:space="preserve"><value>エラー</value></data>
+  <data name="Status.AutoScan.Connecting" xml:space="preserve"><value>接続中</value></data>
+  <data name="Status.AutoScan.Hint.Connecting" xml:space="preserve"><value>AP とスキャナーの接続を確立しています...</value></data>
+  <data name="Status.AutoScan.Hint.Error" xml:space="preserve"><value>スキャナーまたはセンサーを利用できません。</value></data>
+  <data name="Status.AutoScan.Hint.Idle" xml:space="preserve"><value>自動スキャンは停止中です。</value></data>
+  <data name="Status.AutoScan.Hint.Ready" xml:space="preserve"><value>用紙待機中</value></data>
+  <data name="Status.AutoScan.Hint.Scanning" xml:space="preserve"><value>用紙を検出しました。スキャンを取得しています...</value></data>
+  <data name="Status.AutoScan.Hint.Stopping" xml:space="preserve"><value>自動スキャンセッションを停止しています...</value></data>
+  <data name="Status.AutoScan.Idle" xml:space="preserve"><value>待機</value></data>
+  <data name="Status.AutoScan.Phase.Ready" xml:space="preserve"><value>次の用紙を待機中</value></data>
+  <data name="Status.AutoScan.Phase.Scanning" xml:space="preserve"><value>スキャン中...</value></data>
+  <data name="Status.AutoScan.Ready" xml:space="preserve"><value>準備完了</value></data>
+  <data name="Status.AutoScan.Scanning" xml:space="preserve"><value>スキャン中</value></data>
+  <data name="Status.AutoScan.Stopping" xml:space="preserve"><value>停止中</value></data>
+  <data name="Status.Scanner.Offline" xml:space="preserve"><value>スキャナー状態 : オフライン</value></data>
+  <data name="Status.Scanner.Ready" xml:space="preserve"><value>スキャナー状態 : 準備完了</value></data>
+  <data name="Tag.Add.Placeholder" xml:space="preserve"><value>新しいタグを入力</value></data>
+  <data name="Tag.Add.Title" xml:space="preserve"><value>タグを追加</value></data>
+  <data name="Tag.New" xml:space="preserve"><value>+ 新しいタグ</value></data>
+  <data name="View.AllCards.NoResults.Description" xml:space="preserve"><value>検索条件をクリアすると、すべての名刺に戻ります。</value></data>
+  <data name="View.AllCards.NoResults.Title" xml:space="preserve"><value>一致する名刺がありません</value></data>
+  <data name="View.AllCards.SearchResults" xml:space="preserve"><value>検索結果</value></data>
+  <data name="View.CardDetail.BackSide" xml:space="preserve"><value>裏面</value></data>
+  <data name="View.CardDetail.CardInformation" xml:space="preserve"><value>名刺情報</value></data>
+  <data name="View.CardDetail.Contact" xml:space="preserve"><value>連絡先</value></data>
+  <data name="View.CardDetail.DeleteBackImage" xml:space="preserve"><value>裏面画像を削除</value></data>
+  <data name="View.CardDetail.DeleteCard" xml:space="preserve"><value>名刺を削除</value></data>
+  <data name="View.CardDetail.DeleteFrontImage" xml:space="preserve"><value>表面画像を削除</value></data>
+  <data name="View.CardDetail.DropBackImage" xml:space="preserve"><value>裏面画像をここにドロップ</value></data>
+  <data name="View.CardDetail.DropFrontImage" xml:space="preserve"><value>表面画像をここにドロップ</value></data>
+  <data name="View.CardDetail.EditInfo" xml:space="preserve"><value>情報を編集</value></data>
+  <data name="View.CardDetail.FrontSide" xml:space="preserve"><value>表面</value></data>
+  <data name="View.CardDetail.NotesTimeline" xml:space="preserve"><value>メモと履歴</value></data>
+  <data name="View.CardDetail.Personal" xml:space="preserve"><value>個人情報</value></data>
+  <data name="View.CardDetail.ReprocessAi" xml:space="preserve"><value>AI を再実行して名刺情報を更新</value></data>
+  <data name="View.CardDetail.ScanDate" xml:space="preserve"><value>スキャン日時</value></data>
+  <data name="View.CardDetail.ScanningBack" xml:space="preserve"><value>裏面をスキャンしています...</value></data>
+  <data name="View.CardDetail.ScanningFront" xml:space="preserve"><value>表面をスキャンしています...</value></data>
+  <data name="View.Drop.UploadImage" xml:space="preserve"><value>ドロップして画像をアップロード</value></data>
+  <data name="ZipLookup.Failed" xml:space="preserve"><value>住所検索に失敗しました。</value></data>
+  <data name="ZipLookup.LookingUp" xml:space="preserve"><value>住所を検索しています...</value></data>
+  <data name="ZipLookup.NotFound" xml:space="preserve"><value>住所が見つかりません。</value></data>
+  <data name="ZipLookup.Updated" xml:space="preserve"><value>住所を更新しました。</value></data>
+</root>

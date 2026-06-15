@@ -24,6 +24,7 @@ namespace PlustekBCR.Views
         private readonly ITagCatalogService _tagCatalogService;
         private readonly IBusinessCardFieldService _fieldService;
         private readonly IApplicationSettingsService _settingsService;
+        private readonly ILocalizationService _localizationService;
         public ObservableCollection<string> SidebarSelectedTags { get; } = new();
         public ObservableCollection<TagFlowItem> SidebarTagFlowItems { get; } = new();
 
@@ -33,11 +34,14 @@ namespace PlustekBCR.Views
             _tagCatalogService = App.GetService<ITagCatalogService>();
             _fieldService = App.GetService<IBusinessCardFieldService>();
             _settingsService = App.GetService<IApplicationSettingsService>();
+            _localizationService = App.GetService<ILocalizationService>();
             this.InitializeComponent();
+            DataContext = App.GetService<LocalizedStrings>();
             this.NavigationCacheMode = Microsoft.UI.Xaml.Navigation.NavigationCacheMode.Required;
             ViewModel.PropertyChanged += OnViewModelPropertyChanged;
             _tagCatalogService.TagsChanged += OnTagCatalogChanged;
             _settingsService.CurrentMarketChanged += OnCurrentMarketChanged;
+            _localizationService.LanguageChanged += OnLanguageChanged;
 
             ViewModel.ConfirmDeleteCardAsync = async (card) =>
             {
@@ -368,7 +372,7 @@ namespace PlustekBCR.Views
                 flyout.Items.Add(new MenuFlyoutSeparator());
             }
 
-            var newTagItem = new MenuFlyoutItem { Text = "+ New tag" };
+            var newTagItem = new MenuFlyoutItem { Text = _localizationService.GetString("Tag.New") };
             newTagItem.Click += async (_, __) =>
             {
                 var value = await TagDialogHelper.PromptForNewTagAsync(this.XamlRoot);
@@ -616,6 +620,11 @@ namespace PlustekBCR.Views
         private void RebuildSidebarTagFlowItems()
         {
             CardPageUiHelper.RebuildTagFlowItems(SidebarTagFlowItems, SidebarSelectedTags);
+        }
+
+        private void OnLanguageChanged()
+        {
+            DispatcherQueue.TryEnqueue(Bindings.Update);
         }
     }
 }

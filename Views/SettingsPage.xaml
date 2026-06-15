@@ -25,9 +25,9 @@
                 <StackPanel Margin="{StaticResource BcrPageHeaderContentIndent}"
                             Spacing="6"
                             HorizontalAlignment="Left">
-                    <TextBlock x:Name="SectionTitleTextBlock" Text="General" FontSize="30" FontWeight="SemiBold"/>
+                    <TextBlock x:Name="SectionTitleTextBlock" Text="{Binding [Settings.General.Title]}" FontSize="30" FontWeight="SemiBold"/>
                     <TextBlock x:Name="SectionDescriptionTextBlock"
-                               Text="Apply language and field presentation defaults for operators working in this environment."
+                               Text="{Binding [Settings.General.Description]}"
                                FontSize="14"
                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                TextWrapping="WrapWholeWords"/>
@@ -46,8 +46,8 @@
                         CornerRadius="16">
                     <StackPanel Spacing="16">
                         <StackPanel Spacing="8">
-                            <TextBlock Text="Language" FontSize="18" FontWeight="SemiBold"/>
-                            <TextBlock Text="Controls the default field set and import mapping used in detail, edit, and import flows."
+                            <TextBlock Text="{Binding [Settings.Market.Title]}" FontSize="18" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding [Settings.Market.Description]}"
                                        FontSize="13"
                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                        TextWrapping="WrapWholeWords"/>
@@ -56,9 +56,25 @@
                         <ComboBox x:Name="LanguageComboBox"
                                   Style="{StaticResource BcrComboBoxStyle}"
                                   Width="220"
+                                  DisplayMemberPath="Label"
+                                  SelectedValuePath="Tag"
                                   SelectionChanged="OnLanguageSelectionChanged">
-                            <ComboBoxItem Tag="JP" Content="Japanese"/>
-                            <ComboBoxItem Tag="US" Content="English"/>
+                        </ComboBox>
+
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="{Binding [Settings.UiLanguage.Title]}" FontSize="18" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding [Settings.UiLanguage.Description]}"
+                                       FontSize="13"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       TextWrapping="WrapWholeWords"/>
+                        </StackPanel>
+
+                        <ComboBox x:Name="UiLanguageComboBox"
+                                  Style="{StaticResource BcrComboBoxStyle}"
+                                  Width="220"
+                                  DisplayMemberPath="Label"
+                                  SelectedValuePath="Tag"
+                                  SelectionChanged="OnUiLanguageSelectionChanged">
                         </ComboBox>
                     </StackPanel>
                 </Border>
@@ -75,10 +91,11 @@
                     MaxWidth="820"
                     HorizontalAlignment="Left">
                 <TextBlock x:Name="SectionHintTextBlock"
-                           Text="General settings are shown below."
+                           Text="{Binding [Settings.General.Hint]}"
                            FontSize="12"
                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
             </Border>
         </Grid>
     </ScrollViewer>
 </Page>
+

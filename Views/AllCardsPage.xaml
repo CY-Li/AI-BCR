@@ -1,4 +1,4 @@
-﻿<Page
+<Page
     x:Class="PlustekBCR.Views.AllCardsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -43,10 +43,10 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <StackPanel Grid.Column="0" Spacing="2">
-                    <TextBlock Text="Search results" FontSize="12" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                    <TextBlock Text="{Binding [View.AllCards.SearchResults]}" FontSize="12" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                     <TextBlock Text="{x:Bind ViewModel.SearchResultSummary, Mode=OneWay}" FontSize="13" TextTrimming="CharacterEllipsis"/>
                 </StackPanel>
-                <Button Grid.Column="1" Content="Clear" Height="30" Padding="12,2" Click="OnClearSearchClicked"/>
+                <Button Grid.Column="1" Content="{Binding [Button.Clear]}" Height="30" Padding="12,2" Click="OnClearSearchClicked"/>
             </Grid>
         </Border>
 
@@ -78,27 +78,27 @@
                           Translation="0,0,16">
                         <Grid.ContextFlyout>
                             <MenuFlyout MenuFlyoutPresenterStyle="{StaticResource BcrTagMenuFlyoutPresenterStyle}">
-                                <MenuFlyoutItem Text="View Details" Click="OnViewDetailsContextClicked">
+                                <MenuFlyoutItem Text="{Binding [Button.ViewDetails]}" Click="OnViewDetailsContextClicked">
                                     <MenuFlyoutItem.Icon>
                                         <FontIcon Glyph="&#xE7B3;"/>
                                     </MenuFlyoutItem.Icon>
                                 </MenuFlyoutItem>
-                                <MenuFlyoutSubItem Text="Export">
+                                <MenuFlyoutSubItem Text="{Binding [Main.Navigation.Export]}">
                                     <MenuFlyoutSubItem.Icon>
                                         <FontIcon Glyph="&#xE74E;"/>
                                     </MenuFlyoutSubItem.Icon>
-                                    <MenuFlyoutItem Text="Export as .csv" Click="OnExportCsvContextClicked">
+                                    <MenuFlyoutItem Text="{Binding [Button.ExportCsv]}" Click="OnExportCsvContextClicked">
                                         <MenuFlyoutItem.Icon>
                                             <FontIcon Glyph="&#xE9D5;"/>
                                         </MenuFlyoutItem.Icon>
                                     </MenuFlyoutItem>
-                                    <MenuFlyoutItem Text="Export as .txt" Click="OnExportTxtContextClicked">
+                                    <MenuFlyoutItem Text="{Binding [Button.ExportTxt]}" Click="OnExportTxtContextClicked">
                                         <MenuFlyoutItem.Icon>
                                             <FontIcon Glyph="&#xE8A5;"/>
                                         </MenuFlyoutItem.Icon>
                                     </MenuFlyoutItem>
                                 </MenuFlyoutSubItem>
-                                <MenuFlyoutItem Text="Delete" Click="OnDeleteContextClicked" Foreground="{ThemeResource SystemFillColorCriticalBrush}">
+                                <MenuFlyoutItem Text="{Binding [Button.Delete]}" Click="OnDeleteContextClicked" Foreground="{ThemeResource SystemFillColorCriticalBrush}">
                                     <MenuFlyoutItem.Icon>
                                         <FontIcon Glyph="&#xE74D;" Foreground="{ThemeResource SystemFillColorCriticalBrush}"/>
                                     </MenuFlyoutItem.Icon>
@@ -203,27 +203,27 @@
                     <Grid x:Name="ListCardRoot" Padding="12,8,12,8" Background="Transparent">
                         <Grid.ContextFlyout>
                             <MenuFlyout MenuFlyoutPresenterStyle="{StaticResource BcrTagMenuFlyoutPresenterStyle}">
-                                <MenuFlyoutItem Text="View Details" Click="OnViewDetailsContextClicked">
+                                <MenuFlyoutItem Text="{Binding [Button.ViewDetails]}" Click="OnViewDetailsContextClicked">
                                     <MenuFlyoutItem.Icon>
                                         <FontIcon Glyph="&#xE7B3;"/>
                                     </MenuFlyoutItem.Icon>
                                 </MenuFlyoutItem>
-                                <MenuFlyoutSubItem Text="Export">
+                                <MenuFlyoutSubItem Text="{Binding [Main.Navigation.Export]}">
                                     <MenuFlyoutSubItem.Icon>
                                         <FontIcon Glyph="&#xE74E;"/>
                                     </MenuFlyoutSubItem.Icon>
-                                    <MenuFlyoutItem Text="Export as .csv" Click="OnExportCsvContextClicked">
+                                    <MenuFlyoutItem Text="{Binding [Button.ExportCsv]}" Click="OnExportCsvContextClicked">
                                         <MenuFlyoutItem.Icon>
                                             <FontIcon Glyph="&#xE9D5;"/>
                                         </MenuFlyoutItem.Icon>
                                     </MenuFlyoutItem>
-                                    <MenuFlyoutItem Text="Export as .txt" Click="OnExportTxtContextClicked">
+                                    <MenuFlyoutItem Text="{Binding [Button.ExportTxt]}" Click="OnExportTxtContextClicked">
                                         <MenuFlyoutItem.Icon>
                                             <FontIcon Glyph="&#xE8A5;"/>
                                         </MenuFlyoutItem.Icon>
                                     </MenuFlyoutItem>
                                 </MenuFlyoutSubItem>
-                                <MenuFlyoutItem Text="Delete" Click="OnDeleteContextClicked" Foreground="{ThemeResource SystemFillColorCriticalBrush}">
+                                <MenuFlyoutItem Text="{Binding [Button.Delete]}" Click="OnDeleteContextClicked" Foreground="{ThemeResource SystemFillColorCriticalBrush}">
                                     <MenuFlyoutItem.Icon>
                                         <FontIcon Glyph="&#xE74D;" Foreground="{ThemeResource SystemFillColorCriticalBrush}"/>
                                     </MenuFlyoutItem.Icon>
@@ -323,11 +323,11 @@
                        Margin="0,0,0,16"/>
 
                 <StackPanel Spacing="12" HorizontalAlignment="Center">
-                    <TextBlock Text="Scan your first business card"
+                    <TextBlock Text="{Binding [Empty.FirstCard.Title]}"
                                Style="{ThemeResource TitleLargeTextBlockStyle}"
                                HorizontalAlignment="Center"
                                FontWeight="Bold"/>
-                    <TextBlock Text="Getting started is easy. Place a card in the scanner and click below to begin your first scan."
+                    <TextBlock Text="{Binding [Empty.FirstCard.Description]}"
                                Style="{ThemeResource BodyTextBlockStyle}"
                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                HorizontalAlignment="Center"
@@ -342,7 +342,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <Path Data="M2.747 15a.75.75 0 0 1 .743.648l.007.102v3.502l.007.128a1.25 1.25 0 0 0 1.115 1.116l.128.006h3.5l.102.007a.75.75 0 0 1 0 1.486l-.102.007h-3.5l-.167-.005a2.75 2.75 0 0 1-2.578-2.57l-.005-.175V15.75l.007-.102A.75.75 0 0 1 2.747 15Zm18.5 0a.75.75 0 0 1 .743.648l.007.102v3.502a2.75 2.75 0 0 1-2.582 2.745l-.168.005h-3.5a.75.75 0 0 1-.102-1.493l.102-.007h3.5a1.25 1.25 0 0 0 1.244-1.122l.006-.128V15.75a.75.75 0 0 1 .75-.75Zm-8.992.5a.75.75 0 0 1 .102 1.493l-.102.007H7.75a.75.75 0 0 1-.102-1.493l.102-.007h4.505Zm3.995-4.25a.75.75 0 0 1 .102 1.493l-.102.007h-8.5a.75.75 0 0 1-.102-1.493l.102-.007h8.5ZM8.247 2a.75.75 0 0 1 .102 1.493l-.102.007h-3.5a1.25 1.25 0 0 0-1.243 1.122l-.007.128v3.502a.75.75 0 0 1-1.493.102l-.007-.102V4.75A2.75 2.75 0 0 1 4.58 2.005L4.747 2h3.5Zm11 0 .168.005a2.75 2.75 0 0 1 2.577 2.57l.005.175v3.502l-.007.102a.75.75 0 0 1-1.486 0l-.007-.102V4.75l-.006-.128a1.25 1.25 0 0 0-1.116-1.116l-.128-.006h-3.5l-.102-.007a.75.75 0 0 1 0-1.486L15.747 2h3.5ZM16.25 7a.75.75 0 0 1 .102 1.493l-.102.007h-8.5a.75.75 0 0 1-.102-1.493L7.75 7h8.5Z"
                               Stretch="Uniform" Width="16" Height="16" Fill="{Binding Foreground, ElementName=EmptyStateScanButton}"/>
-                        <TextBlock Text="Scan" FontSize="14"/>
+                        <TextBlock Text="{Binding [Button.Scan]}" FontSize="14"/>
                     </StackPanel>
                 </Button>
             </StackPanel>
@@ -355,8 +355,8 @@
             IsHitTestVisible="False"
             Visibility="{x:Bind ViewModel.HasNoSearchResults, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
-                <TextBlock Text="No matching business cards" FontSize="18" FontWeight="SemiBold" TextAlignment="Center"/>
-                <TextBlock Text="Clear search conditions to return to all cards." FontSize="13" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextAlignment="Center"/>
+                <TextBlock Text="{Binding [View.AllCards.NoResults.Title]}" FontSize="18" FontWeight="SemiBold" TextAlignment="Center"/>
+                <TextBlock Text="{Binding [View.AllCards.NoResults.Description]}" FontSize="13" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextAlignment="Center"/>
             </StackPanel>
         </Grid>
 
@@ -485,7 +485,7 @@
                                                        TextWrapping="WrapWholeWords"
                                                        VerticalAlignment="Top"
                                                        Visibility="{x:Bind ViewModel.HasDetailNameKanaText, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"/>
-                                            <TextBlock Text="Click to enter name"
+                                            <TextBlock Text="{Binding [Placeholder.ClickToEnterName]}"
                                                        Style="{StaticResource BcrEditableFieldPlaceholderTextStyle}"
                                                        FontSize="24"
                                                        Visibility="{x:Bind ViewModel.HasDetailNameText, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}"/>
@@ -502,22 +502,22 @@
                                                 </Grid.ColumnDefinitions>
                                                 <TextBox Grid.Column="0"
                                                          Text="{x:Bind ViewModel.SelectedCard.LastName, Mode=TwoWay}"
-                                                         PlaceholderText="Last name"
+                                                         PlaceholderText="{Binding [Placeholder.LastName]}"
                                                          Visibility="{x:Bind ViewModel.IsJapanMarket, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"
                                                          LosingFocus="OnCompositeFieldLosingFocus"/>
                                                 <TextBox Grid.Column="2"
                                                          Text="{x:Bind ViewModel.SelectedCard.FirstName, Mode=TwoWay}"
-                                                         PlaceholderText="First name"
+                                                         PlaceholderText="{Binding [Placeholder.FirstName]}"
                                                          Visibility="{x:Bind ViewModel.IsJapanMarket, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"
                                                          LosingFocus="OnCompositeFieldLosingFocus"/>
                                                 <TextBox Grid.Column="0"
                                                          Text="{x:Bind ViewModel.SelectedCard.FirstName, Mode=TwoWay}"
-                                                         PlaceholderText="First name"
+                                                         PlaceholderText="{Binding [Placeholder.FirstName]}"
                                                          Visibility="{x:Bind ViewModel.IsJapanMarket, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}"
                                                          LosingFocus="OnCompositeFieldLosingFocus"/>
                                                 <TextBox Grid.Column="2"
                                                          Text="{x:Bind ViewModel.SelectedCard.LastName, Mode=TwoWay}"
-                                                         PlaceholderText="Last name"
+                                                         PlaceholderText="{Binding [Placeholder.LastName]}"
                                                          Visibility="{x:Bind ViewModel.IsJapanMarket, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}"
                                                          LosingFocus="OnCompositeFieldLosingFocus"/>
                                             </Grid>
@@ -529,19 +529,19 @@
                                                 </Grid.ColumnDefinitions>
                                                 <TextBox Grid.Column="0"
                                                          Text="{x:Bind ViewModel.SelectedCard.LastNameKana, Mode=TwoWay}"
-                                                         PlaceholderText="Last name kana"
+                                                         PlaceholderText="{Binding [Placeholder.LastNameKana]}"
                                                          LosingFocus="OnCompositeFieldLosingFocus"/>
                                                 <TextBox Grid.Column="1"
                                                          Text="{x:Bind ViewModel.SelectedCard.FirstNameKana, Mode=TwoWay}"
-                                                         PlaceholderText="First name kana"
+                                                         PlaceholderText="{Binding [Placeholder.FirstNameKana]}"
                                                          LosingFocus="OnCompositeFieldLosingFocus"/>
                                             </Grid>
                                             <TextBox Text="{x:Bind ViewModel.SelectedCard.MiddleName, Mode=TwoWay}"
-                                                     PlaceholderText="Middle name"
+                                                     PlaceholderText="{Binding [Placeholder.MiddleName]}"
                                                      Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:middle_name, Mode=OneTime}"
                                                      LosingFocus="OnCompositeFieldLosingFocus"/>
                                             <TextBox Text="{x:Bind ViewModel.SelectedCard.Suffix, Mode=TwoWay}"
-                                                     PlaceholderText="Suffix"
+                                                     PlaceholderText="{Binding [Placeholder.Suffix]}"
                                                      Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:suffix, Mode=OneTime}"
                                                      LosingFocus="OnCompositeFieldLosingFocus"/>
                                         </StackPanel>
@@ -550,7 +550,7 @@
 
                             <controls:EditableField Text="{x:Bind ViewModel.SelectedCard.CompanyName, Mode=TwoWay}"
                                                     EditStarted="OnSimpleFieldEditStarted"
-                                                    PlaceholderText="Click to enter company"
+                                                    PlaceholderText="{Binding [Placeholder.ClickToEnterCompany]}"
                                                     FontSize="14"
                                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
 
@@ -566,7 +566,7 @@
                                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                        TextWrapping="WrapWholeWords"
                                                        Visibility="{x:Bind ViewModel.HasDetailDepartmentText, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"/>
-                                            <TextBlock Text="Click to enter department"
+                                            <TextBlock Text="{Binding [Placeholder.ClickToEnterDepartment]}"
                                                        Style="{StaticResource BcrEditableFieldPlaceholderTextStyle}"
                                                        FontSize="14"
                                                        Visibility="{x:Bind ViewModel.HasDetailDepartmentText, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}"/>
@@ -576,18 +576,18 @@
                                                 Spacing="6"
                                                 Visibility="{x:Bind ViewModel.IsEditingDepartment, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
                                         <TextBox Text="{x:Bind ViewModel.SelectedCard.Department1, Mode=TwoWay}"
-                                                 PlaceholderText="Department 1"
+                                                 PlaceholderText="{Binding [Placeholder.Department1]}"
                                                  LosingFocus="OnCompositeFieldLosingFocus"/>
                                         <TextBox Text="{x:Bind ViewModel.SelectedCard.Department2, Mode=TwoWay}"
-                                                 PlaceholderText="Department 2"
+                                                 PlaceholderText="{Binding [Placeholder.Department2]}"
                                                  Visibility="{x:Bind ViewModel.ShowDepartment2, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"
                                                  LosingFocus="OnCompositeFieldLosingFocus"/>
                                         <TextBox Text="{x:Bind ViewModel.SelectedCard.Department3, Mode=TwoWay}"
-                                                 PlaceholderText="Department 3"
+                                                 PlaceholderText="{Binding [Placeholder.Department3]}"
                                                  Visibility="{x:Bind ViewModel.ShowDepartment3, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"
                                                  LosingFocus="OnCompositeFieldLosingFocus"/>
                                         <TextBox Text="{x:Bind ViewModel.SelectedCard.Department4, Mode=TwoWay}"
-                                                 PlaceholderText="Department 4"
+                                                 PlaceholderText="{Binding [Placeholder.Department4]}"
                                                  Visibility="{x:Bind ViewModel.ShowDepartment4, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"
                                                  LosingFocus="OnCompositeFieldLosingFocus"/>
                                         <Button Content="+"
@@ -602,7 +602,7 @@
 
                             <controls:EditableField Text="{x:Bind ViewModel.SelectedCard.JobTitle, Mode=TwoWay}"
                                                     EditStarted="OnSimpleFieldEditStarted"
-                                                    PlaceholderText="Click to enter job title"
+                                                    PlaceholderText="{Binding [Placeholder.JobTitle]}"
                                                     FontSize="14"
                                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                         </StackPanel>
@@ -616,7 +616,7 @@
                                     <ColumnDefinition Width="96"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Text="Address" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding [Field.full_address]}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center"/>
                                 <Grid Grid.Column="1" VerticalAlignment="Center">
                                     <Border Background="Transparent"
                                             Padding="0"
@@ -628,7 +628,7 @@
                                                        Style="{StaticResource BcrEditableFieldTextStyle}"
                                                        TextWrapping="WrapWholeWords"
                                                        Visibility="{x:Bind ViewModel.HasDetailAddressText, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"/>
-                                            <TextBlock Text="Click to enter address"
+                                            <TextBlock Text="{Binding [Placeholder.ClickToEnterAddress]}"
                                                        Style="{StaticResource BcrEditableFieldPlaceholderTextStyle}"
                                                        TextWrapping="WrapWholeWords"
                                                        Visibility="{x:Bind ViewModel.HasDetailAddressText, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}"/>
@@ -645,20 +645,20 @@
                                             </Grid.ColumnDefinitions>
                                             <TextBox Grid.Column="0"
                                                      Text="{x:Bind ViewModel.SelectedCard.ZipCode, Mode=TwoWay}"
-                                                     PlaceholderText="Zip code"
+                                                     PlaceholderText="{Binding [Placeholder.ZipCode]}"
                                                      LosingFocus="OnCompositeFieldLosingFocus"/>
                                             <TextBox Grid.Column="1"
                                                     Text="{x:Bind ViewModel.SelectedCard.AddressLine1, Mode=TwoWay}"
-                                                     PlaceholderText="Address"
+                                                     PlaceholderText="{Binding [Placeholder.Address]}"
                                                      LosingFocus="OnCompositeFieldLosingFocus"/>
                                         </Grid>
                                         <StackPanel Spacing="4"
                                                     Visibility="{x:Bind ViewModel.IsJapanMarket, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}">
                                             <TextBox Text="{x:Bind ViewModel.SelectedCard.AddressLine1, Mode=TwoWay}"
-                                                     PlaceholderText="Address line 1"
+                                                     PlaceholderText="{Binding [Placeholder.AddressLine1]}"
                                                      LosingFocus="OnCompositeFieldLosingFocus"/>
                                             <TextBox Text="{x:Bind ViewModel.SelectedCard.AddressLine2, Mode=TwoWay}"
-                                                     PlaceholderText="Address line 2"
+                                                     PlaceholderText="{Binding [Placeholder.AddressLine2]}"
                                                      Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:address_line_2, Mode=OneTime}"
                                                      LosingFocus="OnCompositeFieldLosingFocus"/>
                                             <Grid ColumnSpacing="8">
@@ -669,21 +669,21 @@
                                                 </Grid.ColumnDefinitions>
                                                 <TextBox Grid.Column="0"
                                                          Text="{x:Bind ViewModel.SelectedCard.City, Mode=TwoWay}"
-                                                         PlaceholderText="City"
+                                                         PlaceholderText="{Binding [Placeholder.City]}"
                                                          Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:city, Mode=OneTime}"
                                                          LosingFocus="OnCompositeFieldLosingFocus"/>
                                                 <TextBox Grid.Column="1"
                                                          Text="{x:Bind ViewModel.SelectedCard.State, Mode=TwoWay}"
-                                                         PlaceholderText="State"
+                                                         PlaceholderText="{Binding [Placeholder.State]}"
                                                          Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:state, Mode=OneTime}"
                                                          LosingFocus="OnCompositeFieldLosingFocus"/>
                                                 <TextBox Grid.Column="2"
                                                          Text="{x:Bind ViewModel.SelectedCard.ZipCode, Mode=TwoWay}"
-                                                         PlaceholderText="ZIP code"
+                                                         PlaceholderText="{Binding [Placeholder.ZipCode]}"
                                                          LosingFocus="OnCompositeFieldLosingFocus"/>
                                             </Grid>
                                             <TextBox Text="{x:Bind ViewModel.SelectedCard.Country, Mode=TwoWay}"
-                                                     PlaceholderText="Country"
+                                                     PlaceholderText="{Binding [Placeholder.Country]}"
                                                      Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:country, Mode=OneTime}"
                                                      LosingFocus="OnCompositeFieldLosingFocus"/>
                                         </StackPanel>
@@ -695,12 +695,12 @@
                                             </Grid.ColumnDefinitions>
                                             <TextBox Grid.Column="0"
                                                      Text="{x:Bind ViewModel.SelectedCard.City, Mode=TwoWay}"
-                                                     PlaceholderText="City"
+                                                     PlaceholderText="{Binding [Placeholder.City]}"
                                                      Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:city, Mode=OneTime}"
                                                      LosingFocus="OnCompositeFieldLosingFocus"/>
                                             <TextBox Grid.Column="1"
                                                      Text="{x:Bind ViewModel.SelectedCard.State, Mode=TwoWay}"
-                                                     PlaceholderText="State"
+                                                     PlaceholderText="{Binding [Placeholder.State]}"
                                                      Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:state, Mode=OneTime}"
                                                      LosingFocus="OnCompositeFieldLosingFocus"/>
                                         </Grid>
@@ -726,7 +726,7 @@
                                     <ColumnDefinition Width="96"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Text="Telephone" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding [Field.tel]}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center"/>
                                 <Grid Grid.Column="1">
                                     <Border Background="Transparent"
                                             Padding="0,2"
@@ -743,7 +743,7 @@
                                                            FontSize="14"
                                                            TextWrapping="WrapWholeWords"
                                                            Visibility="{x:Bind ViewModel.HasDetailTelephoneText, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"/>
-                                                <TextBlock Text="Click to enter telephone"
+                                                <TextBlock Text="{Binding [Placeholder.ClickToEnterTelephone]}"
                                                            Style="{StaticResource BcrEditableFieldPlaceholderTextStyle}"
                                                            FontSize="14"
                                                            Visibility="{x:Bind ViewModel.HasDetailTelephoneText, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}"/>
@@ -759,11 +759,11 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBox Grid.Column="0"
                                                  Text="{x:Bind ViewModel.SelectedCard.Tel, Mode=TwoWay}"
-                                                 PlaceholderText="Telephone"
+                                                 PlaceholderText="{Binding [Placeholder.Telephone]}"
                                                  LosingFocus="OnCompositeFieldLosingFocus"/>
                                         <TextBox Grid.Column="1"
                                                  Text="{x:Bind ViewModel.SelectedCard.Extension, Mode=TwoWay}"
-                                                 PlaceholderText="Extension"
+                                                 PlaceholderText="{Binding [Placeholder.Extension]}"
                                                  Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:extension, Mode=OneTime}"
                                                  LosingFocus="OnCompositeFieldLosingFocus"/>
                                     </Grid>
@@ -776,11 +776,11 @@
                                     <ColumnDefinition Width="96"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Text="Mobile" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding [Field.mobile]}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center"/>
                                 <controls:EditableField Grid.Column="1"
                                                         EditStarted="OnSimpleFieldEditStarted"
                                                         Text="{x:Bind ViewModel.SelectedCard.Mobile, Mode=TwoWay}"
-                                                        PlaceholderText="Click to enter mobile"
+                                                        PlaceholderText="{Binding [Placeholder.ClickToEnterMobile]}"
                                                         FontSize="14"
                                                         VerticalAlignment="Center"/>
                             </Grid>
@@ -790,11 +790,11 @@
                                     <ColumnDefinition Width="96"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Text="Email" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding [Field.email]}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center"/>
                                 <controls:EditableField Grid.Column="1"
                                                         EditStarted="OnSimpleFieldEditStarted"
                                                         Text="{x:Bind ViewModel.SelectedCard.Email, Mode=TwoWay}"
-                                                        PlaceholderText="Click to enter email"
+                                                        PlaceholderText="{Binding [Placeholder.ClickToEnterEmail]}"
                                                         FontSize="14"
                                                         VerticalAlignment="Center"/>
                             </Grid>
@@ -805,11 +805,11 @@
                                     <ColumnDefinition Width="96"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Text="Fax" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding [Field.fax]}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center"/>
                                 <controls:EditableField Grid.Column="1"
                                                         EditStarted="OnSimpleFieldEditStarted"
                                                         Text="{x:Bind ViewModel.SelectedCard.Fax, Mode=TwoWay}"
-                                                        PlaceholderText="Click to enter fax"
+                                                        PlaceholderText="{Binding [Placeholder.ClickToEnterFax]}"
                                                         FontSize="14"
                                                         VerticalAlignment="Center"/>
                             </Grid>
@@ -820,11 +820,11 @@
                                     <ColumnDefinition Width="96"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Text="Website" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding [Field.website]}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center"/>
                                 <controls:EditableField Grid.Column="1"
                                                         EditStarted="OnSimpleFieldEditStarted"
                                                         Text="{x:Bind ViewModel.SelectedCard.Website, Mode=TwoWay}"
-                                                        PlaceholderText="Click to enter website"
+                                                        PlaceholderText="{Binding [Placeholder.ClickToEnterWebsite]}"
                                                         FontSize="14"
                                                         VerticalAlignment="Center"/>
                             </Grid>
@@ -834,7 +834,7 @@
 
                         <!-- Metadata Group -->
                         <StackPanel Spacing="8">
-                            <TextBlock Text="Tag" FontSize="12" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
+                            <TextBlock Text="{Binding [Field.tag]}" FontSize="12" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
                             <Border Background="Transparent" Padding="0,0,24,0">
                                 <ItemsRepeater ItemsSource="{x:Bind SidebarTagFlowItems, Mode=OneWay}" VerticalAlignment="Top">
                                     <ItemsRepeater.Layout>
@@ -883,7 +883,7 @@
                                     MinWidth="100"
                                     HorizontalAlignment="Left"
                                     Padding="12,4"/>
-                            <TextBlock Text="Scan Date" FontSize="12" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorTertiaryBrush}" Margin="0,8,0,0"/>
+                            <TextBlock Text="{Binding [View.CardDetail.ScanDate]}" FontSize="12" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorTertiaryBrush}" Margin="0,8,0,0"/>
                             <StackPanel Orientation="Horizontal" Spacing="12">
                                 <Path Data="M17.75 3A3.25 3.25 0 0 1 21 6.25v11.5A3.25 3.25 0 0 1 17.75 21H6.25A3.25 3.25 0 0 1 3 17.75V6.25A3.25 3.25 0 0 1 6.25 3h11.5Zm1.75 5.5h-15v9.25c0 .966.784 1.75 1.75 1.75h11.5a1.75 1.75 0 0 0 1.75-1.75V8.5Zm-11.75 6a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm4.25 0a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm-4.25-4a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm4.25 0a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm4.25 0a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm1.5-6H6.25A1.75 1.75 0 0 0 4.5 6.25V7h15v-.75a1.75 1.75 0 0 0-1.75-1.75Z" 
                                       Stretch="Uniform" Width="16" Height="16" Fill="{ThemeResource TextFillColorSecondaryBrush}"/>
@@ -906,7 +906,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <Path Data="M21.03 2.97a3.578 3.578 0 0 1 0 5.06L9.062 20a2.25 2.25 0 0 1-.999.58l-5.116 1.395a.75.75 0 0 1-.92-.921l1.395-5.116a2.25 2.25 0 0 1 .58-.999L15.97 2.97a3.578 3.578 0 0 1 5.06 0ZM15 6.06 5.062 16a.75.75 0 0 0-.193.333l-1.05 3.85 3.85-1.05A.75.75 0 0 0 8 18.938L17.94 9 15 6.06Zm2.03-2.03-.97.97L19 7.94l.97-.97a2.079 2.079 0 0 0-2.94-2.94Z" 
                                       Stretch="Uniform" Width="16" Height="16" Fill="{Binding Foreground, ElementName=EditInfoButton}"/>
-                                <TextBlock Text="Edit Info"/>
+                                <TextBlock Text="{Binding [View.CardDetail.EditInfo]}"/>
                             </StackPanel>
                         </Button>
                         <Button Grid.Column="1"
@@ -935,4 +935,5 @@
         </Border>
     </Grid>
 </Page>
+
 

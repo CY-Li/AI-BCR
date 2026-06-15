@@ -22,6 +22,7 @@ namespace PlustekBCR.Views
         private bool _isUpdateCheckRunning;
         private readonly DispatcherTimer _mockPaperSensorTimer;
         private readonly ITagCatalogService _tagCatalogService;
+        private readonly ILocalizationService _localizationService;
         private bool _isSyncingFilterUi;
         private readonly ObservableCollection<string> _advancedSelectedTags = new();
         private bool _isInSettingsWorkspace;
@@ -35,8 +36,10 @@ namespace PlustekBCR.Views
             // Assign ViewModel BEFORE InitializeComponent for x:Bind to work
             ViewModel = App.GetService<MainViewModel>();
             _tagCatalogService = App.GetService<ITagCatalogService>();
+            _localizationService = App.GetService<ILocalizationService>();
 
             this.InitializeComponent();
+            RootGrid.DataContext = App.GetService<LocalizedStrings>();
             RootGrid.AddHandler(UIElement.PointerPressedEvent, new Microsoft.UI.Xaml.Input.PointerEventHandler(OnRootPointerPressed), true);
             ViewModel.ScanPulseRequested += OnScanPulseRequested;
             _mockPaperSensorTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(1450) };
@@ -58,16 +61,16 @@ namespace PlustekBCR.Views
 
                 var skipCheckbox = new CheckBox 
                 { 
-                    Content = "Don't show this again",
+                    Content = _localizationService.GetString("Dialog.ScanConfirm.Skip"),
                     Margin = new Thickness(0, 8, 0, 0)
                 };
                 var panel = CreateScanInstructionPanel(skipCheckbox);
                 var dialog = DialogHelper.CreateDialog(
                     root,
-                    "Ready to start scanning",
+                    _localizationService.GetString("Dialog.ScanConfirm.Title"),
                     panel,
-                    primaryButtonText: "Scan",
-                    secondaryButtonText: "Cancel");
+                    primaryButtonText: _localizationService.GetString("Button.Scan"),
+                    secondaryButtonText: _localizationService.GetString("Button.Cancel"));
 
                 EnableOutsideTapDismiss(dialog);
 
@@ -82,17 +85,17 @@ namespace PlustekBCR.Views
 
                 var dialog = DialogHelper.CreateDialog(
                     root,
-                    "AI is turned off",
-                    "Business cards will not be recognized automatically. You will need to input data manually",
-                    primaryButtonText: "Turn On AI",
-                    secondaryButtonText: "Continue Manually");
+                    _localizationService.GetString("Dialog.AiDisabled.Title"),
+                    _localizationService.GetString("Dialog.AiDisabled.Content"),
+                    primaryButtonText: _localizationService.GetString("Button.TurnOnAi"),
+                    secondaryButtonText: _localizationService.GetString("Button.ContinueManually"));
 
                 var result = await dialog.ShowAsync();
                 return result == ContentDialogResult.Primary;
             };
 
             // WinUIEx can be used here for window customization if needed
-            Title = "Plustek AI BCR";
+            Title = _localizationService.GetString("App.Title");
 
             // Set initial state of AI button visuals without animation
             if (ViewModel.IsAiEnabled)
@@ -164,6 +167,7 @@ namespace PlustekBCR.Views
             Closed += OnWindowClosed;
             _tagCatalogService.TagsChanged += OnTagCatalogChanged;
             ViewModel.SearchChanged += OnSearchChanged;
+            _localizationService.LanguageChanged += OnLanguageChanged;
             UpdateSearchInputMode();
         }
 
@@ -177,6 +181,7 @@ namespace PlustekBCR.Views
             _mockPaperSensorTimer.Tick -= OnMockPaperSensorTick;
             _tagCatalogService.TagsChanged -= OnTagCatalogChanged;
             ViewModel.SearchChanged -= OnSearchChanged;
+            _localizationService.LanguageChanged -= OnLanguageChanged;
         }
         private async Task EnsureUpdateCheckAsync()
         {
@@ -428,7 +433,7 @@ namespace PlustekBCR.Views
             TagsItem.MenuItems.Clear();
             var addTagItem = new NavigationViewItem
             {
-                Content = "+ Add tag",
+                Content = _localizationService.GetString("Button.AddTag"),
                 Tag = "TagAction:Add",
                 SelectsOnInvoked = false
             };
@@ -510,7 +515,7 @@ namespace PlustekBCR.Views
             RunWithSearchUiSync(() =>
             {
                 ViewModel.ApplyTagSearchKeyword(tag);
-                ViewModel.SelectedSearchScope = "Tag";
+                ViewModel.SelectedSearchScope = MainViewModel.SearchScopeTag;
                 HeaderSearchBox.Text = tag;
                 UpdateSearchInputMode();
                 SelectAllCardsNavigationItem();
@@ -702,7 +707,7 @@ namespace PlustekBCR.Views
             var panel = new StackPanel { Spacing = 16 };
             panel.Children.Add(new TextBlock
             {
-                Text = "Please scan the business card, placing it face up in the scanner.",
+                Text = App.GetService<ILocalizationService>().GetString("Dialog.ScanConfirm.Instruction"),
                 TextWrapping = TextWrapping.WrapWholeWords,
                 FontSize = 16
             });
@@ -819,6 +824,17 @@ namespace PlustekBCR.Views
             });
         }
 
+        private void OnLanguageChanged()
+        {
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                Title = _localizationService.GetString("App.Title");
+                Bindings.Update();
+                RebuildTagFilterMenu();
+                RebuildAdvancedTagFlowItems();
+            });
+        }
+
         private void OnAdvancedRecentPresetClicked(object sender, RoutedEventArgs e)
         {
             if (sender is Button button && button.Tag is string preset)
@@ -878,7 +894,7 @@ namespace PlustekBCR.Views
             }
 
             ViewModel.ApplyDateRange(startDate, endDate, null);
-            ViewModel.SelectedSearchScope = "Date";
+            ViewModel.SelectedSearchScope = MainViewModel.SearchScopeDate;
 
             RunWithSearchUiSync(() =>
             {
@@ -891,7 +907,7 @@ namespace PlustekBCR.Views
 
         private void UpdateSearchInputMode()
         {
-            var isDate = string.Equals(ViewModel.SelectedSearchScope, "Date", StringComparison.OrdinalIgnoreCase);
+            var isDate = string.Equals(ViewModel.SelectedSearchScope, MainViewModel.SearchScopeDate, StringComparison.OrdinalIgnoreCase);
             SearchBoxHost.Visibility = isDate ? Visibility.Collapsed : Visibility.Visible;
             DateSearchBoxHost.Visibility = isDate ? Visibility.Visible : Visibility.Collapsed;
             SearchPlaceholder.Visibility = !isDate && string.IsNullOrEmpty(HeaderSearchBox.Text)
@@ -1010,7 +1026,7 @@ namespace PlustekBCR.Views
             {
                 flyout.Items.Add(new MenuFlyoutItem
                 {
-                    Text = "No available tags",
+                    Text = _localizationService.GetString("Main.NoAvailableTags"),
                     IsEnabled = false
                 });
             }
@@ -1059,7 +1075,7 @@ namespace PlustekBCR.Views
                 return;
             }
 
-            if (string.Equals(ViewModel.SelectedSearchScope, "Date", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(ViewModel.SelectedSearchScope, MainViewModel.SearchScopeDate, StringComparison.OrdinalIgnoreCase))
             {
                 return;
             }
@@ -1080,7 +1096,7 @@ namespace PlustekBCR.Views
         {
             if (e.Key == Windows.System.VirtualKey.Enter)
             {
-                if (string.Equals(ViewModel.SelectedSearchScope, "Date", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(ViewModel.SelectedSearchScope, MainViewModel.SearchScopeDate, StringComparison.OrdinalIgnoreCase))
                 {
                     ApplyHeaderDateSearch();
                     return;
@@ -1128,7 +1144,7 @@ namespace PlustekBCR.Views
                 return;
             }
 
-            if (string.Equals(ViewModel.SelectedSearchScope, "Date", StringComparison.OrdinalIgnoreCase)
+            if (string.Equals(ViewModel.SelectedSearchScope, MainViewModel.SearchScopeDate, StringComparison.OrdinalIgnoreCase)
                 && (ViewModel.StartDate.HasValue || ViewModel.EndDate.HasValue))
             {
                 return;
@@ -1156,7 +1172,7 @@ namespace PlustekBCR.Views
         private void OpenSearchDropdown(bool showAdvanced)
         {
             ShowSearchScopeSelector();
-            if (string.Equals(ViewModel.SelectedSearchScope, "Date", StringComparison.OrdinalIgnoreCase) && !showAdvanced)
+            if (string.Equals(ViewModel.SelectedSearchScope, MainViewModel.SearchScopeDate, StringComparison.OrdinalIgnoreCase) && !showAdvanced)
             {
                 ShowDateSearchMode();
                 return;
@@ -1180,7 +1196,7 @@ namespace PlustekBCR.Views
         private void ResetSearchDropdownState()
         {
             SearchOverlayLayer.Visibility = Visibility.Collapsed;
-            SearchScopeComboBox.Visibility = string.Equals(ViewModel.SelectedSearchScope, "Date", StringComparison.OrdinalIgnoreCase)
+            SearchScopeComboBox.Visibility = string.Equals(ViewModel.SelectedSearchScope, MainViewModel.SearchScopeDate, StringComparison.OrdinalIgnoreCase)
                 ? Visibility.Visible
                 : Visibility.Collapsed;
             AdvancedSearchPanel.Visibility = Visibility.Collapsed;

@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using PlustekBCR.Models;
+using PlustekBCR.Services;
 
 namespace PlustekBCR.Helpers
 {
@@ -10,12 +11,13 @@ namespace PlustekBCR.Helpers
     {
         public static ContentDialog CreateDeleteConfirmationDialog(string? fullName, XamlRoot? xamlRoot)
         {
+            var localization = App.GetService<ILocalizationService>();
             return DialogHelper.CreateDialog(
                 xamlRoot,
-                "Delete Business Card",
-                $"Are you sure you want to delete the business card of '{fullName}'? This action cannot be undone.",
-                primaryButtonText: "Delete",
-                closeButtonText: "Cancel",
+                localization.GetString("Dialog.DeleteCard.Title"),
+                localization.Format("Dialog.DeleteCard.Message", fullName ?? string.Empty),
+                primaryButtonText: localization.GetString("Button.Delete"),
+                closeButtonText: localization.GetString("Button.Cancel"),
                 defaultButton: ContentDialogButton.Close);
         }
 

@@ -26,8 +26,15 @@ namespace PlustekBCR.ViewModels
 
     public partial class MainViewModel : ObservableObject
     {
+        public const string SearchScopeAllCards = "AllCards";
+        public const string SearchScopeDate = "Date";
+        public const string SearchScopeCompany = "Company";
+        public const string SearchScopeName = "Name";
+        public const string SearchScopeTag = "Tag";
+
         private readonly ITagCatalogService _tagCatalogService;
         private readonly IApplicationSettingsService _applicationSettingsService;
+        private readonly ILocalizationService _localizationService;
         private static byte[]? _prototypeScanImageData;
         private ObservableCollection<NavItemModel> _navItems = new();
         public ObservableCollection<NavItemModel> NavItems { get => _navItems; set => SetProperty(ref _navItems, value); }
@@ -36,9 +43,11 @@ namespace PlustekBCR.ViewModels
         {
             _tagCatalogService = App.GetService<ITagCatalogService>();
             _applicationSettingsService = App.GetService<IApplicationSettingsService>();
+            _localizationService = App.GetService<ILocalizationService>();
             InitializeNavigation();
             InitializeSearch();
             _tagCatalogService.TagsChanged += OnTagCatalogChanged;
+            _localizationService.LanguageChanged += OnLanguageChanged;
             RefreshTagFilters();
             _isAiEnabled = _applicationSettingsService.IsAiEnabled;
 
@@ -68,16 +77,16 @@ namespace PlustekBCR.ViewModels
 
         private void InitializeSearch()
         {
-            SearchScopes = new ObservableCollection<string>
+            SearchScopeOptions = new ObservableCollection<SearchScopeOption>
             {
-                "All cards",
-                "Date",
-                "Company",
-                "Name",
-                "Tag"
+                new(SearchScopeAllCards, "Search.Scope.AllCards"),
+                new(SearchScopeDate, "Search.Scope.Date"),
+                new(SearchScopeCompany, "Search.Scope.Company"),
+                new(SearchScopeName, "Search.Scope.Name"),
+                new(SearchScopeTag, "Search.Scope.Tag")
             };
 
-            SelectedSearchScope = SearchScopes[0];
+            SelectedSearchScope = SearchScopeAllCards;
 
             RecentSearches = new ObservableCollection<string>
             {
@@ -117,8 +126,8 @@ namespace PlustekBCR.ViewModels
         public string ScannerName => "Plustek SmartOffice S602";
 
         public string ScannerStatusText => IsScannerConnected
-            ? "Scanner Status : Ready"
-            : "Scanner Status : Offline";
+            ? _localizationService.GetString("Status.Scanner.Ready")
+            : _localizationService.GetString("Status.Scanner.Offline");
 
         public Microsoft.UI.Xaml.Visibility ScannerNameVisibility =>
             IsScannerConnected ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
@@ -166,14 +175,14 @@ namespace PlustekBCR.ViewModels
         private IRelayCommand? _setListViewCommand;
         public IRelayCommand SetListViewCommand => _setListViewCommand ??= new RelayCommand(() => IsGridView = false);
 
-        private ObservableCollection<string> _searchScopes = new();
-        public ObservableCollection<string> SearchScopes
+        private ObservableCollection<SearchScopeOption> _searchScopeOptions = new();
+        public ObservableCollection<SearchScopeOption> SearchScopeOptions
         {
-            get => _searchScopes;
-            set => SetProperty(ref _searchScopes, value);
+            get => _searchScopeOptions;
+            set => SetProperty(ref _searchScopeOptions, value);
         }
 
-        private string _selectedSearchScope = "所有資料夾";
+        private string _selectedSearchScope = SearchScopeAllCards;
         public string SelectedSearchScope
         {
             get => _selectedSearchScope;
@@ -337,25 +346,25 @@ namespace PlustekBCR.ViewModels
             get
             {
                 var parts = new System.Collections.Generic.List<string>();
-                AddSummaryPart(parts, "All", SearchKeyword);
-                AddSummaryPart(parts, "Company", CompanySearchKeyword);
-                AddSummaryPart(parts, "Name", NameSearchKeyword);
+                AddSummaryPart(parts, _localizationService.GetString("Search.Summary.All"), SearchKeyword);
+                AddSummaryPart(parts, _localizationService.GetString("Search.Scope.Company"), CompanySearchKeyword);
+                AddSummaryPart(parts, _localizationService.GetString("Search.Scope.Name"), NameSearchKeyword);
                 var tagSummary = AdvancedTagSearchKeywords.Count > 0
                     ? string.Join(", ", AdvancedTagSearchKeywords)
                     : SelectedTagFilter ?? TagSearchKeyword;
-                AddSummaryPart(parts, "Tag", tagSummary);
+                AddSummaryPart(parts, _localizationService.GetString("Search.Scope.Tag"), tagSummary);
 
                 if (StartDate.HasValue || EndDate.HasValue)
                 {
-                    var start = StartDate?.ToString("yyyy-MM-dd") ?? "Any";
-                    var end = EndDate?.ToString("yyyy-MM-dd") ?? "Any";
+                    var start = StartDate?.ToString("d", _localizationService.CurrentCulture) ?? _localizationService.GetString("Search.Summary.Any");
+                    var end = EndDate?.ToString("d", _localizationService.CurrentCulture) ?? _localizationService.GetString("Search.Summary.Any");
                     var label = string.IsNullOrWhiteSpace(SelectedRecentPreset)
-                        ? $"{start} - {end}"
-                        : $"{SelectedRecentPreset} ({start} - {end})";
-                    parts.Add($"Date: {label}");
+                        ? _localizationService.Format("Search.Summary.Range", start, end)
+                        : _localizationService.Format("Search.Summary.RangeWithPreset", GetRecentPresetLabel(SelectedRecentPreset), start, end);
+                    parts.Add(_localizationService.Format("Search.Summary.Date", label));
                 }
 
-                return parts.Count == 0 ? "All cards" : string.Join(" | ", parts);
+                return parts.Count == 0 ? _localizationService.GetString("Search.Summary.Empty") : string.Join(" | ", parts);
             }
         }
 
@@ -406,7 +415,7 @@ namespace PlustekBCR.ViewModels
         public void ApplyHeaderSearch(string? scope, string? keyword)
         {
             ResetSearchState();
-            SelectedSearchScope = string.IsNullOrWhiteSpace(scope) ? "All cards" : scope.Trim();
+            SelectedSearchScope = string.IsNullOrWhiteSpace(scope) ? SearchScopeAllCards : scope.Trim();
 
             var normalized = NormalizeSearchText(keyword);
             if (string.IsNullOrWhiteSpace(normalized))
@@ -417,13 +426,13 @@ namespace PlustekBCR.ViewModels
 
             switch (SelectedSearchScope)
             {
-                case "Company":
+                case SearchScopeCompany:
                     CompanySearchKeyword = normalized;
                     break;
-                case "Name":
+                case SearchScopeName:
                     NameSearchKeyword = normalized;
                     break;
-                case "Tag":
+                case SearchScopeTag:
                     TagSearchKeyword = normalized;
                     break;
                 default:
@@ -435,7 +444,7 @@ namespace PlustekBCR.ViewModels
         public void ApplyAdvancedSearch(string? company, string? name, string? tag, DateTime? startDate, DateTime? endDate)
         {
             ResetSearchState();
-            SelectedSearchScope = "All cards";
+            SelectedSearchScope = SearchScopeAllCards;
             CompanySearchKeyword = company;
             NameSearchKeyword = name;
             TagSearchKeyword = tag;
@@ -445,7 +454,7 @@ namespace PlustekBCR.ViewModels
         public void ApplyAdvancedSearch(string? company, string? name, IEnumerable<string>? tags, DateTime? startDate, DateTime? endDate)
         {
             ResetSearchState();
-            SelectedSearchScope = "All cards";
+            SelectedSearchScope = SearchScopeAllCards;
             CompanySearchKeyword = company;
             NameSearchKeyword = name;
             AdvancedTagSearchKeywords = tags?.ToArray() ?? Array.Empty<string>();
@@ -463,14 +472,14 @@ namespace PlustekBCR.ViewModels
         {
             var (start, end) = RecentPresetHelper.GetRange(preset);
             ResetSearchState();
-            SelectedSearchScope = "Date";
+            SelectedSearchScope = SearchScopeDate;
             ApplyDateRange(start, end, preset);
         }
 
         public void ClearSearch()
         {
             ResetSearchState();
-            SelectedSearchScope = "All cards";
+            SelectedSearchScope = SearchScopeAllCards;
             NotifySearchChanged();
         }
 
@@ -600,7 +609,9 @@ namespace PlustekBCR.ViewModels
         private Task? _autoScanSimulationTask;
         private CancellationTokenSource? _autoScanInstructionCts;
 
-        public string ScanButtonText => IsAutoScanMode ? "Stop Auto Scan" : "Start Auto Scan";
+        public string ScanButtonText => IsAutoScanMode
+            ? _localizationService.GetString("Button.StopAutoScan")
+            : _localizationService.GetString("Button.Scan");
 
         public Microsoft.UI.Xaml.Visibility AutoScanOverlayVisibility =>
             IsAutoScanMode ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
@@ -637,26 +648,28 @@ namespace PlustekBCR.ViewModels
         public Microsoft.UI.Xaml.Visibility AutoScanIdleVisibility =>
             IsAutoScanScanning ? Microsoft.UI.Xaml.Visibility.Collapsed : Microsoft.UI.Xaml.Visibility.Visible;
 
-        public string AutoScanPhaseText => IsAutoScanScanning ? "Scanning..." : "Ready for next sheet";
+        public string AutoScanPhaseText => IsAutoScanScanning
+            ? _localizationService.GetString("Status.AutoScan.Phase.Scanning")
+            : _localizationService.GetString("Status.AutoScan.Phase.Ready");
 
         public string AutoScanStateText => AutoScanState switch
         {
-            AutoScanState.Connecting => "Connecting",
-            AutoScanState.Ready => "Ready",
-            AutoScanState.Scanning => "Scanning",
-            AutoScanState.Stopping => "Stopping",
-            AutoScanState.Error => "Error",
-            _ => "Idle"
+            AutoScanState.Connecting => _localizationService.GetString("Status.AutoScan.Connecting"),
+            AutoScanState.Ready => _localizationService.GetString("Status.AutoScan.Ready"),
+            AutoScanState.Scanning => _localizationService.GetString("Status.AutoScan.Scanning"),
+            AutoScanState.Stopping => _localizationService.GetString("Status.AutoScan.Stopping"),
+            AutoScanState.Error => _localizationService.GetString("Status.AutoScan.Error"),
+            _ => _localizationService.GetString("Status.AutoScan.Idle")
         };
 
         public string AutoScanHintText => AutoScanState switch
         {
-            AutoScanState.Connecting => "Establishing AP and scanner connection...",
-            AutoScanState.Ready => "Waiting for paper",
-            AutoScanState.Scanning => "Paper detected. Capturing scan...",
-            AutoScanState.Stopping => "Stopping auto scan session...",
-            AutoScanState.Error => "Scanner or sensor is unavailable.",
-            _ => "Auto scan is not active."
+            AutoScanState.Connecting => _localizationService.GetString("Status.AutoScan.Hint.Connecting"),
+            AutoScanState.Ready => _localizationService.GetString("Status.AutoScan.Hint.Ready"),
+            AutoScanState.Scanning => _localizationService.GetString("Status.AutoScan.Hint.Scanning"),
+            AutoScanState.Stopping => _localizationService.GetString("Status.AutoScan.Hint.Stopping"),
+            AutoScanState.Error => _localizationService.GetString("Status.AutoScan.Hint.Error"),
+            _ => _localizationService.GetString("Status.AutoScan.Hint.Idle")
         };
 
         public event Action? ScanPulseRequested;
@@ -798,8 +811,8 @@ namespace PlustekBCR.ViewModels
 
                     var scanningCard = new BusinessCard
                     {
-                        FullName = "Scanned Document",
-                        CompanyName = "Processing...",
+                        FullName = _localizationService.GetString("Main.Mock.ScannedDocument"),
+                        CompanyName = _localizationService.GetString("Processing.Recognizing"),
                         Status = ProcessingStatus.Pending,
                         ScanDate = DateTime.Now,
                         IsAutoScanSession = true,
@@ -843,8 +856,8 @@ namespace PlustekBCR.ViewModels
 
                 var scanningCard = new BusinessCard
                 {
-                    FullName = "Scanned Document",
-                    CompanyName = "Processing...",
+                    FullName = _localizationService.GetString("Main.Mock.ScannedDocument"),
+                    CompanyName = _localizationService.GetString("Processing.Recognizing"),
                     Status = ProcessingStatus.Pending,
                     ScanDate = DateTime.Now,
                     IsAutoScanSession = true,
@@ -893,8 +906,8 @@ namespace PlustekBCR.ViewModels
         {
             var scanningCard = new BusinessCard
             {
-                FullName = "Scanned Document",
-                CompanyName = "Processing...",
+                FullName = _localizationService.GetString("Main.Mock.ScannedDocument"),
+                CompanyName = _localizationService.GetString("Processing.Recognizing"),
                 Status = ProcessingStatus.Pending,
                 ScanDate = DateTime.Now,
                 IsAutoScanSession = true,
@@ -957,5 +970,32 @@ namespace PlustekBCR.ViewModels
 
             return null;
         }
+
+        private string GetRecentPresetLabel(string? preset)
+        {
+            return preset switch
+            {
+                "Today" => _localizationService.GetString("Button.Today"),
+                "Within 3 days" => _localizationService.GetString("Button.Within3Days"),
+                "Within 7 days" => _localizationService.GetString("Button.Within7Days"),
+                _ => preset ?? string.Empty
+            };
+        }
+
+        private void OnLanguageChanged()
+        {
+            foreach (var option in SearchScopeOptions)
+            {
+                option.RefreshLabel();
+            }
+
+            OnPropertyChanged(nameof(ScannerStatusText));
+            OnPropertyChanged(nameof(SearchSummaryText));
+            OnPropertyChanged(nameof(ScanButtonText));
+            OnPropertyChanged(nameof(AutoScanPhaseText));
+            OnPropertyChanged(nameof(AutoScanStateText));
+            OnPropertyChanged(nameof(AutoScanHintText));
+        }
     }
 }
+

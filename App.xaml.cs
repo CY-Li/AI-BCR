@@ -11,6 +11,7 @@ using PlustekBCR.Services;
 using PlustekBCR.ViewModels;
 using PlustekBCR.Views;
 using WinUIEx;
+using PlustekBCR.Helpers;
 
 namespace PlustekBCR
 {
@@ -37,6 +38,8 @@ namespace PlustekBCR
                 services.AddSingleton<IUpdateService, UpdateService>();
                 services.AddSingleton<ITagCatalogService, TagCatalogService>();
                 services.AddSingleton<IApplicationSettingsService, ApplicationSettingsService>();
+                services.AddSingleton<ILocalizationService, LocalizationService>();
+                services.AddSingleton<LocalizedStrings>();
                 services.AddSingleton<IBusinessCardFieldService, BusinessCardFieldService>();
                 services.AddSingleton<IZipCodeLookupService, ZipCloudLookupService>();
                 services.AddSingleton<JapanZipLookupCoordinator>();
@@ -67,8 +70,6 @@ namespace PlustekBCR
         {
             // Fix for SingleFile publish warning
             Environment.SetEnvironmentVariable("MICROSOFT_WINDOWSAPPRUNTIME_BASE_DIRECTORY", AppContext.BaseDirectory);
-            
-            this.InitializeComponent();
             this.UnhandledException += (s, e) =>
             {
                 e.Handled = true;
@@ -78,6 +79,8 @@ namespace PlustekBCR
                 }
                 catch { }
             };
+            
+            this.InitializeComponent();
         }
 
         /// <summary>
@@ -86,6 +89,7 @@ namespace PlustekBCR
         /// <param name="e">Details about the launch request and process.</param>
         protected override void OnLaunched(LaunchActivatedEventArgs e)
         {
+            _ = GetService<ILocalizationService>();
             Window = new MainWindow();
             
             // Eagerly resolve AllCardsViewModel so it registers for messages immediately

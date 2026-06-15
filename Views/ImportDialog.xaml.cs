@@ -26,13 +26,16 @@ namespace PlustekBCR.Views
         private string? _excelCsvFilePath;
         private List<string> _csvHeaders = new();
         private readonly IBusinessCardFieldService _fieldService;
+        private readonly ILocalizationService _localizationService;
         private UIElement? _popupRoot;
         private Microsoft.UI.Xaml.Input.PointerEventHandler? _pointerHandler;
 
         public ImportDialog()
         {
             _fieldService = App.GetService<IBusinessCardFieldService>();
+            _localizationService = App.GetService<ILocalizationService>();
             InitializeComponent();
+            DataContext = App.GetService<LocalizedStrings>();
 
             Opened += ImportDialog_Opened;
             Closed += ImportDialog_Closed;
@@ -228,7 +231,7 @@ namespace PlustekBCR.Views
 
         private async Task ProcessSpreadsheetFileAsync(StorageFile file)
         {
-            ShowLoading("Reading file contents...");
+            ShowLoading(_localizationService.GetString("Import.Loading.ReadFile"));
             _excelCsvFilePath = file.Path;
 
             await Task.Run(() => { _csvHeaders = CsvHelper.ReadHeaders(_excelCsvFilePath); });
@@ -237,12 +240,12 @@ namespace PlustekBCR.Views
             {
                 HideLoading();
                 await ShowMessageDialogAsync(
-                    "Unsupported or Empty File",
-                    "The spreadsheet file does not contain valid column headers. Please use the download template to ensure proper formatting.");
+                    _localizationService.GetString("Import.Message.UnsupportedTitle"),
+                    _localizationService.GetString("Import.Message.UnsupportedContent"));
                 return;
             }
 
-            ShowLoading("Importing structural database rows...");
+            ShowLoading(_localizationService.GetString("Import.Loading.ImportRows"));
 
             var rawRows = new List<Dictionary<string, string>>();
             await Task.Run(() => { rawRows = CsvHelper.ReadAllRows(_excelCsvFilePath); });
@@ -276,7 +279,7 @@ namespace PlustekBCR.Views
 
                 if (string.IsNullOrWhiteSpace(card.FullName))
                 {
-                    card.FullName = "Imported Contact";
+                    card.FullName = _localizationService.GetString("Import.Mock.ImportedContact");
                 }
 
                 importedCards.Add(card);
@@ -290,7 +293,7 @@ namespace PlustekBCR.Views
 
         private async Task ProcessImageFilesAsync(List<StorageFile> files)
         {
-            ShowLoading("Ingesting card images to queue...");
+            ShowLoading(_localizationService.GetString("Import.Loading.QueueImages"));
 
             var importedCards = new List<BusinessCard>();
 
@@ -313,7 +316,7 @@ namespace PlustekBCR.Views
                     FrontImageData = imageBytes,
                     Status = ProcessingStatus.Pending,
                     FullName = Path.GetFileNameWithoutExtension(file.Name),
-                    CompanyName = "Ingested Image"
+                    CompanyName = _localizationService.GetString("Import.Mock.IngestedImage")
                 };
 
                 BusinessCardFieldAccessor.SetIdentityFromFullName(card);
@@ -388,7 +391,7 @@ namespace PlustekBCR.Views
                 var picker = CreateSavePicker(
                     PickerLocationId.Downloads,
                     "business_cards_template",
-                    "CSV (Comma delimited)",
+                    _localizationService.GetString("Import.Template.FileLabel"),
                     ".csv");
 
                 var file = await picker.PickSaveFileAsync();

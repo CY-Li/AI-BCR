@@ -1,4 +1,5 @@
 using Microsoft.UI.Xaml.Controls;
+using PlustekBCR.Helpers;
 using PlustekBCR.ViewModels;
 
 namespace PlustekBCR.Views
@@ -10,6 +11,7 @@ namespace PlustekBCR.Views
         public EmptyPage()
         {
             this.InitializeComponent();
+            DataContext = App.GetService<LocalizedStrings>();
             ViewModel = App.GetService<EmptyViewModel>();
         }
     }
