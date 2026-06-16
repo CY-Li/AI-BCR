@@ -1,5 +1,5 @@
 {
-  "version": "1.0.10",
-  "downloadUrl": "https://github.com/CY-Li/AI-BCR/releases/download/v1.0.10/PlustekBCR-v1.0.10-win-x64.zip",
-  "notes": "1. 實作日/美名片AI辨識流程，串接Document Agent API\r\n2. 實作多國語系\r\n3. 新增Setting頁面\r\n- Market : 切換不同國家地區的名片欄位及顯示邏輯\r\n- UI Language : 切換系統語系"
+  "version": "1.0.11",
+  "downloadUrl": "https://github.com/CY-Li/AI-BCR/releases/download/v1.0.11/PlustekBCR-v1.0.11-win-x64.zip",
+  "notes": "1. 修正多國語系Bug\r\n2. 將AI併發處理從3個降至1個\r\n3. 優化檔案狀態管理"
 }
