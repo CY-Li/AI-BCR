@@ -9,7 +9,7 @@ namespace PlustekBCR.Services.Recognition
         private readonly IBusinessCardRecognitionService _businessCardRecognitionService;
         private readonly IApplicationSettingsService _applicationSettingsService;
         private readonly IRecognitionDiagnosticsService _diagnosticsService;
-        private readonly SemaphoreSlim _queueSemaphore = new(3);
+        private readonly SemaphoreSlim _queueSemaphore = new(1);
         private int _configurationWarningShown;
 
         public RecognitionQueueService(
@@ -46,15 +46,22 @@ namespace PlustekBCR.Services.Recognition
                 return;
             }
 
-            await _queueSemaphore.WaitAsync(cancellationToken);
+            var semaphoreEntered = false;
             var countIncremented = false;
             try
             {
+                await UpdateCardOnUiThreadAsync(card, () =>
+                {
+                    card.Status = ProcessingStatus.Pending;
+                });
+
                 await _diagnosticsService.LogAsync("RecognitionQueue", $"Card={card.Id} queued. Market={card.MarketCode}. AutoScan={card.IsAutoScanSession}.", cancellationToken);
+                await _queueSemaphore.WaitAsync(cancellationToken);
+                semaphoreEntered = true;
+
                 await UpdateCardOnUiThreadAsync(card, () =>
                 {
                     card.Status = ProcessingStatus.Recognizing;
-                    AppendRecognitionNote(card, "AI recognition queued.");
                 });
 
                 if (card.IsAutoScanSession)
@@ -69,7 +76,7 @@ namespace PlustekBCR.Services.Recognition
                 await UpdateCardOnUiThreadAsync(card, () =>
                 {
                     card.Status = ProcessingStatus.Done;
-                    AppendRecognitionNote(card, "Automatically recognized and parsed by Plustek Console.");
+                    AppendRecognitionNote(card, "Automatically recognized and parsed by Document Agent.");
                 });
             }
             catch (Exception ex)
@@ -95,7 +102,10 @@ namespace PlustekBCR.Services.Recognition
                     WeakReferenceMessenger.Default.Send(new AutoScanRecognitionCountChangedMessage(-1));
                 }
 
-                _queueSemaphore.Release();
+                if (semaphoreEntered)
+                {
+                    _queueSemaphore.Release();
+                }
             }
         }
 

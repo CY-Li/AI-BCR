@@ -77,7 +77,7 @@
                           PointerExited="Card_PointerExited"
                           Translation="0,0,16">
                         <Grid.ContextFlyout>
-                            <MenuFlyout MenuFlyoutPresenterStyle="{StaticResource BcrTagMenuFlyoutPresenterStyle}">
+                            <MenuFlyout MenuFlyoutPresenterStyle="{StaticResource BcrTagMenuFlyoutPresenterStyle}" Opening="OnCardContextFlyoutOpening">
                                 <MenuFlyoutItem Text="{Binding [Button.ViewDetails]}" Click="OnViewDetailsContextClicked">
                                     <MenuFlyoutItem.Icon>
                                         <FontIcon Glyph="&#xE7B3;"/>
@@ -202,7 +202,7 @@
                 <DataTemplate x:DataType="models:BusinessCard">
                     <Grid x:Name="ListCardRoot" Padding="12,8,12,8" Background="Transparent">
                         <Grid.ContextFlyout>
-                            <MenuFlyout MenuFlyoutPresenterStyle="{StaticResource BcrTagMenuFlyoutPresenterStyle}">
+                            <MenuFlyout MenuFlyoutPresenterStyle="{StaticResource BcrTagMenuFlyoutPresenterStyle}" Opening="OnCardContextFlyoutOpening">
                                 <MenuFlyoutItem Text="{Binding [Button.ViewDetails]}" Click="OnViewDetailsContextClicked">
                                     <MenuFlyoutItem.Icon>
                                         <FontIcon Glyph="&#xE7B3;"/>

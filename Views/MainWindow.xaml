@@ -266,7 +266,7 @@
                                     GotFocus="OnHeaderSearchBoxGotFocus"
                                     LostFocus="OnHeaderSearchBoxLostFocus"
                                     KeyDown="OnHeaderSearchBoxKeyDown" />
-                                <Button Grid.Column="1" Style="{StaticResource SearchIconButtonStyle}" Click="OnOpenAdvancedSearchClicked" ToolTipService.ToolTip="{Binding [Main.Search.AdvancedTooltip]}">
+                                <Button x:Name="HeaderSearchAdvancedButton" Grid.Column="1" Style="{StaticResource SearchIconButtonStyle}" Click="OnOpenAdvancedSearchClicked" ToolTipService.ToolTip="{Binding [Main.Search.AdvancedTooltip]}">
                                     <FontIcon Glyph="&#xE71C;" FontSize="13" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                 </Button>
                             </Grid>
@@ -303,13 +303,13 @@
                                     PlaceholderText="{Binding [Main.Search.End]}"
                                     VerticalAlignment="Center"
                                     HorizontalAlignment="Stretch" />
-                                <Button Grid.Column="2" Style="{StaticResource SearchIconButtonStyle}" Click="OnHeaderDateSearchClicked" ToolTipService.ToolTip="{Binding [Main.Search.DateTooltip]}">
+                                <Button x:Name="HeaderDateSearchButton" Grid.Column="2" Style="{StaticResource SearchIconButtonStyle}" Click="OnHeaderDateSearchClicked" ToolTipService.ToolTip="{Binding [Main.Search.DateTooltip]}">
                                     <FontIcon Glyph="&#xE721;" FontSize="13" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                 </Button>
-                                <Button Grid.Column="3" Style="{StaticResource SearchIconButtonStyle}" Click="OnHeaderDateClearClicked" ToolTipService.ToolTip="{Binding [Main.Search.ClearDateTooltip]}">
+                                <Button x:Name="HeaderDateClearButton" Grid.Column="3" Style="{StaticResource SearchIconButtonStyle}" Click="OnHeaderDateClearClicked" ToolTipService.ToolTip="{Binding [Main.Search.ClearDateTooltip]}">
                                     <FontIcon Glyph="&#xE711;" FontSize="13" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                 </Button>
-                                <Button Grid.Column="4" Style="{StaticResource SearchIconButtonStyle}" Click="OnOpenAdvancedSearchClicked" ToolTipService.ToolTip="{Binding [Main.Search.AdvancedTooltip]}">
+                                <Button x:Name="DateSearchAdvancedButton" Grid.Column="4" Style="{StaticResource SearchIconButtonStyle}" Click="OnOpenAdvancedSearchClicked" ToolTipService.ToolTip="{Binding [Main.Search.AdvancedTooltip]}">
                                     <FontIcon Glyph="&#xE71C;" FontSize="13" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                 </Button>
                             </Grid>
@@ -446,6 +446,7 @@
 
             <NavigationView.PaneFooter>
                 <Button
+                    x:Name="ScannerStatusButton"
                     Command="{x:Bind ViewModel.ToggleScannerStatusCommand}"
                     HorizontalAlignment="Stretch"
                     HorizontalContentAlignment="Stretch"

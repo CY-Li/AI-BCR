@@ -102,7 +102,8 @@
                     </StackPanel>
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
-                        <Button Style="{StaticResource HeaderActionIconButtonStyle}"
+                        <Button x:Name="ReprocessAiButton"
+                                Style="{StaticResource HeaderActionIconButtonStyle}"
                                 ToolTipService.ToolTip="{Binding [View.CardDetail.ReprocessAi]}"
                                 IsEnabled="{x:Bind ViewModel.SelectedCard.IsAiReprocessAvailable, Mode=OneWay}"
                                 Click="OnAiReprocessClicked">
@@ -124,7 +125,8 @@
                             </Grid>
                         </Button>
 
-                        <Button Style="{StaticResource HeaderActionIconButtonStyle}"
+                        <Button x:Name="DeleteCardButton"
+                                Style="{StaticResource HeaderActionIconButtonStyle}"
                                 ToolTipService.ToolTip="{Binding [View.CardDetail.DeleteCard]}"
                                 Command="{x:Bind ViewModel.DeleteCardCommand}"
                                 CommandParameter="{x:Bind ViewModel.SelectedCard, Mode=OneWay}">
@@ -163,7 +165,7 @@
                                             Style="{StaticResource HeaderIconButtonStyle}" Width="32" Height="32" 
                                             Visibility="{x:Bind ViewModel.SelectedCard.FrontImageData, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
                                         <Button.Flyout>
-                                            <MenuFlyout MenuFlyoutPresenterStyle="{StaticResource BcrTagMenuFlyoutPresenterStyle}">
+                                            <MenuFlyout MenuFlyoutPresenterStyle="{StaticResource BcrTagMenuFlyoutPresenterStyle}" Opening="OnImageActionFlyoutOpening">
                                                 <MenuFlyoutItem Text="{Binding [Button.UploadFromFile]}" Click="OnUploadFrontFileClicked">
                                                     <MenuFlyoutItem.Icon>
                                                         <FontIcon Glyph="&#xE710;"/>
@@ -178,7 +180,7 @@
                                         </Button.Flyout>
                                         <FontIcon Glyph="&#xE710;" FontSize="14"/>
                                     </Button>
-                                    <Button Click="OnDeleteFrontClicked" ToolTipService.ToolTip="{Binding [View.CardDetail.DeleteFrontImage]}" 
+                                    <Button x:Name="DeleteFrontImageButton" Click="OnDeleteFrontClicked" ToolTipService.ToolTip="{Binding [View.CardDetail.DeleteFrontImage]}" 
                                             Style="{StaticResource HeaderIconButtonStyle}" Width="32" Height="32" 
                                             Visibility="{x:Bind ViewModel.SelectedCard.FrontImageData, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
                                         <FontIcon Glyph="&#xE74D;" FontSize="14"/>
@@ -199,7 +201,7 @@
                                     <Button Style="{StaticResource ImageEmptyStateButtonStyle}"
                                             Visibility="{x:Bind ViewModel.SelectedCard.FrontImageData, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}">
                                         <Button.Flyout>
-                                            <MenuFlyout MenuFlyoutPresenterStyle="{StaticResource BcrTagMenuFlyoutPresenterStyle}">
+                                            <MenuFlyout MenuFlyoutPresenterStyle="{StaticResource BcrTagMenuFlyoutPresenterStyle}" Opening="OnImageActionFlyoutOpening">
                                                 <MenuFlyoutItem Text="{Binding [Button.UploadFromFile]}" Click="OnUploadFrontFileClicked">
                                                     <MenuFlyoutItem.Icon>
                                                         <FontIcon Glyph="&#xE710;"/>
@@ -264,7 +266,7 @@
                                             Style="{StaticResource HeaderIconButtonStyle}" Width="32" Height="32" 
                                             Visibility="{x:Bind ViewModel.SelectedCard.BackImageData, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
                                         <Button.Flyout>
-                                            <MenuFlyout MenuFlyoutPresenterStyle="{StaticResource BcrTagMenuFlyoutPresenterStyle}">
+                                            <MenuFlyout MenuFlyoutPresenterStyle="{StaticResource BcrTagMenuFlyoutPresenterStyle}" Opening="OnImageActionFlyoutOpening">
                                                 <MenuFlyoutItem Text="{Binding [Button.UploadFromFile]}" Click="OnUploadBackFileClicked">
                                                     <MenuFlyoutItem.Icon>
                                                         <FontIcon Glyph="&#xE710;"/>
@@ -279,7 +281,7 @@
                                         </Button.Flyout>
                                         <FontIcon Glyph="&#xE710;" FontSize="14"/>
                                     </Button>
-                                    <Button Click="OnDeleteBackClicked" ToolTipService.ToolTip="{Binding [View.CardDetail.DeleteBackImage]}" 
+                                    <Button x:Name="DeleteBackImageButton" Click="OnDeleteBackClicked" ToolTipService.ToolTip="{Binding [View.CardDetail.DeleteBackImage]}" 
                                             Style="{StaticResource HeaderIconButtonStyle}" Width="32" Height="32" 
                                             Visibility="{x:Bind ViewModel.SelectedCard.BackImageData, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
                                         <FontIcon Glyph="&#xE74D;" FontSize="14"/>
@@ -300,7 +302,7 @@
                                     <Button Style="{StaticResource ImageEmptyStateButtonStyle}"
                                             Visibility="{x:Bind ViewModel.SelectedCard.BackImageData, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}">
                                         <Button.Flyout>
-                                            <MenuFlyout MenuFlyoutPresenterStyle="{StaticResource BcrTagMenuFlyoutPresenterStyle}">
+                                            <MenuFlyout MenuFlyoutPresenterStyle="{StaticResource BcrTagMenuFlyoutPresenterStyle}" Opening="OnImageActionFlyoutOpening">
                                                 <MenuFlyoutItem Text="{Binding [Button.UploadFromFile]}" Click="OnUploadBackFileClicked">
                                                     <MenuFlyoutItem.Icon>
                                                         <FontIcon Glyph="&#xE710;"/>

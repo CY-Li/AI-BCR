@@ -724,7 +724,7 @@ namespace PlustekBCR.ViewModels
 
         public async Task ReprocessAiAsync(BusinessCard? card)
         {
-            if (card == null || card.Status == ProcessingStatus.Recognizing)
+            if (card == null || card.Status == ProcessingStatus.Pending || card.Status == ProcessingStatus.Recognizing)
             {
                 return;
             }

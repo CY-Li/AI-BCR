@@ -236,6 +236,39 @@ namespace PlustekBCR.Views
             }
         }
 
+        private void OnCardContextFlyoutOpening(object sender, object e)
+        {
+            if (sender is not MenuFlyout flyout || flyout.Items.Count < 3)
+            {
+                return;
+            }
+
+            if (flyout.Items[0] is MenuFlyoutItem viewDetailsItem)
+            {
+                viewDetailsItem.Text = _localizationService.GetString("Button.ViewDetails");
+            }
+
+            if (flyout.Items[1] is MenuFlyoutSubItem exportSubItem)
+            {
+                exportSubItem.Text = _localizationService.GetString("Main.Navigation.Export");
+
+                if (exportSubItem.Items.Count > 0 && exportSubItem.Items[0] is MenuFlyoutItem exportCsvItem)
+                {
+                    exportCsvItem.Text = _localizationService.GetString("Button.ExportCsv");
+                }
+
+                if (exportSubItem.Items.Count > 1 && exportSubItem.Items[1] is MenuFlyoutItem exportTxtItem)
+                {
+                    exportTxtItem.Text = _localizationService.GetString("Button.ExportTxt");
+                }
+            }
+
+            if (flyout.Items[2] is MenuFlyoutItem deleteItem)
+            {
+                deleteItem.Text = _localizationService.GetString("Button.Delete");
+            }
+        }
+
         private void NavigateToDetail(BusinessCard? card)
         {
             if (card == null || Frame == null)

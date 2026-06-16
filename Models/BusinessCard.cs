@@ -141,12 +141,14 @@ namespace PlustekBCR.Models
 
         public bool SuppressAutoZipLookup { get; set; }
 
+        public bool IsQueued => Status == ProcessingStatus.Pending;
         public bool IsRecognizing => Status == ProcessingStatus.Recognizing;
-        public bool IsAiReprocessAvailable => !IsRecognizing;
+        public bool IsAiReprocessAvailable => !IsQueued && !IsRecognizing;
         public string DisplayName => !string.IsNullOrWhiteSpace(FullName) ? FullName : BusinessCardAddressHelper.ComposeFullName(MarketCode, FirstName, MiddleName, LastName, Suffix);
 
         partial void OnStatusChanged(ProcessingStatus value)
         {
+            OnPropertyChanged(nameof(IsQueued));
             OnPropertyChanged(nameof(IsRecognizing));
             OnPropertyChanged(nameof(IsAiReprocessAvailable));
         }

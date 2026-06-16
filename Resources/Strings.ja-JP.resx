@@ -161,7 +161,7 @@
   <data name="Placeholder.ZipCode" xml:space="preserve"><value>郵便番号</value></data>
   <data name="Processing.Done" xml:space="preserve"><value>AI 解析済み</value></data>
   <data name="Processing.Manual" xml:space="preserve"><value>手動</value></data>
-  <data name="Processing.Pending" xml:space="preserve"><value>待機中</value></data>
+  <data name="Processing.Pending" xml:space="preserve"><value>保留中</value></data>
   <data name="Processing.Recognizing" xml:space="preserve"><value>処理中...</value></data>
   <data name="Processing.Unknown" xml:space="preserve"><value>不明</value></data>
   <data name="Recognition.ReprocessUnavailable.Content" xml:space="preserve"><value>AI 再認識には表面画像が必要です。</value></data>

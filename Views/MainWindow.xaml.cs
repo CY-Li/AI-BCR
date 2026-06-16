@@ -40,6 +40,7 @@ namespace PlustekBCR.Views
 
             this.InitializeComponent();
             RootGrid.DataContext = App.GetService<LocalizedStrings>();
+            UpdateLocalizedToolTips();
             RootGrid.AddHandler(UIElement.PointerPressedEvent, new Microsoft.UI.Xaml.Input.PointerEventHandler(OnRootPointerPressed), true);
             ViewModel.ScanPulseRequested += OnScanPulseRequested;
             _mockPaperSensorTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(1450) };
@@ -830,9 +831,19 @@ namespace PlustekBCR.Views
             {
                 Title = _localizationService.GetString("App.Title");
                 Bindings.Update();
+                UpdateLocalizedToolTips();
                 RebuildTagFilterMenu();
                 RebuildAdvancedTagFlowItems();
             });
+        }
+
+        private void UpdateLocalizedToolTips()
+        {
+            ToolTipService.SetToolTip(HeaderSearchAdvancedButton, _localizationService.GetString("Main.Search.AdvancedTooltip"));
+            ToolTipService.SetToolTip(HeaderDateSearchButton, _localizationService.GetString("Main.Search.DateTooltip"));
+            ToolTipService.SetToolTip(HeaderDateClearButton, _localizationService.GetString("Main.Search.ClearDateTooltip"));
+            ToolTipService.SetToolTip(DateSearchAdvancedButton, _localizationService.GetString("Main.Search.AdvancedTooltip"));
+            ToolTipService.SetToolTip(ScannerStatusButton, _localizationService.GetString("Main.Scanner.ToggleTooltip"));
         }
 
         private void OnAdvancedRecentPresetClicked(object sender, RoutedEventArgs e)

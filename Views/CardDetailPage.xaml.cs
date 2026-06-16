@@ -41,6 +41,7 @@ namespace PlustekBCR.Views
             ViewModel = App.GetService<CardDetailViewModel>();
             _settingsService = App.GetService<IApplicationSettingsService>();
             _localizationService = App.GetService<ILocalizationService>();
+            UpdateLocalizedToolTips();
 
             ViewModel.ConfirmDeleteCardAsync = async (card) =>
             {
@@ -149,6 +150,24 @@ namespace PlustekBCR.Views
         private void OnDeleteFrontClicked(object sender, RoutedEventArgs e)
         {
             ClearSelectedImage(isFront: true);
+        }
+
+        private void OnImageActionFlyoutOpening(object sender, object e)
+        {
+            if (sender is not MenuFlyout flyout || flyout.Items.Count < 2)
+            {
+                return;
+            }
+
+            if (flyout.Items[0] is MenuFlyoutItem uploadItem)
+            {
+                uploadItem.Text = _localizationService.GetString("Button.UploadFromFile");
+            }
+
+            if (flyout.Items[1] is MenuFlyoutItem scanItem)
+            {
+                scanItem.Text = _localizationService.GetString("Button.ScanFromScanner");
+            }
         }
 
         private async void OnUploadBackFileClicked(object sender, RoutedEventArgs e)
@@ -575,7 +594,19 @@ namespace PlustekBCR.Views
 
         private void OnLanguageChanged()
         {
-            DispatcherQueue.TryEnqueue(Bindings.Update);
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                Bindings.Update();
+                UpdateLocalizedToolTips();
+            });
+        }
+
+        private void UpdateLocalizedToolTips()
+        {
+            ToolTipService.SetToolTip(ReprocessAiButton, _localizationService.GetString("View.CardDetail.ReprocessAi"));
+            ToolTipService.SetToolTip(DeleteCardButton, _localizationService.GetString("View.CardDetail.DeleteCard"));
+            ToolTipService.SetToolTip(DeleteFrontImageButton, _localizationService.GetString("View.CardDetail.DeleteFrontImage"));
+            ToolTipService.SetToolTip(DeleteBackImageButton, _localizationService.GetString("View.CardDetail.DeleteBackImage"));
         }
     }
 

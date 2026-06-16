@@ -162,7 +162,7 @@
   <data name="Placeholder.ZipCode" xml:space="preserve"><value>ZIP Code</value></data>
   <data name="Processing.Done" xml:space="preserve"><value>AI Parsed</value></data>
   <data name="Processing.Manual" xml:space="preserve"><value>Manual</value></data>
-  <data name="Processing.Pending" xml:space="preserve"><value>Queued</value></data>
+  <data name="Processing.Pending" xml:space="preserve"><value>Pending</value></data>
   <data name="Processing.Recognizing" xml:space="preserve"><value>Processing...</value></data>
   <data name="Processing.Unknown" xml:space="preserve"><value>Unknown</value></data>
   <data name="Recognition.ReprocessUnavailable.Content" xml:space="preserve"><value>AI re-recognition requires a front card image.</value></data>
