@@ -32,6 +32,7 @@ namespace PlustekBCR.Views
         public ObservableCollection<TagFlowItem> EditTagFlowItems { get; } = new();
         private readonly IApplicationSettingsService _settingsService;
         private readonly ILocalizationService _localizationService;
+        private readonly IImageViewerService _imageViewerService;
         private bool _isTransitionRunning;
 
         public CardDetailPage()
@@ -41,12 +42,17 @@ namespace PlustekBCR.Views
             ViewModel = App.GetService<CardDetailViewModel>();
             _settingsService = App.GetService<IApplicationSettingsService>();
             _localizationService = App.GetService<ILocalizationService>();
+            _imageViewerService = App.GetService<IImageViewerService>();
             UpdateLocalizedToolTips();
 
             ViewModel.ConfirmDeleteCardAsync = async (card) =>
             {
                 var dialog = CardPageUiHelper.CreateDeleteConfirmationDialog(card.FullName, this.XamlRoot);
                 var result = await dialog.ShowAsync();
+                if (result == ContentDialogResult.Primary)
+                {
+                    _imageViewerService.Close(card);
+                }
                 return result == ContentDialogResult.Primary;
             };
 
@@ -150,6 +156,22 @@ namespace PlustekBCR.Views
         private void OnDeleteFrontClicked(object sender, RoutedEventArgs e)
         {
             ClearSelectedImage(isFront: true);
+        }
+
+        private void OnOpenFrontImageViewerClicked(object sender, TappedRoutedEventArgs e)
+        {
+            if (ViewModel.SelectedCard?.FrontImageData is { Length: > 0 })
+            {
+                _imageViewerService.Show(ViewModel.SelectedCard, CardImageSide.Front);
+            }
+        }
+
+        private void OnOpenBackImageViewerClicked(object sender, TappedRoutedEventArgs e)
+        {
+            if (ViewModel.SelectedCard?.BackImageData is { Length: > 0 })
+            {
+                _imageViewerService.Show(ViewModel.SelectedCard, CardImageSide.Back);
+            }
         }
 
         private void OnImageActionFlyoutOpening(object sender, object e)

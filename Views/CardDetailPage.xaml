@@ -189,7 +189,13 @@
                             </Grid>
 
                             <!-- Image Container / Empty State -->
-                            <Border x:Name="FrontImageBorder" Grid.Row="1" Height="260" Background="{ThemeResource LayerFillColorDefaultBrush}" CornerRadius="12">
+                            <Border x:Name="FrontImageBorder"
+                                    Grid.Row="1"
+                                    Height="260"
+                                    Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                    CornerRadius="12"
+                                    Tapped="OnOpenFrontImageViewerClicked"
+                                    ToolTipService.ToolTip="{Binding [View.ImageViewer.Open]}">
                                 <Grid AllowDrop="True" Background="Transparent" DragEnter="OnImageDragOver" DragOver="OnImageDragOver" DragLeave="OnImageDragLeave" Drop="OnFrontImageDrop">
                                     <!-- Image if exists -->
                                     <Image x:Name="FrontDetailImage" Source="{x:Bind ViewModel.SelectedCard.FrontImageData, Converter={StaticResource ByteArrayToImageSourceConverter}, Mode=OneWay}" 
@@ -290,7 +296,13 @@
                             </Grid>
 
                             <!-- Image Container / Empty State -->
-                            <Border x:Name="BackImageBorder" Grid.Row="1" Height="260" Background="{ThemeResource LayerFillColorDefaultBrush}" CornerRadius="12">
+                            <Border x:Name="BackImageBorder"
+                                    Grid.Row="1"
+                                    Height="260"
+                                    Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                    CornerRadius="12"
+                                    Tapped="OnOpenBackImageViewerClicked"
+                                    ToolTipService.ToolTip="{Binding [View.ImageViewer.Open]}">
                                 <Grid AllowDrop="True" Background="Transparent" DragEnter="OnImageDragOver" DragOver="OnImageDragOver" DragLeave="OnImageDragLeave" Drop="OnBackImageDrop">
                                     <!-- Image if exists -->
                                     <Image Source="{x:Bind ViewModel.SelectedCard.BackImageData, Converter={StaticResource ByteArrayToImageSourceConverter}, Mode=OneWay}" 

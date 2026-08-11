@@ -176,6 +176,7 @@ namespace PlustekBCR.Views
 
         private void OnWindowClosed(object sender, WindowEventArgs args)
         {
+            App.GetService<IImageViewerService>().Close();
             ScannerReadyPulseStoryboard?.Stop();
             ViewModel.ScanPulseRequested -= OnScanPulseRequested;
             _mockPaperSensorTimer.Stop();

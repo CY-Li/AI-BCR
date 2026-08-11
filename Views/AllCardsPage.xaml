@@ -536,7 +536,9 @@
                                     Grid.Column="0"
                                     Height="200"
                                     Background="{ThemeResource LayerFillColorDefaultBrush}"
-                                    CornerRadius="12">
+                                    CornerRadius="12"
+                                    Tapped="OnOpenSidebarFrontImageViewerClicked"
+                                    ToolTipService.ToolTip="{Binding [View.ImageViewer.Open]}">
                                 <Image x:Name="SidebarFrontImage"
                                        Source="{x:Bind ViewModel.SelectedCard.FrontImageData, Converter={StaticResource ByteArrayToImageSourceConverter}, Mode=OneWay}"
                                        Stretch="Uniform"
@@ -550,6 +552,8 @@
                                     Height="200"
                                     Background="{ThemeResource LayerFillColorDefaultBrush}"
                                     CornerRadius="12"
+                                    Tapped="OnOpenSidebarBackImageViewerClicked"
+                                    ToolTipService.ToolTip="{Binding [View.ImageViewer.Open]}"
                                     Visibility="{x:Bind ViewModel.SelectedCard.BackImageData, Converter={StaticResource ByteArrayToVisibilityConverter}, Mode=OneWay}">
                                 <Image x:Name="SidebarBackImage"
                                        Source="{x:Bind ViewModel.SelectedCard.BackImageData, Converter={StaticResource ByteArrayToImageSourceConverter}, Mode=OneWay}"

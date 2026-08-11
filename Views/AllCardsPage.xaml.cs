@@ -25,6 +25,7 @@ namespace PlustekBCR.Views
         private readonly IBusinessCardFieldService _fieldService;
         private readonly IApplicationSettingsService _settingsService;
         private readonly ILocalizationService _localizationService;
+        private readonly IImageViewerService _imageViewerService;
         public ObservableCollection<string> SidebarSelectedTags { get; } = new();
         public ObservableCollection<TagFlowItem> SidebarTagFlowItems { get; } = new();
 
@@ -35,6 +36,7 @@ namespace PlustekBCR.Views
             _fieldService = App.GetService<IBusinessCardFieldService>();
             _settingsService = App.GetService<IApplicationSettingsService>();
             _localizationService = App.GetService<ILocalizationService>();
+            _imageViewerService = App.GetService<IImageViewerService>();
             this.InitializeComponent();
             DataContext = App.GetService<LocalizedStrings>();
             this.NavigationCacheMode = Microsoft.UI.Xaml.Navigation.NavigationCacheMode.Required;
@@ -47,6 +49,10 @@ namespace PlustekBCR.Views
             {
                 var dialog = CardPageUiHelper.CreateDeleteConfirmationDialog(card.FullName, this.XamlRoot);
                 var result = await dialog.ShowAsync();
+                if (result == ContentDialogResult.Primary)
+                {
+                    _imageViewerService.Close(card);
+                }
                 return result == ContentDialogResult.Primary;
             };
 
@@ -182,6 +188,22 @@ namespace PlustekBCR.Views
         private void OnEditInfoClicked(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
         {
             NavigateToDetail(ViewModel.SelectedCard);
+        }
+
+        private void OnOpenSidebarFrontImageViewerClicked(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
+        {
+            if (ViewModel.SelectedCard?.FrontImageData is { Length: > 0 })
+            {
+                _imageViewerService.Show(ViewModel.SelectedCard, CardImageSide.Front);
+            }
+        }
+
+        private void OnOpenSidebarBackImageViewerClicked(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
+        {
+            if (ViewModel.SelectedCard?.BackImageData is { Length: > 0 })
+            {
+                _imageViewerService.Show(ViewModel.SelectedCard, CardImageSide.Back);
+            }
         }
 
         private void OnSidebarSplitterDragDelta(object sender, Microsoft.UI.Xaml.Controls.Primitives.DragDeltaEventArgs e)

@@ -234,6 +234,13 @@
   <data name="View.CardDetail.ScanDate" xml:space="preserve"><value>Scan Date</value></data>
   <data name="View.CardDetail.ScanningBack" xml:space="preserve"><value>Scanning back side...</value></data>
   <data name="View.CardDetail.ScanningFront" xml:space="preserve"><value>Scanning front side...</value></data>
+  <data name="View.ImageViewer.ActualSize" xml:space="preserve"><value>Actual size (100%)</value></data>
+  <data name="View.ImageViewer.AlwaysOnTop" xml:space="preserve"><value>Keep viewer on top</value></data>
+  <data name="View.ImageViewer.Fit" xml:space="preserve"><value>Fit image to window</value></data>
+  <data name="View.ImageViewer.Open" xml:space="preserve"><value>Open enlarged image viewer</value></data>
+  <data name="View.ImageViewer.Title" xml:space="preserve"><value>Business Card Image Viewer</value></data>
+  <data name="View.ImageViewer.ZoomIn" xml:space="preserve"><value>Zoom in</value></data>
+  <data name="View.ImageViewer.ZoomOut" xml:space="preserve"><value>Zoom out</value></data>
   <data name="View.Drop.UploadImage" xml:space="preserve"><value>Drop to upload image</value></data>
   <data name="ZipLookup.Failed" xml:space="preserve"><value>Address lookup failed.</value></data>
   <data name="ZipLookup.LookingUp" xml:space="preserve"><value>Looking up address...</value></data>

@@ -43,6 +43,7 @@ namespace PlustekBCR
                 services.AddSingleton<LocalizedStrings>();
                 services.AddSingleton<IBusinessCardFieldService, BusinessCardFieldService>();
                 services.AddSingleton<IBusinessCardDuplicateService, BusinessCardDuplicateService>();
+                services.AddSingleton<IImageViewerService, ImageViewerService>();
                 services.AddSingleton<IZipCodeLookupService, ZipCloudLookupService>();
                 services.AddSingleton<JapanZipLookupCoordinator>();
                 services.AddSingleton(new HttpClient());
