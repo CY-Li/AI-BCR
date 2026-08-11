@@ -25,6 +25,14 @@ namespace PlustekBCR.Services
             return _fields.Where(field => Supports(field, surface, CurrentMarket)).ToList();
         }
 
+        public IReadOnlyList<BusinessCardFieldDefinition> GetDuplicateComparisonFields()
+        {
+            return _fields
+                .Where(field => field.ImportMarkets.Count > 0
+                    && DuplicateComparisonSettings.SupportedFieldKeys.Contains(field.Key))
+                .ToList();
+        }
+
         public bool IsVisible(string key, BusinessCardSurface surface)
         {
             var definition = _fields.FirstOrDefault(x => string.Equals(x.Key, key, StringComparison.Ordinal));

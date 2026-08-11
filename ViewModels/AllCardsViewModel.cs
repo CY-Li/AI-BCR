@@ -23,6 +23,8 @@ namespace PlustekBCR.ViewModels
         private readonly JapanZipLookupCoordinator _zipLookupCoordinator;
         private readonly IRecognitionQueueService _recognitionQueueService;
         private readonly ILocalizationService _localizationService;
+        private readonly IBusinessCardDuplicateService _duplicateService;
+        private readonly IApplicationSettingsService _settingsService;
         private ObservableCollection<BusinessCard> _allCards = new();
         private BusinessCard? _selectedCard;
         private BusinessCard? _subscribedCard;
@@ -33,6 +35,8 @@ namespace PlustekBCR.ViewModels
         private string _zipLookupStatusMessage = string.Empty;
         private CancellationTokenSource? _zipLookupCts;
         private bool _isApplyingZipLookupResult;
+        private DuplicateMatchResult? _selectedDuplicateMatch;
+        private bool _isResolvingDuplicate;
 
         public ObservableCollection<BusinessCard> AllCards
         {
@@ -73,6 +77,7 @@ namespace PlustekBCR.ViewModels
                     OnPropertyChanged(nameof(HasDetailDepartmentText));
                     OnPropertyChanged(nameof(DetailTelephoneText));
                     OnPropertyChanged(nameof(HasDetailTelephoneText));
+                    SyncSelectedDuplicateMatch();
                 }
             }
         }
@@ -233,6 +238,58 @@ namespace PlustekBCR.ViewModels
         public bool HasDetailTelephoneText =>
             !string.IsNullOrWhiteSpace(SelectedCard?.Tel) || !string.IsNullOrWhiteSpace(SelectedCard?.Extension);
 
+        public int PendingDuplicateCount => AllCards.Count(card => card.IsDuplicatePending);
+        public bool HasPendingDuplicates => PendingDuplicateCount > 0;
+        public string PendingDuplicateSummary => _localizationService.Format("Duplicate.PendingCount", PendingDuplicateCount);
+        public bool IsSelectedCardDuplicatePending => SelectedCard?.IsDuplicatePending == true;
+        public bool HasMultipleDuplicateMatches => SelectedDuplicateMatches.Count > 1;
+        public IReadOnlyList<DuplicateMatchResult> SelectedDuplicateMatches =>
+            SelectedCard?.DuplicateMatches is { } matches
+                ? matches
+                : Array.Empty<DuplicateMatchResult>();
+
+        public DuplicateMatchResult? SelectedDuplicateMatch
+        {
+            get => _selectedDuplicateMatch;
+            set
+            {
+                if (value == null && IsSelectedCardDuplicatePending && SelectedDuplicateMatches.Count > 0)
+                {
+                    return;
+                }
+
+                if (SetProperty(ref _selectedDuplicateMatch, value))
+                {
+                    OnPropertyChanged(nameof(DuplicateCompactSummary));
+                    OnPropertyChanged(nameof(SelectedDuplicateFieldLabels));
+                }
+            }
+        }
+
+        private DuplicateMatchResult? ActiveDuplicateMatch =>
+            SelectedDuplicateMatch ?? SelectedDuplicateMatches.FirstOrDefault();
+
+        public IReadOnlyList<string> SelectedDuplicateFieldLabels =>
+            ActiveDuplicateMatch?.MatchedFields.Select(_fieldService.GetLabel).ToList() is { } labels
+                ? labels
+                : Array.Empty<string>();
+
+        public string DuplicateCompactSummary
+        {
+            get
+            {
+                var activeMatch = ActiveDuplicateMatch;
+                if (activeMatch == null)
+                {
+                    return string.Empty;
+                }
+
+                return _localizationService.Format(
+                    "Duplicate.Compact.Target",
+                    activeMatch.ExistingDisplayName);
+            }
+        }
+
         public MainViewModel MainViewModel { get; }
 
         public AllCardsViewModel()
@@ -243,9 +300,12 @@ namespace PlustekBCR.ViewModels
             _zipLookupCoordinator = App.GetService<JapanZipLookupCoordinator>();
             _recognitionQueueService = App.GetService<IRecognitionQueueService>();
             _localizationService = App.GetService<ILocalizationService>();
+            _duplicateService = App.GetService<IBusinessCardDuplicateService>();
+            _settingsService = App.GetService<IApplicationSettingsService>();
             AllCards = new ObservableCollection<BusinessCard>();
             MainViewModel.SearchChanged += OnSearchChanged;
             _localizationService.LanguageChanged += OnLanguageChanged;
+            _settingsService.DuplicateComparisonChanged += OnDuplicateComparisonChanged;
 
             WeakReferenceMessenger.Default.Register<CardsImportedMessage>(this, (r, m) =>
             {
@@ -253,6 +313,11 @@ namespace PlustekBCR.ViewModels
                 {
                     OnCardsImported(m.Cards);
                 });
+            });
+
+            WeakReferenceMessenger.Default.Register<BusinessCardRecognitionCompletedMessage>(this, (r, m) =>
+            {
+                App.Window?.DispatcherQueue.TryEnqueue(() => EvaluateDuplicate(m.Card));
             });
         }
 
@@ -530,6 +595,10 @@ namespace PlustekBCR.ViewModels
                 {
                     cardsToProcess.Add(card);
                 }
+                else
+                {
+                    EvaluateDuplicate(card);
+                }
             }
 
             RefreshSearchResults();
@@ -704,6 +773,144 @@ namespace PlustekBCR.ViewModels
             OnPropertyChanged(nameof(ShowCardsContent));
             OnPropertyChanged(nameof(SearchResultSummary));
             OnPropertyChanged(nameof(HasNoSearchResults));
+            OnPropertyChanged(nameof(PendingDuplicateCount));
+            OnPropertyChanged(nameof(HasPendingDuplicates));
+            OnPropertyChanged(nameof(PendingDuplicateSummary));
+            OnPropertyChanged(nameof(IsSelectedCardDuplicatePending));
+            OnPropertyChanged(nameof(SelectedDuplicateMatches));
+            OnPropertyChanged(nameof(HasMultipleDuplicateMatches));
+            OnPropertyChanged(nameof(DuplicateCompactSummary));
+            OnPropertyChanged(nameof(SelectedDuplicateFieldLabels));
+        }
+
+        private void EvaluateDuplicate(BusinessCard card)
+        {
+            if (_isResolvingDuplicate || !AllCards.Contains(card))
+            {
+                return;
+            }
+
+            var matches = _duplicateService.FindMatches(card, AllCards, _settingsService.DuplicateComparison);
+            card.DuplicateMatches = matches.ToList();
+            card.DuplicateReviewState = matches.Count > 0
+                ? DuplicateReviewState.Pending
+                : DuplicateReviewState.None;
+
+            if (ReferenceEquals(SelectedCard, card))
+            {
+                SyncSelectedDuplicateMatch();
+            }
+
+            RefreshSearchResults();
+        }
+
+        private void SyncSelectedDuplicateMatch()
+        {
+            SelectedDuplicateMatch = SelectedCard?.DuplicateMatches.FirstOrDefault();
+            OnPropertyChanged(nameof(IsSelectedCardDuplicatePending));
+            OnPropertyChanged(nameof(SelectedDuplicateMatches));
+            OnPropertyChanged(nameof(HasMultipleDuplicateMatches));
+            OnPropertyChanged(nameof(DuplicateCompactSummary));
+            OnPropertyChanged(nameof(SelectedDuplicateFieldLabels));
+        }
+
+        private void OnDuplicateComparisonChanged(DuplicateComparisonSettings settings)
+        {
+            App.Window?.DispatcherQueue.TryEnqueue(() =>
+            {
+                foreach (var card in AllCards.Where(card => card.IsDuplicatePending).ToList())
+                {
+                    EvaluateDuplicate(card);
+                }
+            });
+        }
+
+        [RelayCommand]
+        private void ReplaceExistingDuplicate()
+        {
+            var activeMatch = ActiveDuplicateMatch;
+            if (SelectedCard == null || activeMatch == null)
+            {
+                return;
+            }
+
+            var candidate = SelectedCard;
+            var existing = activeMatch.ExistingCard;
+            _isResolvingDuplicate = true;
+            try
+            {
+                CopyCardContent(candidate, existing);
+                existing.DuplicateReviewState = DuplicateReviewState.None;
+                existing.DuplicateMatches = new();
+                AllCards.Remove(candidate);
+                SelectedCard = existing;
+                IsSidebarOpen = true;
+            }
+            finally
+            {
+                _isResolvingDuplicate = false;
+            }
+
+            RefreshSearchResults();
+        }
+
+        [RelayCommand]
+        private void KeepBothDuplicates()
+        {
+            if (SelectedCard == null)
+            {
+                return;
+            }
+
+            SelectedCard.DuplicateReviewState = DuplicateReviewState.Accepted;
+            SelectedCard.DuplicateMatches = new();
+            SyncSelectedDuplicateMatch();
+            RefreshSearchResults();
+        }
+
+        private static void CopyCardContent(BusinessCard source, BusinessCard target)
+        {
+            target.MarketCode = source.MarketCode;
+            target.ScanDate = source.ScanDate;
+            target.CompanyName = source.CompanyName;
+            target.Department1 = source.Department1;
+            target.Department2 = source.Department2;
+            target.Department3 = source.Department3;
+            target.Department4 = source.Department4;
+            target.DepartmentFull = source.DepartmentFull;
+            target.JobTitle = source.JobTitle;
+            target.LastName = source.LastName;
+            target.MiddleName = source.MiddleName;
+            target.FirstName = source.FirstName;
+            target.Suffix = source.Suffix;
+            target.FullName = source.FullName;
+            target.LastNameKana = source.LastNameKana;
+            target.FirstNameKana = source.FirstNameKana;
+            target.FullNameKana = source.FullNameKana;
+            target.ZipCode = source.ZipCode;
+            target.Country = source.Country;
+            target.State = source.State;
+            target.City = source.City;
+            target.AddressLine1 = source.AddressLine1;
+            target.AddressLine2 = source.AddressLine2;
+            target.FullAddress = source.FullAddress;
+            target.Tel = source.Tel;
+            target.Extension = source.Extension;
+            target.Fax = source.Fax;
+            target.Mobile = source.Mobile;
+            target.Email = source.Email;
+            target.Website = source.Website;
+            target.Notes = source.Notes.Select(note => new Note
+            {
+                Id = note.Id,
+                CreatedAt = note.CreatedAt,
+                Content = note.Content
+            }).ToList();
+            target.Tag = source.Tag;
+            target.FrontImageData = source.FrontImageData?.ToArray();
+            target.BackImageData = source.BackImageData?.ToArray();
+            target.Status = source.Status;
+            target.IsAutoScanSession = source.IsAutoScanSession;
         }
 
         private async Task ProcessRecognitionQueueAsync(List<BusinessCard> cardsToProcess)
@@ -773,6 +980,16 @@ namespace PlustekBCR.ViewModels
                 return;
             }
 
+            if (!_isResolvingDuplicate && IsDuplicateComparisonProperty(e.PropertyName))
+            {
+                if (card.DuplicateReviewState == DuplicateReviewState.Accepted)
+                {
+                    card.DuplicateReviewState = DuplicateReviewState.None;
+                }
+
+                EvaluateDuplicate(card);
+            }
+
             switch (e.PropertyName)
             {
                 case nameof(BusinessCard.ZipCode):
@@ -818,6 +1035,19 @@ namespace PlustekBCR.ViewModels
             }
         }
 
+        private bool IsDuplicateComparisonProperty(string? propertyName)
+        {
+            if (string.IsNullOrWhiteSpace(propertyName))
+            {
+                return false;
+            }
+
+            var selectedFields = _settingsService.DuplicateComparison.Fields;
+            return _fieldService.GetDuplicateComparisonFields().Any(definition =>
+                selectedFields.Contains(definition.Key, StringComparer.OrdinalIgnoreCase)
+                && string.Equals(definition.PropertyName, propertyName, StringComparison.Ordinal));
+        }
+
         private async Task TriggerZipLookupAsync(string? zipCode)
         {
             if (_fieldService.CurrentMarket != MarketCode.JP)
@@ -861,6 +1091,9 @@ namespace PlustekBCR.ViewModels
             OnPropertyChanged(nameof(DetailTelephoneText));
             OnPropertyChanged(nameof(SearchResultSummary));
             OnPropertyChanged(nameof(GroupedCards));
+            OnPropertyChanged(nameof(PendingDuplicateSummary));
+            OnPropertyChanged(nameof(DuplicateCompactSummary));
+            OnPropertyChanged(nameof(SelectedDuplicateFieldLabels));
         }
     }
 

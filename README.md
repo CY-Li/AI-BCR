@@ -20,6 +20,28 @@ Windows 桌面名片管理與 AI OCR 整合專案。
 - 日本郵遞區號查詢
 - UI 語言切換
 - 更新檢查
+- 掃描／匯入名片的重複比對與待確認流程
+- 可自訂比對欄位、OR／AND 條件與快捷規則
+
+## 重複名片比對
+
+系統會在 CSV／XLSX 匯入完成後，以及圖片或掃描名片 OCR 成功後，將新名片與目前記憶體中的名片集合比對。預設規則為 `Email + OR`。
+
+- `OR`：任一選定且非空白的欄位相同即列為候選
+- `AND`：所有選定欄位在雙方皆有值且相同才列為候選
+- 一般文字會執行 Unicode FormKC、Trim、連續空白合併及不分大小寫比較
+- 電話、分機、傳真與手機會額外忽略空白、括號及連字號
+- 空白值不會互相命中，且同一個名片 ID 不會與自身比對
+- 同一批匯入依序加入與比對，因此可找出批次內的重複資料
+
+疑似重複資料會保留在集合中並標記為待確認，不會中止自動掃描。側欄提供：
+
+- `Replace`：以新資料完整覆蓋選定既有名片，但保留既有名片 ID，之後移除新候選
+- `Keep both`：保留兩筆並將本次候選標記為已確認
+
+Settings 的 General 頁可選擇欄位與 OR／AND，並提供 `Email only`、`Name + Company`、`Contact methods`、`Custom`。設定儲存於 `appsettings.json` 的 `DuplicateDetection` 節點；缺少、損壞或沒有有效欄位時會回退至 Email／OR。
+
+> 目前名片、候選結果與審核狀態只存在應用程式記憶體，尚未接資料庫或外部 API。
 
 ## 技術棧
 
@@ -50,6 +72,7 @@ Windows 桌面名片管理與 AI OCR 整合專案。
   - `AllCardsViewModel`
   - `CardDetailViewModel`
   - `EmptyViewModel`
+  - `DuplicateSettingsViewModel`
 
 - `Services/`
   - 設定、更新、本地化、標籤 catalog、郵遞區號查詢、辨識 queue、Plustek Console 整合
@@ -109,6 +132,8 @@ dotnet build .\PlustekBCR.csproj
 - `PlustekConsole.JP`
 - `PlustekConsole.US`
 - `BusinessCard.CurrentMarket`
+- `DuplicateDetection.MatchOperator`
+- `DuplicateDetection.Fields`
 
 這些設定會被下列服務讀寫：
 
@@ -116,6 +141,20 @@ dotnet build .\PlustekBCR.csproj
 - `LocalizationService`
 - `TagCatalogService`
 - `UpdateService`
+
+## 測試
+
+```powershell
+dotnet test .\PlustekBCR.Tests\PlustekBCR.Tests.csproj
+dotnet build .\PlustekBCR.csproj
+```
+
+目前重複比對服務包含 9 項單元測試，涵蓋 Email／Unicode／空白、電話格式、OR／AND、空值、多候選、自身排除與無效設定回退。
+
+## 變更與交接文件
+
+- [CHANGELOG.md](CHANGELOG.md)：本輪重複比對、Settings UI 與 AI 圖示變更
+- [docs/backend-handover.md](docs/backend-handover.md)：既有後端交接文件
 
 ## 更新機制
 

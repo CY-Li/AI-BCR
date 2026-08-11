@@ -239,4 +239,52 @@
   <data name="ZipLookup.LookingUp" xml:space="preserve"><value>Looking up address...</value></data>
   <data name="ZipLookup.NotFound" xml:space="preserve"><value>Address not found.</value></data>
   <data name="ZipLookup.Updated" xml:space="preserve"><value>Address updated.</value></data>
+  <data name="Settings.Duplicate.Title" xml:space="preserve"><value>Duplicate card comparison</value></data>
+  <data name="Settings.Duplicate.Description" xml:space="preserve"><value>Choose the fields used to compare scanned or imported cards with the currently loaded cards.</value></data>
+  <data name="Settings.Duplicate.Fields" xml:space="preserve"><value>Comparison fields</value></data>
+  <data name="Settings.Duplicate.Condition" xml:space="preserve"><value>Match condition</value></data>
+  <data name="Settings.Duplicate.Operator.Or" xml:space="preserve"><value>Match any selected field (OR)</value></data>
+  <data name="Settings.Duplicate.Operator.And" xml:space="preserve"><value>Match all selected fields (AND)</value></data>
+  <data name="Settings.Duplicate.Validation.FieldRequired" xml:space="preserve"><value>Select at least one comparison field.</value></data>
+  <data name="Settings.Duplicate.SaveError" xml:space="preserve"><value>The duplicate comparison settings could not be saved. The previous rule is still active.</value></data>
+  <data name="Settings.Duplicate.Summary" xml:space="preserve"><value>Current rule: {0}</value></data>
+  <data name="Settings.Duplicate.Summary.OrSeparator" xml:space="preserve"><value> OR </value></data>
+  <data name="Settings.Duplicate.Summary.AndSeparator" xml:space="preserve"><value> AND </value></data>
+  <data name="Settings.Duplicate.SelectedCount" xml:space="preserve"><value>{0} field(s) selected</value></data>
+  <data name="Settings.Duplicate.Preset.Custom" xml:space="preserve"><value>Custom</value></data>
+  <data name="Settings.Duplicate.Preset.Custom.Description" xml:space="preserve"><value>Choose your own fields and match condition below.</value></data>
+  <data name="Settings.Duplicate.Status.Saving" xml:space="preserve"><value>Saving…</value></data>
+  <data name="Settings.Duplicate.Status.Saved" xml:space="preserve"><value>Saved</value></data>
+  <data name="Settings.Duplicate.Status.Failed" xml:space="preserve"><value>Save failed</value></data>
+  <data name="Settings.Duplicate.Group.Identity" xml:space="preserve"><value>Identity and company</value></data>
+  <data name="Settings.Duplicate.Group.Contact" xml:space="preserve"><value>Contact methods</value></data>
+  <data name="Settings.Duplicate.Group.Address" xml:space="preserve"><value>Address</value></data>
+  <data name="Settings.Duplicate.Group.Advanced" xml:space="preserve"><value>Advanced fields</value></data>
+  <data name="Settings.Duplicate.Operator.Or.Title" xml:space="preserve"><value>Match any field (OR)</value></data>
+  <data name="Settings.Duplicate.Operator.Or.Description" xml:space="preserve"><value>Flags a card when at least one selected field matches. More sensitive.</value></data>
+  <data name="Settings.Duplicate.Operator.And.Title" xml:space="preserve"><value>Match all fields (AND)</value></data>
+  <data name="Settings.Duplicate.Operator.And.Description" xml:space="preserve"><value>Flags a card only when every selected field matches. More precise.</value></data>
+  <data name="Settings.Duplicate.Preset.Email.Title" xml:space="preserve"><value>Email only</value></data>
+  <data name="Settings.Duplicate.Preset.Email.Description" xml:space="preserve"><value>Fast and reliable for most contacts.</value></data>
+  <data name="Settings.Duplicate.Preset.NameCompany.Title" xml:space="preserve"><value>Name + Company</value></data>
+  <data name="Settings.Duplicate.Preset.NameCompany.Description" xml:space="preserve"><value>Both fields must match.</value></data>
+  <data name="Settings.Duplicate.Preset.Contact.Title" xml:space="preserve"><value>Contact methods</value></data>
+  <data name="Settings.Duplicate.Preset.Contact.Description" xml:space="preserve"><value>Email, telephone, or mobile can match.</value></data>
+  <data name="Settings.Duplicate.Presets.Title" xml:space="preserve"><value>Quick rules</value></data>
+  <data name="Settings.Duplicate.Presets.Description" xml:space="preserve"><value>Start with a recommended rule, then fine-tune the fields below.</value></data>
+  <data name="Settings.Duplicate.CurrentRule" xml:space="preserve"><value>Current rule</value></data>
+  <data name="Duplicate.Badge" xml:space="preserve"><value>Possible duplicate</value></data>
+  <data name="Duplicate.PendingCount" xml:space="preserve"><value>{0} duplicate(s) need review</value></data>
+  <data name="Duplicate.Review.Title" xml:space="preserve"><value>Possible duplicate found</value></data>
+  <data name="Duplicate.Review.Description" xml:space="preserve"><value>Review the new card against the matching existing card. Scanning can continue while this waits.</value></data>
+  <data name="Duplicate.Review.NewCard" xml:space="preserve"><value>New card</value></data>
+  <data name="Duplicate.Review.ExistingCard" xml:space="preserve"><value>Existing card</value></data>
+  <data name="Duplicate.Action.KeepExisting" xml:space="preserve"><value>Keep existing</value></data>
+  <data name="Duplicate.Action.Replace" xml:space="preserve"><value>Replace existing</value></data>
+  <data name="Duplicate.Action.KeepBoth" xml:space="preserve"><value>Keep both</value></data>
+  <data name="Duplicate.Compact.Title" xml:space="preserve"><value>Possible duplicate</value></data>
+  <data name="Duplicate.Compact.Summary" xml:space="preserve"><value>{0} matches {1}</value></data>
+  <data name="Duplicate.Compact.Target" xml:space="preserve"><value>Matches existing card: {0}</value></data>
+  <data name="Settings.LanguageRegion.Title" xml:space="preserve"><value>Language and region</value></data>
+  <data name="Settings.LanguageRegion.Description" xml:space="preserve"><value>Configure the market-specific field set and the operator interface language.</value></data>
 </root>

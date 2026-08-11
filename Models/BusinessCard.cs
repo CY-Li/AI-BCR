@@ -139,11 +139,18 @@ namespace PlustekBCR.Models
         [ObservableProperty]
         public partial bool IsAutoScanSession { get; set; }
 
+        [ObservableProperty]
+        public partial DuplicateReviewState DuplicateReviewState { get; set; }
+
+        [ObservableProperty]
+        public partial List<DuplicateMatchResult> DuplicateMatches { get; set; }
+
         public bool SuppressAutoZipLookup { get; set; }
 
         public bool IsQueued => Status == ProcessingStatus.Pending;
         public bool IsRecognizing => Status == ProcessingStatus.Recognizing;
         public bool IsAiReprocessAvailable => !IsQueued && !IsRecognizing;
+        public bool IsDuplicatePending => DuplicateReviewState == DuplicateReviewState.Pending;
         public string DisplayName => !string.IsNullOrWhiteSpace(FullName) ? FullName : BusinessCardAddressHelper.ComposeFullName(MarketCode, FirstName, MiddleName, LastName, Suffix);
 
         partial void OnStatusChanged(ProcessingStatus value)
@@ -151,6 +158,11 @@ namespace PlustekBCR.Models
             OnPropertyChanged(nameof(IsQueued));
             OnPropertyChanged(nameof(IsRecognizing));
             OnPropertyChanged(nameof(IsAiReprocessAvailable));
+        }
+
+        partial void OnDuplicateReviewStateChanged(DuplicateReviewState value)
+        {
+            OnPropertyChanged(nameof(IsDuplicatePending));
         }
 
         partial void OnFirstNameChanged(string value) => SyncDerivedIdentityAndAddress();
@@ -212,6 +224,8 @@ namespace PlustekBCR.Models
             Tag = string.Empty;
             Status = ProcessingStatus.Pending;
             IsAutoScanSession = false;
+            DuplicateReviewState = DuplicateReviewState.None;
+            DuplicateMatches = new();
         }
 
         public void PopulateDerivedFieldsFromStructuredValues()

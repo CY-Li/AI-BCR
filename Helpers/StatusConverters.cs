@@ -137,6 +137,19 @@ namespace PlustekBCR.Helpers
         public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
     }
 
+    public class DuplicateReviewStateToStringConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, string language)
+        {
+            return value is DuplicateReviewState.Pending
+                ? App.GetService<ILocalizationService>().GetString("Duplicate.Badge")
+                : string.Empty;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, string language) =>
+            throw new NotImplementedException();
+    }
+
     public class BoolToVisibilityConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, string language)

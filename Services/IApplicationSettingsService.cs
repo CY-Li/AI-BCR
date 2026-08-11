@@ -12,8 +12,11 @@ namespace PlustekBCR.Services
         event Action<string>? CurrentUiLanguageChanged;
         bool IsAiEnabled { get; }
         event Action<bool>? AiEnabledChanged;
+        DuplicateComparisonSettings DuplicateComparison { get; }
+        event Action<DuplicateComparisonSettings>? DuplicateComparisonChanged;
         Task SetCurrentMarketAsync(MarketCode market);
         Task SetCurrentUiLanguageAsync(string languageTag);
         Task SetAiEnabledAsync(bool isEnabled);
+        Task SetDuplicateComparisonAsync(DuplicateComparisonSettings settings);
     }
 }

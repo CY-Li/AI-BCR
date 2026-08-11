@@ -15,14 +15,17 @@ namespace PlustekBCR.Services
         private MarketCode _currentMarket;
         private string _currentUiLanguage;
         private bool _isAiEnabled;
+        private DuplicateComparisonSettings _duplicateComparison;
 
         public event Action<MarketCode>? CurrentMarketChanged;
         public event Action<string>? CurrentUiLanguageChanged;
         public event Action<bool>? AiEnabledChanged;
+        public event Action<DuplicateComparisonSettings>? DuplicateComparisonChanged;
 
         public MarketCode CurrentMarket => _currentMarket;
         public string CurrentUiLanguage => _currentUiLanguage;
         public bool IsAiEnabled => _isAiEnabled;
+        public DuplicateComparisonSettings DuplicateComparison => _duplicateComparison.Clone();
 
         public ApplicationSettingsService()
         {
@@ -30,6 +33,7 @@ namespace PlustekBCR.Services
             _currentMarket = LoadCurrentMarket();
             _currentUiLanguage = LoadCurrentUiLanguage();
             _isAiEnabled = LoadAiEnabled();
+            _duplicateComparison = LoadDuplicateComparison();
         }
 
         public async Task SetCurrentMarketAsync(MarketCode market)
@@ -67,6 +71,20 @@ namespace PlustekBCR.Services
             _isAiEnabled = isEnabled;
             await SaveAiEnabledAsync(isEnabled);
             AiEnabledChanged?.Invoke(_isAiEnabled);
+        }
+
+        public async Task SetDuplicateComparisonAsync(DuplicateComparisonSettings settings)
+        {
+            var normalized = NormalizeDuplicateComparison(settings);
+            if (_duplicateComparison.MatchOperator == normalized.MatchOperator
+                && _duplicateComparison.Fields.SequenceEqual(normalized.Fields, StringComparer.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            await SaveDuplicateComparisonAsync(normalized);
+            _duplicateComparison = normalized;
+            DuplicateComparisonChanged?.Invoke(_duplicateComparison.Clone());
         }
 
         private MarketCode LoadCurrentMarket()
@@ -128,6 +146,37 @@ namespace PlustekBCR.Services
             {
                 Debug.WriteLine($"Load AI enabled failed: {ex.Message}");
                 return true;
+            }
+        }
+
+        private DuplicateComparisonSettings LoadDuplicateComparison()
+        {
+            try
+            {
+                if (!File.Exists(_settingsPath))
+                {
+                    return DuplicateComparisonSettings.Default;
+                }
+
+                var root = JsonNode.Parse(File.ReadAllText(_settingsPath)) as JsonObject;
+                var section = root?["DuplicateDetection"] as JsonObject;
+                var configuredOperator = section?["MatchOperator"]?.ToString();
+                var fields = section?["Fields"] is JsonArray fieldArray
+                    ? fieldArray.Select(value => value?.ToString() ?? string.Empty).ToList()
+                    : new List<string>();
+
+                return NormalizeDuplicateComparison(new DuplicateComparisonSettings
+                {
+                    MatchOperator = Enum.TryParse<DuplicateMatchOperator>(configuredOperator, true, out var parsed)
+                        ? parsed
+                        : DuplicateMatchOperator.Or,
+                    Fields = fields
+                });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Load duplicate comparison failed: {ex.Message}");
+                return DuplicateComparisonSettings.Default;
             }
         }
 
@@ -213,6 +262,60 @@ namespace PlustekBCR.Services
             {
                 Debug.WriteLine($"Save AI enabled failed: {ex.Message}");
             }
+        }
+
+        private async Task SaveDuplicateComparisonAsync(DuplicateComparisonSettings settings)
+        {
+            try
+            {
+                JsonObject root;
+                if (File.Exists(_settingsPath))
+                {
+                    root = JsonNode.Parse(await File.ReadAllTextAsync(_settingsPath)) as JsonObject ?? new JsonObject();
+                }
+                else
+                {
+                    root = new JsonObject();
+                }
+
+                root["DuplicateDetection"] = new JsonObject
+                {
+                    ["MatchOperator"] = settings.MatchOperator.ToString(),
+                    ["Fields"] = new JsonArray(settings.Fields
+                        .Select(field => (JsonNode?)JsonValue.Create(field))
+                        .ToArray())
+                };
+
+                await File.WriteAllTextAsync(
+                    _settingsPath,
+                    root.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Save duplicate comparison failed: {ex.Message}");
+                throw;
+            }
+        }
+
+        private static DuplicateComparisonSettings NormalizeDuplicateComparison(DuplicateComparisonSettings? settings)
+        {
+            var fields = settings?.Fields?
+                .Where(field => !string.IsNullOrWhiteSpace(field)
+                    && DuplicateComparisonSettings.SupportedFieldKeys.Contains(field))
+                .Select(field => field.Trim().ToLowerInvariant())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList() ?? new List<string>();
+
+            if (fields.Count == 0)
+            {
+                fields.Add("email");
+            }
+
+            return new DuplicateComparisonSettings
+            {
+                MatchOperator = settings?.MatchOperator ?? DuplicateMatchOperator.Or,
+                Fields = fields
+            };
         }
 
         private static MarketCode ParseMarket(string? configured)

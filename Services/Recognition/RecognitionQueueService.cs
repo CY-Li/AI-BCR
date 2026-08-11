@@ -78,6 +78,7 @@ namespace PlustekBCR.Services.Recognition
                     card.Status = ProcessingStatus.Done;
                     AppendRecognitionNote(card, "Automatically recognized and parsed by Document Agent.");
                 });
+                WeakReferenceMessenger.Default.Send(new BusinessCardRecognitionCompletedMessage(card));
             }
             catch (Exception ex)
             {

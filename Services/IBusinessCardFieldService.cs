@@ -7,6 +7,7 @@ namespace PlustekBCR.Services
     {
         MarketCode CurrentMarket { get; }
         IReadOnlyList<BusinessCardFieldDefinition> GetFields(BusinessCardSurface surface);
+        IReadOnlyList<BusinessCardFieldDefinition> GetDuplicateComparisonFields();
         bool IsVisible(string key, BusinessCardSurface surface);
         string GetLabel(string key);
         string[] GetCsvHeaders(BusinessCardSurface surface);

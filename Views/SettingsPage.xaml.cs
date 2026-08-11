@@ -8,6 +8,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System;
 using System.Runtime.CompilerServices;
+using PlustekBCR.ViewModels;
 
 namespace PlustekBCR.Views
 {
@@ -15,6 +16,7 @@ namespace PlustekBCR.Views
     {
         private readonly IApplicationSettingsService _settingsService;
         private readonly ILocalizationService _localizationService;
+        public DuplicateSettingsViewModel DuplicateViewModel { get; }
         private readonly ObservableCollection<SelectionOption> _marketOptions = new();
         private readonly ObservableCollection<SelectionOption> _uiLanguageOptions = new();
         private bool _isSyncingSelection;
@@ -24,6 +26,7 @@ namespace PlustekBCR.Views
         {
             _settingsService = App.GetService<IApplicationSettingsService>();
             _localizationService = App.GetService<ILocalizationService>();
+            DuplicateViewModel = App.GetService<DuplicateSettingsViewModel>();
             InitializeComponent();
             DataContext = App.GetService<LocalizedStrings>();
             LanguageComboBox.ItemsSource = _marketOptions;

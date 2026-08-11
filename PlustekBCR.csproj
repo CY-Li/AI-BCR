@@ -50,6 +50,7 @@
 
     <ItemGroup>
         <None Remove="PlustekBCR.slnx" />
+        <Compile Remove="PlustekBCR.Tests\**\*.cs" />
     </ItemGroup>
     
     <ItemGroup>
