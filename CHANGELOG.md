@@ -1,5 +1,30 @@
 # Change Log
 
+## 2026-08-11 — 獨立圖片 Viewer
+
+### 操作與介面
+
+- All Cards 右側預覽與 Card Detail 詳細頁統一為直接點擊正面／背面圖片開啟 Viewer，不另外顯示放大按鈕。
+- 新增可移動、可調整大小並可放置到第二螢幕的獨立工具視窗；同時間只保留一個 Viewer。
+- 支援正反面切換、25%～400% 縮放、25% 步進、100%、適合視窗、置頂切換及 `Esc` 關閉。
+- 滑鼠滾輪可直接以游標位置為中心縮放；圖片大於可視範圍時可拖曳平移。
+- 工具列移除額外 Close 按鈕，保留 Windows 標題列關閉按鈕；圖示按鈕使用零 padding，避免小尺寸下裁切。
+
+### 顯示與生命週期
+
+- Viewer 使用 Canvas 保存完整縮放圖片，再由最外層 Viewport 裁切目前不可見區域，避免 Grid／RenderTransform 在平移前永久裁掉圖片內容。
+- 適合視窗時顯示完整圖片；放大後可拖曳到所有邊緣，不會只移動已裁切的中央區域。
+- Viewer 固定顯示開啟時的名片；再次從其他名片開啟時更新同一視窗。
+- 圖片重新掃描、上傳或刪除時同步更新；目前面不存在時切到另一面，兩面皆空、刪除名片或關閉主程式時關閉 Viewer。
+- 置頂選擇在本次程式執行期間保留，視窗關閉時解除名片與語言事件訂閱。
+
+### 架構與驗證
+
+- 新增 `IImageViewerService`／`ImageViewerService`、`CardImageSide`、`ImageViewerState` 與 `ImageViewerWindow`，由 DI singleton 管理視窗生命週期。
+- UI 專屬的視窗、指標與 Canvas 定位保留在 WinUI code-behind；縮放範圍、面別 fallback 與置頂狀態保持 UI 無關，方便後續替換成 WPF Window。
+- 未修改 OCR JSON schema、名片持久化格式、掃描流程或外部 API。
+- 最終驗證：`dotnet test` 19/19 通過；Release `dotnet build` 0 警告、0 錯誤。
+
 ## 2026-08-11 — 重複名片比對、待確認流程與 Settings UI
 
 本次變更以 WinUI 3 原型驗證工作流程；新增核心邏輯維持 UI 無關，後續仍應依專案政策遷移至 WPF／MVVM。未修改 OCR JSON schema、OCR endpoint、掃描器協定或外部 API。

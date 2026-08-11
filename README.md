@@ -16,12 +16,28 @@ Windows 桌面名片管理與 AI OCR 整合專案。
 - 匯入 CSV / XLSX
 - 匯入圖片
 - 圖片上傳與拖放
+- 獨立名片圖片 Viewer（縮放、平移、正反面切換與置頂）
 - AI 辨識 queue 與失敗 fallback
 - 日本郵遞區號查詢
 - UI 語言切換
 - 更新檢查
 - 掃描／匯入名片的重複比對與待確認流程
 - 可自訂比對欄位、OR／AND 條件與快捷規則
+
+## 圖片 Viewer
+
+在 All Cards 右側預覽或名片詳細頁直接點擊正面／背面圖片，即可開啟獨立圖片 Viewer。Viewer 維持單一視窗，可移動到第二螢幕並在主畫面繼續核對或編輯欄位。
+
+- 滑鼠滾輪：以游標位置為中心放大／縮小
+- 滑鼠拖曳：圖片大於可視範圍時平移查看完整內容
+- `-`／`+`：以 25% 步進縮放，範圍為 25%～400%
+- `100%`：回到原始尺寸並重設平移位置
+- 適合視窗：完整顯示圖片並隨 Viewer 尺寸調整
+- Front Side／Back Side：切換存在的正反面圖片
+- 置頂：預設啟用，可從工具列切換；本次程式執行期間保留選擇
+- `Esc` 或 Windows 標題列關閉按鈕：關閉 Viewer
+
+Viewer 會固定顯示開啟時的名片，不會因主畫面選取其他名片而自動切換；重新掃描、上傳或刪除該名片圖片時會同步更新。刪除目前顯示的名片或關閉主程式時，Viewer 會一併關閉。
 
 ## 重複名片比對
 
@@ -69,6 +85,7 @@ Settings 的 General 頁可選擇欄位與 OR／AND，並提供 `Email only`、`
   - `MainWindow`
   - `AllCardsPage`
   - `CardDetailPage`
+  - `ImageViewerWindow`
   - `ImportDialog`
   - `SettingsPage`
   - `EmptyPage`
@@ -79,9 +96,10 @@ Settings 的 General 頁可選擇欄位與 OR／AND，並提供 `Email only`、`
   - `CardDetailViewModel`
   - `EmptyViewModel`
   - `DuplicateSettingsViewModel`
+  - `ImageViewerState`
 
 - `Services/`
-  - 設定、更新、本地化、標籤 catalog、郵遞區號查詢、辨識 queue、Plustek Console 整合
+  - 設定、更新、本地化、標籤 catalog、郵遞區號查詢、圖片 Viewer、辨識 queue、Plustek Console 整合
 
 - `Models/`
   - 名片資料、辨識模型、查詢選項、狀態列舉
