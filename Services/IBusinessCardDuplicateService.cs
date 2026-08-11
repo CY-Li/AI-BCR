@@ -9,6 +9,10 @@ namespace PlustekBCR.Services
             IEnumerable<BusinessCard> existingCards,
             DuplicateComparisonSettings settings);
 
+        void RebuildReviewStates(
+            IReadOnlyList<BusinessCard> cards,
+            DuplicateComparisonSettings settings);
+
         bool IsSupportedField(string fieldKey);
     }
 }

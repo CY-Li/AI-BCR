@@ -280,11 +280,17 @@
   <data name="Duplicate.Review.NewCard" xml:space="preserve"><value>New card</value></data>
   <data name="Duplicate.Review.ExistingCard" xml:space="preserve"><value>Existing card</value></data>
   <data name="Duplicate.Action.KeepExisting" xml:space="preserve"><value>Keep existing</value></data>
-  <data name="Duplicate.Action.Replace" xml:space="preserve"><value>Replace existing</value></data>
+  <data name="Duplicate.Action.Replace" xml:space="preserve"><value>Replace</value></data>
   <data name="Duplicate.Action.KeepBoth" xml:space="preserve"><value>Keep both</value></data>
   <data name="Duplicate.Compact.Title" xml:space="preserve"><value>Possible duplicate</value></data>
   <data name="Duplicate.Compact.Summary" xml:space="preserve"><value>{0} matches {1}</value></data>
   <data name="Duplicate.Compact.Target" xml:space="preserve"><value>Matches existing card: {0}</value></data>
   <data name="Settings.LanguageRegion.Title" xml:space="preserve"><value>Language and region</value></data>
   <data name="Settings.LanguageRegion.Description" xml:space="preserve"><value>Configure the market-specific field set and the operator interface language.</value></data>
+  <data name="Duplicate.Action.Keep" xml:space="preserve"><value>Keep</value></data>
+  <data name="Duplicate.Action.ReplaceMultiple" xml:space="preserve"><value>Replace {0} duplicates</value></data>
+  <data name="Duplicate.Compact.MultipleTarget" xml:space="preserve"><value>Matches {0} existing cards</value></data>
+  <data name="Dialog.ReplaceDuplicate.Title" xml:space="preserve"><value>Replace duplicate?</value></data>
+  <data name="Dialog.ReplaceDuplicate.Message" xml:space="preserve"><value>This will delete the matching existing card and keep only '{1}'. This action cannot be undone.</value></data>
+  <data name="Dialog.ReplaceDuplicates.Message" xml:space="preserve"><value>This will delete {0} matching existing cards and keep only '{1}'. This action cannot be undone.</value></data>
 </root>

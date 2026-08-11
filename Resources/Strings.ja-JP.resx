@@ -279,11 +279,17 @@
   <data name="Duplicate.Review.NewCard" xml:space="preserve"><value>新しい名刺</value></data>
   <data name="Duplicate.Review.ExistingCard" xml:space="preserve"><value>既存の名刺</value></data>
   <data name="Duplicate.Action.KeepExisting" xml:space="preserve"><value>既存を保持</value></data>
-  <data name="Duplicate.Action.Replace" xml:space="preserve"><value>既存を置換</value></data>
+  <data name="Duplicate.Action.Replace" xml:space="preserve"><value>置換</value></data>
   <data name="Duplicate.Action.KeepBoth" xml:space="preserve"><value>両方を保持</value></data>
   <data name="Duplicate.Compact.Title" xml:space="preserve"><value>重複の可能性</value></data>
   <data name="Duplicate.Compact.Summary" xml:space="preserve"><value>{0} が {1} と一致しています</value></data>
   <data name="Duplicate.Compact.Target" xml:space="preserve"><value>既存の名刺「{0}」と一致しています</value></data>
   <data name="Settings.LanguageRegion.Title" xml:space="preserve"><value>言語と地域</value></data>
   <data name="Settings.LanguageRegion.Description" xml:space="preserve"><value>市場別の項目セットとオペレーター画面の表示言語を設定します。</value></data>
+  <data name="Duplicate.Action.Keep" xml:space="preserve"><value>保持</value></data>
+  <data name="Duplicate.Action.ReplaceMultiple" xml:space="preserve"><value>重複 {0} 件を置換</value></data>
+  <data name="Duplicate.Compact.MultipleTarget" xml:space="preserve"><value>既存の名刺 {0} 件と一致</value></data>
+  <data name="Dialog.ReplaceDuplicate.Title" xml:space="preserve"><value>重複する名刺を置換しますか？</value></data>
+  <data name="Dialog.ReplaceDuplicate.Message" xml:space="preserve"><value>一致する既存の名刺を削除し、「{1}」のみを残します。この操作は元に戻せません。</value></data>
+  <data name="Dialog.ReplaceDuplicates.Message" xml:space="preserve"><value>一致する既存の名刺 {0} 件を削除し、「{1}」のみを残します。この操作は元に戻せません。</value></data>
 </root>

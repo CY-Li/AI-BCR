@@ -15,6 +15,8 @@
   - `tel`、`extension`、`fax`、`mobile`：再移除空白、`-`、`(`、`)`。
   - 空值永不命中；排除相同名片 ID。
 - 一次比對可回傳多筆既有候選，且每筆保留實際命中的欄位 key。
+- 新增集合級 `RebuildReviewStates`，依 `AllCards` 順序只與較早且已完成 OCR 的名片比對；刪除、Replace、OCR 完成、欄位編輯與設定變更後會自動重建。
+- 重建會清除失效候選參照並保留 Accepted；`Pending`／`Recognizing` 名片在完成前不參與比對。
 
 ### 設定契約
 
@@ -47,17 +49,18 @@ Task SetDuplicateComparisonAsync(DuplicateComparisonSettings settings);
 - CSV／XLSX 等已完成欄位映射的資料：加入 `AllCards` 後立即比對。
 - 圖片／掃描資料：先加入辨識佇列，OCR 成功並收到 `BusinessCardRecognitionCompletedMessage` 後比對。
 - 批次匯入逐筆加入集合後比對，因此後面的資料可以命中同批較早加入的資料。
-- 編輯目前選定名片的已啟用比對欄位時會重新檢查；已執行 Keep both 的名片若再修改相關欄位，會解除 Accepted 並重新判定。
+- 編輯目前選定名片的已啟用比對欄位時會重建整個集合；已執行 Keep 的名片若再修改相關欄位，會解除 Accepted 並重新判定。
 - OCR 失敗仍維持原本手動流程，重複判定不會中止掃描或建立 Modal。
 - `DuplicateReviewState` 與既有 OCR `ProcessingStatus` 分離，避免審核狀態污染辨識流程。
 
 ### 待確認行為
 
 - 候選名片顯示 `Possible duplicate` 徽章，工作區顯示待確認數量。
-- 精簡橫幅顯示命中的既有名片與欄位；只有多筆候選時顯示目標選擇器。
-- `Replace`：將候選所有名片內容（包含空值、圖片與狀態）複製至選定既有名片，只保留既有 ID，再從集合移除候選。
-- `Keep both`：保留兩筆，候選設為 `Accepted` 並清除本次候選清單，避免立即再次提示。
-- 已移除 `Keep existing`；Replace 不再顯示二次確認視窗。
+- 精簡橫幅顯示命中欄位；單筆顯示既有名片名稱，多筆顯示既有名片數量，不再提供目標選擇器。
+- 橫幅與 Replace 目標改為即時查詢全部已完成 OCR 的名片；新增第三張重複名片後，第二張的摘要也會同步反映完整相符數量，同時不改變內部單向審核關係。
+- `Replace`：按鈕固定顯示 `Replace`；確認視窗會顯示實際刪除筆數並以 Cancel 為預設焦點。確認前重新比對整個集合，刪除所有與目前候選相符的其他名片，只保留目前候選及其原始 ID、圖片與內容，之後重建其餘候選關係。
+- `Keep`：保留目前候選與全部既有名片，候選設為 `Accepted` 並一次清除它的全部提示。
+- 已移除 `Keep existing`／`Keep both` 與選定覆蓋目標；Replace 執行前會顯示不可復原提示，且不要求逐筆選擇目標。
 
 ### Settings 與介面調整
 
@@ -83,13 +86,14 @@ Task SetDuplicateComparisonAsync(DuplicateComparisonSettings settings);
 
 - 現有 `AllCards`、候選清單、`DuplicateReviewState` 都是記憶體資料；關閉應用程式後不保存。
 - 「現有資料」只代表目前載入的 `AllCards`，尚未查詢 ERP、資料庫或遠端 API。
-- 設定變更目前只重新計算仍為 Pending 的候選；若新規則變寬，原本非候選的既有名片不會被全量重掃。接入持久層時應決定由後端查詢、索引或背景工作負責全量重算。
-- Replace 目前是 ViewModel 內的記憶體物件完整複製。接入資料庫後必須以 transaction／concurrency token 保護，並明確定義圖片、審計欄位與外部 ERP ID 的覆蓋規則。
+- 設定變更會在目前記憶體集合執行 O(n²) 順序重建；接入大量持久化資料後，應由後端查詢、索引或背景工作取代全量記憶體掃描。
+- Replace 目前會刪除全部命中的既有記憶體物件並保留新候選 ID。接入資料庫後必須以 transaction／concurrency token 保護，並處理外部 ERP 關聯與刪除審計。
+- `BusinessCard.DuplicateMatches` 是依集合順序建立的單向審核關係，不能直接當成 Replace 的完整刪除集合；側欄與 Replace 必須以目前候選重新查詢全部已完成 OCR 的資料。後端實作也應分開「穩定審核狀態」與「即時完整相符集合」。
 - Accepted 目前是一次 UI session 的抑制狀態；若後端需要跨裝置或跨 session 保留，應新增持久化審核紀錄，而不是重用 OCR status。
 - 支援欄位 key 定義於 `DuplicateComparisonSettings.SupportedFieldKeys`，並由 `BusinessCardDuplicateService` 映射到 `BusinessCard` 屬性。若 API schema 改名，必須維持 key 相容或提供版本轉換。
 - OCR 完成透過 CommunityToolkit Messenger 傳遞；未來若改為後端 job/event，需維持「資料完整後才比對」與「失敗不阻塞掃描」兩項不變條件。
 
 ### 驗證
 
-- 新增 9 項 `BusinessCardDuplicateServiceTests`：Email 大小寫／空白／Unicode、電話格式、空值、OR、AND、自身排除、多候選、一般文字正規化及無效設定回退。
-- 最終驗證：`dotnet test` 9/9 通過；`dotnet build` 0 警告、0 錯誤。
+- `BusinessCardDuplicateServiceTests` 共 15 項：除原有正規化與條件測試外，新增刪除第一／中間名片後重建、Accepted 基準、設定擴大與未完成 OCR 排除。
+- 最終驗證：`dotnet test` 15/15 通過；`dotnet build` 0 警告、0 錯誤。

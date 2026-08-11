@@ -113,6 +113,45 @@ namespace PlustekBCR.Services
             && DuplicateComparisonSettings.SupportedFieldKeys.Contains(fieldKey)
             && PropertyNames.ContainsKey(fieldKey);
 
+        public void RebuildReviewStates(
+            IReadOnlyList<BusinessCard> cards,
+            DuplicateComparisonSettings settings)
+        {
+            ArgumentNullException.ThrowIfNull(cards);
+
+            var earlierCompletedCards = new List<BusinessCard>(cards.Count);
+            foreach (var card in cards)
+            {
+                if (card == null)
+                {
+                    continue;
+                }
+
+                card.DuplicateMatches = new List<DuplicateMatchResult>();
+
+                if (card.Status is ProcessingStatus.Pending or ProcessingStatus.Recognizing)
+                {
+                    if (card.DuplicateReviewState != DuplicateReviewState.Accepted)
+                    {
+                        card.DuplicateReviewState = DuplicateReviewState.None;
+                    }
+
+                    continue;
+                }
+
+                if (card.DuplicateReviewState != DuplicateReviewState.Accepted)
+                {
+                    var matches = FindMatches(card, earlierCompletedCards, settings);
+                    card.DuplicateMatches = matches.ToList();
+                    card.DuplicateReviewState = matches.Count > 0
+                        ? DuplicateReviewState.Pending
+                        : DuplicateReviewState.None;
+                }
+
+                earlierCompletedCards.Add(card);
+            }
+        }
+
         private static List<string> NormalizeFields(IEnumerable<string>? fields)
         {
             return fields?

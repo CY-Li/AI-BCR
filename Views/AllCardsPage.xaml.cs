@@ -49,6 +49,16 @@ namespace PlustekBCR.Views
                 var result = await dialog.ShowAsync();
                 return result == ContentDialogResult.Primary;
             };
+
+            ViewModel.ConfirmReplaceDuplicatesAsync = async (card, duplicateCount) =>
+            {
+                var dialog = CardPageUiHelper.CreateDuplicateReplaceConfirmationDialog(
+                    card.FullName,
+                    duplicateCount,
+                    this.XamlRoot);
+                var result = await dialog.ShowAsync();
+                return result == ContentDialogResult.Primary;
+            };
         }
 
         protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)

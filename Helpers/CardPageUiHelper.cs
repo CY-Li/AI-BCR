@@ -21,6 +21,25 @@ namespace PlustekBCR.Helpers
                 defaultButton: ContentDialogButton.Close);
         }
 
+        public static ContentDialog CreateDuplicateReplaceConfirmationDialog(
+            string? fullName,
+            int duplicateCount,
+            XamlRoot? xamlRoot)
+        {
+            var localization = App.GetService<ILocalizationService>();
+            var messageKey = duplicateCount == 1
+                ? "Dialog.ReplaceDuplicate.Message"
+                : "Dialog.ReplaceDuplicates.Message";
+
+            return DialogHelper.CreateDialog(
+                xamlRoot,
+                localization.GetString("Dialog.ReplaceDuplicate.Title"),
+                localization.Format(messageKey, duplicateCount, fullName ?? string.Empty),
+                primaryButtonText: localization.GetString("Duplicate.Action.Replace"),
+                closeButtonText: localization.GetString("Button.Cancel"),
+                defaultButton: ContentDialogButton.Close);
+        }
+
         public static void RebuildTagFlowItems(ObservableCollection<TagFlowItem> target, IEnumerable<string> tags)
         {
             target.Clear();
