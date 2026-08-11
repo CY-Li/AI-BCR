@@ -1,5 +1,5 @@
 {
-  "version": "1.0.12",
-  "downloadUrl": "https://github.com/CY-Li/AI-BCR/releases/download/v1.0.12/PlustekBCR-v1.0.12-win-x64.zip",
-  "notes": "1. 新增名片重複比對機制\r\n2. 新增名片重複比對設定功能\r\n3. 優化設定頁面UI\r\n4. 更新AI icon"
+  "version": "1.0.13",
+  "downloadUrl": "https://github.com/CY-Li/AI-BCR/releases/download/v1.0.13/PlustekBCR-v1.0.13-win-x64.zip",
+  "notes": "1. 新增image viewer\r\n- 點擊圖片區塊會彈出圖片檢視視窗\r\n- 可切換正面及背面\r\n- 支援圖片拖曳、按鈕縮放、滾輪縮放、自適應大小、釘選視窗等功能\r\n\r\n2. 重複比對功能新增刷新機制\r\n- 名片資料異動皆會觸發重複比對機制\r\n\r\n3. 簡化重複比對邏輯\r\n- Replace：只保留當前資料，移除其他被判定為重複的資料\r\n- Keep：保留當前重複資料"
 }
