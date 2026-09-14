@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -115,12 +116,32 @@ namespace PlustekBCR.Helpers
     public class ByteArrayToImageSourceConverter : IValueConverter
     {
         private static readonly ConditionalWeakTable<byte[], BitmapImage> ImageCache = new();
+        private static readonly ConditionalWeakTable<byte[], Dictionary<int, BitmapImage>> ThumbnailCache = new();
         private static readonly BitmapImage PlaceholderImage = new(new Uri("ms-appx:///Assets/scanner_illustration.png"));
 
         public object? Convert(object value, Type targetType, object parameter, string language)
         {
             if (value is byte[] bytes && bytes.Length > 0)
             {
+                if (TryGetDecodeWidth(parameter, out var decodeWidth))
+                {
+                    var thumbnails = ThumbnailCache.GetOrCreateValue(bytes);
+                    if (!thumbnails.TryGetValue(decodeWidth, out var thumbnail))
+                    {
+                        using var thumbnailMemoryStream = new System.IO.MemoryStream(bytes, writable: false);
+                        using var thumbnailStream = thumbnailMemoryStream.AsRandomAccessStream();
+                        thumbnail = new BitmapImage
+                        {
+                            DecodePixelType = DecodePixelType.Logical,
+                            DecodePixelWidth = decodeWidth
+                        };
+                        thumbnail.SetSource(thumbnailStream);
+                        thumbnails[decodeWidth] = thumbnail;
+                    }
+
+                    return thumbnail;
+                }
+
                 return ImageCache.GetValue(bytes, static key =>
                 {
                     using var ms = new System.IO.MemoryStream(key, writable: false);
@@ -132,6 +153,11 @@ namespace PlustekBCR.Helpers
             }
 
             return PlaceholderImage;
+        }
+
+        private static bool TryGetDecodeWidth(object parameter, out int decodeWidth)
+        {
+            return int.TryParse(parameter?.ToString(), out decodeWidth) && decodeWidth > 0;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();

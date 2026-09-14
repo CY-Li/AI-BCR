@@ -34,6 +34,7 @@ namespace PlustekBCR
                 services.AddSingleton<AllCardsViewModel>();
                 services.AddTransient<CardDetailViewModel>();
                 services.AddTransient<DuplicateSettingsViewModel>();
+                services.AddTransient<ScanSettingsViewModel>();
                 
                 // Register Services
                 services.AddSingleton<IUpdateService, UpdateService>();

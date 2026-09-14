@@ -39,6 +39,8 @@
   <data name="Dialog.AiDisabled.Title" xml:space="preserve"><value>AI はオフです</value></data>
   <data name="Dialog.DeleteCard.Message" xml:space="preserve"><value>「{0}」の名刺を削除してもよろしいですか。この操作は元に戻せません。</value></data>
   <data name="Dialog.DeleteCard.Title" xml:space="preserve"><value>名刺を削除</value></data>
+  <data name="Dialog.DeleteNote.Message" xml:space="preserve"><value>このメモを削除してもよろしいですか。この操作は元に戻せません。</value></data>
+  <data name="Dialog.DeleteNote.Title" xml:space="preserve"><value>メモを削除</value></data>
   <data name="Dialog.ScanConfirm.Instruction" xml:space="preserve"><value>名刺を表向きにしてスキャナーにセットしてください。</value></data>
   <data name="Dialog.ScanConfirm.Skip" xml:space="preserve"><value>次回から表示しない</value></data>
   <data name="Dialog.ScanConfirm.Title" xml:space="preserve"><value>スキャンを開始します</value></data>
@@ -100,6 +102,8 @@
   <data name="Main.Navigation.ByDate" xml:space="preserve"><value>日付別</value></data>
   <data name="Main.Navigation.ByName" xml:space="preserve"><value>名前別</value></data>
   <data name="Main.Navigation.General" xml:space="preserve"><value>一般</value></data>
+  <data name="Main.Navigation.DuplicateDetection" xml:space="preserve"><value>重複検出</value></data>
+  <data name="Main.Navigation.Scan" xml:space="preserve"><value>スキャン</value></data>
   <data name="Main.Navigation.Import" xml:space="preserve"><value>取り込み</value></data>
   <data name="Main.Navigation.RecognitionAi" xml:space="preserve"><value>認識 / AI</value></data>
   <data name="Main.Navigation.Scanner" xml:space="preserve"><value>スキャナー</value></data>
@@ -181,9 +185,39 @@
   <data name="Search.Result.Count" xml:space="preserve"><value>{0} 件</value></data>
   <data name="Search.Result.Filtered" xml:space="preserve"><value>{0} 件 | {2}</value></data>
   <data name="Settings.About.Hint" xml:space="preserve"><value>この情報は次のプロトタイプで追加予定です。</value></data>
+  <data name="Settings.About.Description" xml:space="preserve"><value>アプリケーションと接続中のスキャナーのバージョン情報を確認します。</value></data>
+  <data name="Settings.About.Version.Title" xml:space="preserve"><value>バージョン</value></data>
+  <data name="Settings.About.Version.Description" xml:space="preserve"><value>インストールされているアプリケーションのバージョンです。</value></data>
+  <data name="Settings.About.Firmware.Title" xml:space="preserve"><value>ファームウェア</value></data>
+  <data name="Settings.About.Firmware.Description" xml:space="preserve"><value>接続中のスキャナーのファームウェアバージョンです。</value></data>
   <data name="Settings.General.Description" xml:space="preserve"><value>この環境で作業するオペレーター向けに、UI 言語と項目表示の既定値を設定します。</value></data>
+  <data name="Settings.Language.Title" xml:space="preserve"><value>言語</value></data>
+  <data name="Settings.Language.Description" xml:space="preserve"><value>オペレーター画面全体で使用する言語を選択します。</value></data>
+  <data name="Settings.Region.Title" xml:space="preserve"><value>地域</value></data>
+  <data name="Settings.Region.Description" xml:space="preserve"><value>名刺ワークフローで使用する地域別の項目セットとインポートマッピングを選択します。</value></data>
   <data name="Settings.General.Hint" xml:space="preserve"><value>一般設定を表示しています。</value></data>
   <data name="Settings.General.Title" xml:space="preserve"><value>一般</value></data>
+  <data name="Settings.Scan.Description" xml:space="preserve"><value>新しいスキャンの画質と自動補正を設定します。</value></data>
+  <data name="Settings.Scan.Quality.Title" xml:space="preserve"><value>スキャン品質</value></data>
+  <data name="Settings.Scan.Quality.Description" xml:space="preserve"><value>画像の精細度、認識品質、ファイルサイズ、スキャン速度のバランスを設定します。</value></data>
+  <data name="Settings.Scan.Resolution.Title" xml:space="preserve"><value>解像度</value></data>
+  <data name="Settings.Scan.Resolution.Description" xml:space="preserve"><value>スキャンごとの画像の精細度と鮮明さを選択します。</value></data>
+  <data name="Settings.Scan.Resolution.Good" xml:space="preserve"><value>標準（200 dpi）</value></data>
+  <data name="Settings.Scan.Resolution.Better" xml:space="preserve"><value>高品質（300 dpi）</value></data>
+  <data name="Settings.Scan.Resolution.Excellent" xml:space="preserve"><value>最高品質（600 dpi）</value></data>
+  <data name="Settings.Scan.ColorMode.Title" xml:space="preserve"><value>カラーモード</value></data>
+  <data name="Settings.Scan.ColorMode.Description" xml:space="preserve"><value>名刺から色情報を取り込む方法を選択します。</value></data>
+  <data name="Settings.Scan.ColorMode.Color" xml:space="preserve"><value>カラー</value></data>
+  <data name="Settings.Scan.ColorMode.Grayscale" xml:space="preserve"><value>グレースケール</value></data>
+  <data name="Settings.Scan.ColorMode.BlackAndWhite" xml:space="preserve"><value>白黒</value></data>
+  <data name="Settings.Scan.Enhancement.Title" xml:space="preserve"><value>画像の自動補正</value></data>
+  <data name="Settings.Scan.AutoCrop.Title" xml:space="preserve"><value>自動クロップ</value></data>
+  <data name="Settings.Scan.AutoCrop.Description" xml:space="preserve"><value>名刺の外側にある背景を検出して削除します。</value></data>
+  <data name="Settings.Scan.AutoDeskew.Title" xml:space="preserve"><value>自動傾き補正</value></data>
+  <data name="Settings.Scan.AutoDeskew.Description" xml:space="preserve"><value>斜めにスキャンされた名刺をまっすぐに補正します。</value></data>
+  <data name="Settings.Scan.AutoRotate.Title" xml:space="preserve"><value>自動回転</value></data>
+  <data name="Settings.Scan.AutoRotate.Description" xml:space="preserve"><value>画像を正しい読み取り方向に回転します。</value></data>
+  <data name="Settings.Scan.SaveError" xml:space="preserve"><value>スキャン設定を保存できませんでした。以前の設定が引き続き有効です。</value></data>
   <data name="Settings.Import.Hint" xml:space="preserve"><value>取り込み設定は次のプロトタイプで追加予定です。</value></data>
   <data name="Settings.Market.Description" xml:space="preserve"><value>詳細、編集、取り込みで使う既定の項目セットと取り込みマッピングを制御します。</value></data>
   <data name="Settings.Market.English" xml:space="preserve"><value>英語圏</value></data>

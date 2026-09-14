@@ -17,16 +17,28 @@ namespace PlustekBCR.Views
         private readonly IApplicationSettingsService _settingsService;
         private readonly ILocalizationService _localizationService;
         public DuplicateSettingsViewModel DuplicateViewModel { get; }
+        public ScanSettingsViewModel ScanViewModel { get; }
+        public string ApplicationVersion { get; } = GetApplicationVersion();
+        public string FirmwareVersion { get; } = string.Empty;
         private readonly ObservableCollection<SelectionOption> _marketOptions = new();
         private readonly ObservableCollection<SelectionOption> _uiLanguageOptions = new();
         private bool _isSyncingSelection;
         private const string GeneralSection = "General";
+
+        private static string GetApplicationVersion()
+        {
+            var version = typeof(App).Assembly.GetName().Version;
+            return version == null
+                ? string.Empty
+                : $"{version.Major}.{version.Minor}.{version.Build}";
+        }
 
         public SettingsPage()
         {
             _settingsService = App.GetService<IApplicationSettingsService>();
             _localizationService = App.GetService<ILocalizationService>();
             DuplicateViewModel = App.GetService<DuplicateSettingsViewModel>();
+            ScanViewModel = App.GetService<ScanSettingsViewModel>();
             InitializeComponent();
             DataContext = App.GetService<LocalizedStrings>();
             LanguageComboBox.ItemsSource = _marketOptions;
@@ -136,9 +148,14 @@ namespace PlustekBCR.Views
                 : sectionName;
 
             var isGeneralSection = string.Equals(normalizedSection, GeneralSection, System.StringComparison.OrdinalIgnoreCase);
+            var isScanSection = string.Equals(normalizedSection, "Scan", System.StringComparison.OrdinalIgnoreCase);
+            var isDuplicateDetectionSection = string.Equals(normalizedSection, "DuplicateDetection", System.StringComparison.OrdinalIgnoreCase);
+            var isAboutSection = string.Equals(normalizedSection, "About", System.StringComparison.OrdinalIgnoreCase);
 
             SectionTitleTextBlock.Text = normalizedSection switch
             {
+                "Scan" => _localizationService.GetString("Main.Navigation.Scan"),
+                "DuplicateDetection" => _localizationService.GetString("Main.Navigation.DuplicateDetection"),
                 "Import" => _localizationService.GetString("Main.Navigation.Import"),
                 "RecognitionAi" => _localizationService.GetString("Main.Navigation.RecognitionAi"),
                 "Scanner" => _localizationService.GetString("Main.Navigation.Scanner"),
@@ -146,10 +163,21 @@ namespace PlustekBCR.Views
                 _ => _localizationService.GetString("Settings.General.Title")
             };
 
-            SectionDescriptionTextBlock.Text = _localizationService.GetString("Settings.General.Description");
-            SectionDescriptionTextBlock.Visibility = isGeneralSection ? Visibility.Visible : Visibility.Collapsed;
-            GeneralContentPanel.Visibility = isGeneralSection ? Visibility.Visible : Visibility.Collapsed;
-            SectionHintBorder.Visibility = isGeneralSection ? Visibility.Collapsed : Visibility.Visible;
+            SectionDescriptionTextBlock.Text = isScanSection
+                ? _localizationService.GetString("Settings.Scan.Description")
+                : isDuplicateDetectionSection
+                    ? _localizationService.GetString("Settings.Duplicate.Description")
+                    : isAboutSection
+                        ? _localizationService.GetString("Settings.About.Description")
+                        : _localizationService.GetString("Settings.General.Description");
+            SectionDescriptionTextBlock.Visibility = isGeneralSection || isScanSection || isDuplicateDetectionSection || isAboutSection ? Visibility.Visible : Visibility.Collapsed;
+            GeneralContentPanel.Visibility = isGeneralSection || isDuplicateDetectionSection ? Visibility.Visible : Visibility.Collapsed;
+            LanguageSettingsCard.Visibility = isGeneralSection ? Visibility.Visible : Visibility.Collapsed;
+            DuplicateSettingsCard.Visibility = isDuplicateDetectionSection ? Visibility.Visible : Visibility.Collapsed;
+            RegionSettingsCard.Visibility = isGeneralSection ? Visibility.Visible : Visibility.Collapsed;
+            ScanContentPanel.Visibility = isScanSection ? Visibility.Visible : Visibility.Collapsed;
+            AboutContentPanel.Visibility = isAboutSection ? Visibility.Visible : Visibility.Collapsed;
+            SectionHintBorder.Visibility = isGeneralSection || isScanSection || isDuplicateDetectionSection || isAboutSection ? Visibility.Collapsed : Visibility.Visible;
             SectionHintTextBlock.Text = normalizedSection switch
             {
                 "Import" => _localizationService.GetString("Settings.Import.Hint"),

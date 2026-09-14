@@ -40,7 +40,7 @@
                                     BorderThickness="1" 
                                     Background="{ThemeResource LayerFillColorDefaultBrush}" 
                                     ToolTipService.ToolTip="{x:Bind FullName}">
-                                <Image Source="{x:Bind FrontImageData, Converter={StaticResource ByteArrayToImageSourceConverter}, Mode=OneWay}" 
+                                <Image Source="{x:Bind FrontImageData, Converter={StaticResource ByteArrayToImageSourceConverter}, ConverterParameter=816, Mode=OneWay}" 
                                        Stretch="Uniform" Margin="8"/>
                             </Border>
                         </Grid>
@@ -108,12 +108,19 @@
                                 IsEnabled="{x:Bind ViewModel.SelectedCard.IsAiReprocessAvailable, Mode=OneWay}"
                                 Click="OnAiReprocessClicked">
                             <Grid>
-                                <Path Data="M6 3.5h1v6.238c0 .375-.094.744-.273 1.074l-3.584 6.603A1.75 1.75 0 0 0 4.68 20h6.734l.106-.423c.096-.383.252-.746.461-1.077H4.681a.25.25 0 0 1-.22-.37l1.97-3.63h7.137l.805 1.482 1.106-1.106-2.206-4.064A2.25 2.25 0 0 1 13 9.738V3.5h1A.75.75 0 0 0 14 2H6a.75.75 0 0 0 0 1.5Zm2.5 6.238V3.5h3v6.238c0 .625.156 1.24.454 1.79l.8 1.472H7.246l.8-1.473A3.75 3.75 0 0 0 8.5 9.738Zm10.6 2.931-5.903 5.903a2.686 2.686 0 0 0-.706 1.247l-.458 1.831a1.087 1.087 0 0 0 1.319 1.318l1.83-.457a2.685 2.685 0 0 0 1.248-.707l5.902-5.902A2.286 2.286 0 0 0 19.1 12.67Z"
-                                      Stretch="Uniform"
-                                      Width="18"
-                                      Height="18"
-                                      Fill="{StaticResource BrandBlueBrush}"
-                                      Visibility="{x:Bind ViewModel.SelectedCard.IsRecognizing, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}"/>
+                                <Viewbox Width="27" Height="27" Stretch="Uniform"
+                                         Visibility="{x:Bind ViewModel.SelectedCard.IsRecognizing, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}">
+                                    <Grid Width="24" Height="24">
+                                        <Path Data="M8,4 L6.5,4 C5.12,4 4,5.12 4,6.5 L4,8 M16,4 L17.5,4 C18.88,4 20,5.12 20,6.5 L20,8 M4,16 L4,17.5 C4,18.88 5.12,20 6.5,20 L8,20 M20,16 L20,17.5 C20,18.88 18.88,20 17.5,20 L16,20"
+                                              Stroke="{StaticResource BrandBlueBrush}" StrokeThickness="1.75"
+                                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                                        <Path Data="M12,7.25 C12.45,9.2 13.8,10.55 15.75,11 C13.8,11.45 12.45,12.8 12,14.75 C11.55,12.8 10.2,11.45 8.25,11 C10.2,10.55 11.55,9.2 12,7.25 Z"
+                                              Stroke="{StaticResource BrandBlueBrush}" StrokeThickness="1.55"
+                                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                                        <Path Data="M16.7,13.9 C16.88,14.68 17.42,15.22 18.2,15.4 C17.42,15.58 16.88,16.12 16.7,16.9 C16.52,16.12 15.98,15.58 15.2,15.4 C15.98,15.22 16.52,14.68 16.7,13.9 Z"
+                                              Fill="{StaticResource BrandBlueBrush}"/>
+                                    </Grid>
+                                </Viewbox>
                                 <ProgressRing IsActive="True"
                                               Width="18"
                                               Height="18"
@@ -675,7 +682,7 @@
                             <ListView Grid.Row="1" ItemsSource="{x:Bind ViewModel.SelectedCard.Notes, Mode=OneWay}" SelectionMode="None">
                                 <ListView.ItemTemplate>
                                     <DataTemplate x:DataType="models:Note">
-                                        <Grid Margin="0,0,0,20">
+                                        <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="*"/>
@@ -691,14 +698,50 @@
                                                 </Border>
                                             </Grid>
                                             
-                                            <Border Grid.Column="1" Background="{ThemeResource LayerFillColorDefaultBrush}" 
+                                            <Border Grid.Column="1"
+                                                    Margin="0,0,0,20"
+                                                    Background="{ThemeResource LayerFillColorDefaultBrush}"
                                                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" 
                                                     BorderThickness="1" CornerRadius="12" Padding="16">
-                                                <StackPanel Spacing="6">
-                                                    <TextBlock Text="{x:Bind CreatedAt, Converter={StaticResource DateTimeToStringConverter}}" 
-                                                               FontSize="11" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                                                    <TextBlock Text="{x:Bind Content}" TextWrapping="Wrap" FontSize="14" LineHeight="20"/>
-                                                </StackPanel>
+                                                <Grid RowSpacing="6">
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto"/>
+                                                        <RowDefinition Height="Auto"/>
+                                                    </Grid.RowDefinitions>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Row="0"
+                                                               Grid.Column="0"
+                                                               Text="{x:Bind CreatedAt, Converter={StaticResource DateTimeToStringConverter}}"
+                                                               FontSize="11"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                               VerticalAlignment="Center"/>
+                                                    <Button Grid.Row="0"
+                                                            Grid.RowSpan="2"
+                                                            Grid.Column="1"
+                                                            Width="28"
+                                                            Height="28"
+                                                            Padding="0"
+                                                            Margin="8,-6,-6,0"
+                                                            VerticalAlignment="Top"
+                                                            Style="{StaticResource HeaderIconButtonStyle}"
+                                                            ToolTipService.ToolTip="{Binding DataContext[Button.Delete], ElementName=PageRoot}"
+                                                            AutomationProperties.Name="{Binding DataContext[Button.Delete], ElementName=PageRoot}"
+                                                            Click="OnDeleteNoteClicked">
+                                                        <FontIcon Glyph="&#xE74D;"
+                                                                  FontSize="12"
+                                                                  Foreground="{ThemeResource SystemFillColorCriticalBrush}"/>
+                                                    </Button>
+                                                    <TextBlock Grid.Row="1"
+                                                               Grid.Column="0"
+                                                               Text="{x:Bind Content}"
+                                                               TextWrapping="Wrap"
+                                                               FontSize="14"
+                                                               LineHeight="20"/>
+                                                </Grid>
                                             </Border>
                                         </Grid>
                                     </DataTemplate>

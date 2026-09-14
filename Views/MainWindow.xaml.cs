@@ -28,7 +28,7 @@ namespace PlustekBCR.Views
         private bool _isInSettingsWorkspace;
         private Type _lastCardsPageType = typeof(AllCardsPage);
         private object? _lastCardsNavigationItem;
-        private string _currentSettingsSection = "General";
+        private string _currentSettingsSection = "Scan";
         private bool _isRestoringWorkspaceSelection;
 
         public MainWindow()
@@ -337,7 +337,7 @@ namespace PlustekBCR.Views
             RememberCardsWorkspaceState();
 
             _isInSettingsWorkspace = true;
-            _currentSettingsSection = string.IsNullOrWhiteSpace(section) ? "General" : section;
+            _currentSettingsSection = string.IsNullOrWhiteSpace(section) ? "Scan" : section;
             ApplyWorkspaceState();
             SelectSettingsNavigationItem(_currentSettingsSection);
             ContentFrame.Navigate(typeof(SettingsPage), _currentSettingsSection);
@@ -383,15 +383,17 @@ namespace PlustekBCR.Views
             AllCardsItem.Visibility = cardsVisibility;
             CardsNavSeparator.Visibility = cardsVisibility;
             ByDateItem.Visibility = cardsVisibility;
-            ByCompanyItem.Visibility = cardsVisibility;
-            ByNameItem.Visibility = cardsVisibility;
+            ByCompanyItem.Visibility = Visibility.Collapsed;
+            ByNameItem.Visibility = Visibility.Collapsed;
             TagsItem.Visibility = cardsVisibility;
 
             SettingsNavSeparator.Visibility = settingsVisibility;
+            SettingsScanItem.Visibility = settingsVisibility;
             SettingsGeneralItem.Visibility = settingsVisibility;
-            SettingsImportItem.Visibility = settingsVisibility;
-            SettingsRecognitionItem.Visibility = settingsVisibility;
-            SettingsScannerItem.Visibility = settingsVisibility;
+            SettingsDuplicateDetectionItem.Visibility = settingsVisibility;
+            SettingsImportItem.Visibility = Visibility.Collapsed;
+            SettingsRecognitionItem.Visibility = Visibility.Collapsed;
+            SettingsScannerItem.Visibility = Visibility.Collapsed;
             SettingsAboutItem.Visibility = settingsVisibility;
 
             SearchRoot.Visibility = headerWorkspaceVisibility;
@@ -414,7 +416,9 @@ namespace PlustekBCR.Views
         {
             var settingsItems = new Dictionary<string, NavigationViewItem>(StringComparer.OrdinalIgnoreCase)
             {
+                ["Scan"] = SettingsScanItem,
                 ["General"] = SettingsGeneralItem,
+                ["DuplicateDetection"] = SettingsDuplicateDetectionItem,
                 ["Import"] = SettingsImportItem,
                 ["RecognitionAi"] = SettingsRecognitionItem,
                 ["Scanner"] = SettingsScannerItem,
@@ -423,8 +427,8 @@ namespace PlustekBCR.Views
 
             if (!settingsItems.TryGetValue(section, out var navigationItem))
             {
-                navigationItem = SettingsGeneralItem;
-                _currentSettingsSection = "General";
+                navigationItem = SettingsScanItem;
+                _currentSettingsSection = "Scan";
             }
 
             RootNavigationView.SelectedItem = navigationItem;
@@ -447,9 +451,8 @@ namespace PlustekBCR.Views
                 var item = new NavigationViewItem
                 {
                     Tag = $"TagFilter:{tag}",
-                    SelectsOnInvoked = false
+                    SelectsOnInvoked = true
                 };
-                item.Tapped += OnSidebarTagTapped;
 
                 var contentGrid = new Grid();
                 contentGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -507,6 +510,7 @@ namespace PlustekBCR.Views
             if (rawTag.StartsWith("TagFilter:", StringComparison.Ordinal))
             {
                 var selectedTag = rawTag["TagFilter:".Length..];
+                RunWithSearchUiSync(() => RootNavigationView.SelectedItem = item);
                 ApplyTagSearchShortcutFromSidebar(selectedTag);
                 NavigateToAllCardsPage();
             }
@@ -520,7 +524,6 @@ namespace PlustekBCR.Views
                 ViewModel.SelectedSearchScope = MainViewModel.SearchScopeTag;
                 HeaderSearchBox.Text = tag;
                 UpdateSearchInputMode();
-                SelectAllCardsNavigationItem();
             });
         }
 
@@ -532,7 +535,6 @@ namespace PlustekBCR.Views
                 ClearHeaderSearchText();
                 SyncHeaderDatePickersFromViewModel();
                 UpdateSearchInputMode();
-                SelectAllCardsNavigationItem();
             });
 
             OpenSearchDropdown(showAdvanced: false);

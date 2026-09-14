@@ -202,6 +202,44 @@ public sealed class BusinessCardDuplicateServiceTests
         Assert.Equal(DuplicateReviewState.None, completed.DuplicateReviewState);
     }
 
+    [Fact]
+    public void Replace_MergesNotesIntoRetainedCardInLatestModifiedOrder()
+    {
+        var retainedNote = NoteAt("Retained", createdHour: 9);
+        var olderNote = NoteAt("Older duplicate", createdHour: 8);
+        var editedNote = NoteAt("Edited duplicate", createdHour: 7, updatedHour: 10);
+        var retained = Card();
+        retained.Notes = new List<Note> { retainedNote };
+        var replacedCards = new[]
+        {
+            CardWithNotes(olderNote),
+            CardWithNotes(editedNote)
+        };
+
+        BusinessCardNoteMerger.MergeInto(retained, replacedCards);
+
+        Assert.Equal(
+            new[] { "Edited duplicate", "Retained", "Older duplicate" },
+            retained.Notes.Select(note => note.Content));
+    }
+
+    [Fact]
+    public void Replace_DoesNotDuplicateTheSameNoteRecord()
+    {
+        var sharedNote = NoteAt("Shared", createdHour: 9);
+        var retained = CardWithNotes(sharedNote);
+        var replaced = CardWithNotes(new Note
+        {
+            Id = sharedNote.Id,
+            CreatedAt = sharedNote.CreatedAt,
+            Content = sharedNote.Content
+        });
+
+        BusinessCardNoteMerger.MergeInto(retained, new[] { replaced });
+
+        Assert.Same(sharedNote, Assert.Single(retained.Notes));
+    }
+
     private IReadOnlyList<DuplicateMatchResult> Find(
         BusinessCard candidate,
         IEnumerable<BusinessCard> existing,
@@ -230,5 +268,21 @@ public sealed class BusinessCardDuplicateServiceTests
         Tel = tel,
         CompanyName = company,
         Status = ProcessingStatus.Done
+    };
+
+    private static BusinessCard CardWithNotes(params Note[] notes)
+    {
+        var card = Card();
+        card.Notes = notes.ToList();
+        return card;
+    }
+
+    private static Note NoteAt(string content, int createdHour, int? updatedHour = null) => new()
+    {
+        Content = content,
+        CreatedAt = new DateTime(2026, 9, 11, createdHour, 0, 0),
+        UpdatedAt = updatedHour.HasValue
+            ? new DateTime(2026, 9, 11, updatedHour.Value, 0, 0)
+            : null
     };
 }

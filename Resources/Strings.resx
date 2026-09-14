@@ -40,6 +40,8 @@
   <data name="Dialog.AiDisabled.Title" xml:space="preserve"><value>AI is turned off</value></data>
   <data name="Dialog.DeleteCard.Message" xml:space="preserve"><value>Are you sure you want to delete the business card of '{0}'? This action cannot be undone.</value></data>
   <data name="Dialog.DeleteCard.Title" xml:space="preserve"><value>Delete Business Card</value></data>
+  <data name="Dialog.DeleteNote.Message" xml:space="preserve"><value>Are you sure you want to delete this note? This action cannot be undone.</value></data>
+  <data name="Dialog.DeleteNote.Title" xml:space="preserve"><value>Delete Note</value></data>
   <data name="Dialog.ScanConfirm.Instruction" xml:space="preserve"><value>Please scan the business card, placing it face up in the scanner.</value></data>
   <data name="Dialog.ScanConfirm.Skip" xml:space="preserve"><value>Don't show this again</value></data>
   <data name="Dialog.ScanConfirm.Title" xml:space="preserve"><value>Ready to start scanning</value></data>
@@ -101,6 +103,8 @@
   <data name="Main.Navigation.ByDate" xml:space="preserve"><value>By Date</value></data>
   <data name="Main.Navigation.ByName" xml:space="preserve"><value>By Name</value></data>
   <data name="Main.Navigation.General" xml:space="preserve"><value>General</value></data>
+  <data name="Main.Navigation.DuplicateDetection" xml:space="preserve"><value>Duplicate Detection</value></data>
+  <data name="Main.Navigation.Scan" xml:space="preserve"><value>Scan</value></data>
   <data name="Main.Navigation.Import" xml:space="preserve"><value>Import</value></data>
   <data name="Main.Navigation.RecognitionAi" xml:space="preserve"><value>Recognition / AI</value></data>
   <data name="Main.Navigation.Scanner" xml:space="preserve"><value>Scanner</value></data>
@@ -182,9 +186,39 @@
   <data name="Search.Result.Count" xml:space="preserve"><value>{0} cards</value></data>
   <data name="Search.Result.Filtered" xml:space="preserve"><value>{0} result{1} | {2}</value></data>
   <data name="Settings.About.Hint" xml:space="preserve"><value>About information will be added in the next prototype iteration.</value></data>
+  <data name="Settings.About.Description" xml:space="preserve"><value>View application and connected scanner version information.</value></data>
+  <data name="Settings.About.Version.Title" xml:space="preserve"><value>Version</value></data>
+  <data name="Settings.About.Version.Description" xml:space="preserve"><value>Installed application version.</value></data>
+  <data name="Settings.About.Firmware.Title" xml:space="preserve"><value>Firmware</value></data>
+  <data name="Settings.About.Firmware.Description" xml:space="preserve"><value>Connected scanner firmware version.</value></data>
   <data name="Settings.General.Description" xml:space="preserve"><value>Apply UI language and field presentation defaults for operators working in this environment.</value></data>
+  <data name="Settings.Language.Title" xml:space="preserve"><value>Language</value></data>
+  <data name="Settings.Language.Description" xml:space="preserve"><value>Choose the language used throughout the operator interface.</value></data>
+  <data name="Settings.Region.Title" xml:space="preserve"><value>Region</value></data>
+  <data name="Settings.Region.Description" xml:space="preserve"><value>Choose the regional field set and import mapping used by card workflows.</value></data>
   <data name="Settings.General.Hint" xml:space="preserve"><value>General settings are shown below.</value></data>
   <data name="Settings.General.Title" xml:space="preserve"><value>General</value></data>
+  <data name="Settings.Scan.Description" xml:space="preserve"><value>Configure image quality and automatic correction for new scans.</value></data>
+  <data name="Settings.Scan.Quality.Title" xml:space="preserve"><value>Scan quality</value></data>
+  <data name="Settings.Scan.Quality.Description" xml:space="preserve"><value>Balance image detail, recognition quality, file size, and scan speed.</value></data>
+  <data name="Settings.Scan.Resolution.Title" xml:space="preserve"><value>Resolution</value></data>
+  <data name="Settings.Scan.Resolution.Description" xml:space="preserve"><value>Choose the image detail and clarity used for each scan.</value></data>
+  <data name="Settings.Scan.Resolution.Good" xml:space="preserve"><value>Good (200 dpi)</value></data>
+  <data name="Settings.Scan.Resolution.Better" xml:space="preserve"><value>Better (300 dpi)</value></data>
+  <data name="Settings.Scan.Resolution.Excellent" xml:space="preserve"><value>Excellent (600 dpi)</value></data>
+  <data name="Settings.Scan.ColorMode.Title" xml:space="preserve"><value>Color mode</value></data>
+  <data name="Settings.Scan.ColorMode.Description" xml:space="preserve"><value>Choose how color information is captured from the business card.</value></data>
+  <data name="Settings.Scan.ColorMode.Color" xml:space="preserve"><value>Color</value></data>
+  <data name="Settings.Scan.ColorMode.Grayscale" xml:space="preserve"><value>Grayscale</value></data>
+  <data name="Settings.Scan.ColorMode.BlackAndWhite" xml:space="preserve"><value>Black &amp; White</value></data>
+  <data name="Settings.Scan.Enhancement.Title" xml:space="preserve"><value>Automatic image correction</value></data>
+  <data name="Settings.Scan.AutoCrop.Title" xml:space="preserve"><value>Auto crop</value></data>
+  <data name="Settings.Scan.AutoCrop.Description" xml:space="preserve"><value>Detect and remove the background outside the business card.</value></data>
+  <data name="Settings.Scan.AutoDeskew.Title" xml:space="preserve"><value>Auto deskew</value></data>
+  <data name="Settings.Scan.AutoDeskew.Description" xml:space="preserve"><value>Straighten business cards that were scanned at an angle.</value></data>
+  <data name="Settings.Scan.AutoRotate.Title" xml:space="preserve"><value>Auto rotate</value></data>
+  <data name="Settings.Scan.AutoRotate.Description" xml:space="preserve"><value>Rotate the image to the correct reading orientation.</value></data>
+  <data name="Settings.Scan.SaveError" xml:space="preserve"><value>The scan settings could not be saved. The previous settings are still active.</value></data>
   <data name="Settings.Import.Hint" xml:space="preserve"><value>Import settings will be added in the next prototype iteration.</value></data>
   <data name="Settings.Market.Description" xml:space="preserve"><value>Controls the default field set and import mapping used in detail, edit, and import flows.</value></data>
   <data name="Settings.Market.Japanese" xml:space="preserve"><value>Japanese</value></data>

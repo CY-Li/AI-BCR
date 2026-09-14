@@ -16,16 +16,19 @@ namespace PlustekBCR.Services
         private string _currentUiLanguage;
         private bool _isAiEnabled;
         private DuplicateComparisonSettings _duplicateComparison;
+        private ScanSettings _scanSettings;
 
         public event Action<MarketCode>? CurrentMarketChanged;
         public event Action<string>? CurrentUiLanguageChanged;
         public event Action<bool>? AiEnabledChanged;
         public event Action<DuplicateComparisonSettings>? DuplicateComparisonChanged;
+        public event Action<ScanSettings>? ScanSettingsChanged;
 
         public MarketCode CurrentMarket => _currentMarket;
         public string CurrentUiLanguage => _currentUiLanguage;
         public bool IsAiEnabled => _isAiEnabled;
         public DuplicateComparisonSettings DuplicateComparison => _duplicateComparison.Clone();
+        public ScanSettings ScanSettings => _scanSettings.Clone();
 
         public ApplicationSettingsService()
         {
@@ -34,6 +37,7 @@ namespace PlustekBCR.Services
             _currentUiLanguage = LoadCurrentUiLanguage();
             _isAiEnabled = LoadAiEnabled();
             _duplicateComparison = LoadDuplicateComparison();
+            _scanSettings = LoadScanSettings();
         }
 
         public async Task SetCurrentMarketAsync(MarketCode market)
@@ -85,6 +89,23 @@ namespace PlustekBCR.Services
             await SaveDuplicateComparisonAsync(normalized);
             _duplicateComparison = normalized;
             DuplicateComparisonChanged?.Invoke(_duplicateComparison.Clone());
+        }
+
+        public async Task SetScanSettingsAsync(ScanSettings settings)
+        {
+            var normalized = NormalizeScanSettings(settings);
+            if (_scanSettings.Resolution == normalized.Resolution
+                && _scanSettings.ColorMode == normalized.ColorMode
+                && _scanSettings.AutoCrop == normalized.AutoCrop
+                && _scanSettings.AutoDeskew == normalized.AutoDeskew
+                && _scanSettings.AutoRotate == normalized.AutoRotate)
+            {
+                return;
+            }
+
+            await SaveScanSettingsAsync(normalized);
+            _scanSettings = normalized;
+            ScanSettingsChanged?.Invoke(_scanSettings.Clone());
         }
 
         private MarketCode LoadCurrentMarket()
@@ -177,6 +198,37 @@ namespace PlustekBCR.Services
             {
                 Debug.WriteLine($"Load duplicate comparison failed: {ex.Message}");
                 return DuplicateComparisonSettings.Default;
+            }
+        }
+
+        private ScanSettings LoadScanSettings()
+        {
+            try
+            {
+                if (!File.Exists(_settingsPath))
+                {
+                    return ScanSettings.Default;
+                }
+
+                var root = JsonNode.Parse(File.ReadAllText(_settingsPath)) as JsonObject;
+                var section = root?["Scan"] as JsonObject;
+                return NormalizeScanSettings(new ScanSettings
+                {
+                    Resolution = Enum.TryParse<ScanResolution>(section?["Resolution"]?.ToString(), true, out var resolution)
+                        ? resolution
+                        : ScanResolution.Better,
+                    ColorMode = Enum.TryParse<ScanColorMode>(section?["ColorMode"]?.ToString(), true, out var colorMode)
+                        ? colorMode
+                        : ScanColorMode.Color,
+                    AutoCrop = section?["AutoCrop"]?.GetValue<bool?>() ?? true,
+                    AutoDeskew = section?["AutoDeskew"]?.GetValue<bool?>() ?? true,
+                    AutoRotate = section?["AutoRotate"]?.GetValue<bool?>() ?? true
+                });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Load scan settings failed: {ex.Message}");
+                return ScanSettings.Default;
             }
         }
 
@@ -297,6 +349,40 @@ namespace PlustekBCR.Services
             }
         }
 
+        private async Task SaveScanSettingsAsync(ScanSettings settings)
+        {
+            try
+            {
+                JsonObject root;
+                if (File.Exists(_settingsPath))
+                {
+                    root = JsonNode.Parse(await File.ReadAllTextAsync(_settingsPath)) as JsonObject ?? new JsonObject();
+                }
+                else
+                {
+                    root = new JsonObject();
+                }
+
+                root["Scan"] = new JsonObject
+                {
+                    ["Resolution"] = settings.Resolution.ToString(),
+                    ["ColorMode"] = settings.ColorMode.ToString(),
+                    ["AutoCrop"] = settings.AutoCrop,
+                    ["AutoDeskew"] = settings.AutoDeskew,
+                    ["AutoRotate"] = settings.AutoRotate
+                };
+
+                await File.WriteAllTextAsync(
+                    _settingsPath,
+                    root.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Save scan settings failed: {ex.Message}");
+                throw;
+            }
+        }
+
         private static DuplicateComparisonSettings NormalizeDuplicateComparison(DuplicateComparisonSettings? settings)
         {
             var fields = settings?.Fields?
@@ -316,6 +402,22 @@ namespace PlustekBCR.Services
                 MatchOperator = settings?.MatchOperator ?? DuplicateMatchOperator.Or,
                 Fields = fields
             };
+        }
+
+        private static ScanSettings NormalizeScanSettings(ScanSettings? settings)
+        {
+            var normalized = settings?.Clone() ?? ScanSettings.Default;
+            if (!Enum.IsDefined(normalized.Resolution))
+            {
+                normalized.Resolution = ScanResolution.Better;
+            }
+
+            if (!Enum.IsDefined(normalized.ColorMode))
+            {
+                normalized.ColorMode = ScanColorMode.Color;
+            }
+
+            return normalized;
         }
 
         private static MarketCode ParseMarket(string? configured)

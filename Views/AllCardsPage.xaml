@@ -131,7 +131,7 @@
                         <StackPanel Padding="12" Spacing="8">
                             <!-- Thumbnail Area -->
                             <Border x:Name="GridCardThumbnailHost" Height="140" Background="{ThemeResource LayerFillColorDefaultBrush}" CornerRadius="4" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}" BorderThickness="1">
-                                <Image Source="{x:Bind FrontImageData, Converter={StaticResource ByteArrayToImageSourceConverter}, Mode=OneWay}" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Image Source="{x:Bind FrontImageData, Converter={StaticResource ByteArrayToImageSourceConverter}, ConverterParameter=864, Mode=OneWay}" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
 
                             <!-- Business Card Info -->
@@ -157,26 +157,54 @@
                             </Grid>
                             <TextBlock Text="{x:Bind CompanyName, Mode=OneWay}" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
 
-                            <!-- Status Badges: horizontal when space allows, wrapped otherwise -->
-                            <controls:WrapPanel HorizontalAlignment="Left" HorizontalSpacing="6" VerticalSpacing="4">
-                                <Grid>
-                                    <Border Style="{StaticResource BcrStatusBadgeBorderStyle}" Background="{x:Bind Status, Converter={StaticResource StatusToBackgroundBrushConverter}, Mode=OneWay}"/>
-                                    <StackPanel Style="{StaticResource BcrStatusBadgeContentStyle}">
-                                        <ProgressRing Style="{StaticResource BcrStatusBadgeProgressRingStyle}"
-                                                      Foreground="{x:Bind Status, Converter={StaticResource StatusToForegroundBrushConverter}, Mode=OneWay}"
-                                                      Visibility="{x:Bind Status, Converter={StaticResource StatusToProgressVisibilityConverter}, Mode=OneWay}"/>
-                                        <TextBlock Text="{x:Bind Status, Converter={StaticResource StatusToStringConverter}, Mode=OneWay}"
-                                                   Style="{StaticResource BcrStatusBadgeTextSmallStyle}"
-                                                   Foreground="{x:Bind Status, Converter={StaticResource StatusToForegroundBrushConverter}, Mode=OneWay}"/>
-                                    </StackPanel>
-                                </Grid>
-                                <Border Padding="8,3"
-                                        CornerRadius="8"
-                                        Background="#FFFFF4CE"
-                                        Visibility="{x:Bind IsDuplicatePending, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
-                                    <TextBlock Text="{x:Bind DuplicateReviewState, Converter={StaticResource DuplicateReviewStateToStringConverter}, Mode=OneWay}" Foreground="#FF8A4B00" FontSize="11" FontWeight="SemiBold"/>
-                                </Border>
-                            </controls:WrapPanel>
+                            <!-- Status stays left; latest note time is aligned to the card's right edge. -->
+                            <Grid ColumnSpacing="6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <controls:WrapPanel Grid.Column="0" HorizontalAlignment="Left" HorizontalSpacing="6" VerticalSpacing="4">
+                                    <Grid>
+                                        <Border Style="{StaticResource BcrStatusBadgeBorderStyle}" Background="{x:Bind Status, Converter={StaticResource StatusToBackgroundBrushConverter}, Mode=OneWay}"/>
+                                        <StackPanel Style="{StaticResource BcrStatusBadgeContentStyle}">
+                                            <ProgressRing Style="{StaticResource BcrStatusBadgeProgressRingStyle}"
+                                                          Foreground="{x:Bind Status, Converter={StaticResource StatusToForegroundBrushConverter}, Mode=OneWay}"
+                                                          Visibility="{x:Bind Status, Converter={StaticResource StatusToProgressVisibilityConverter}, Mode=OneWay}"/>
+                                            <TextBlock Text="{x:Bind Status, Converter={StaticResource StatusToStringConverter}, Mode=OneWay}"
+                                                       Style="{StaticResource BcrStatusBadgeTextSmallStyle}"
+                                                       Foreground="{x:Bind Status, Converter={StaticResource StatusToForegroundBrushConverter}, Mode=OneWay}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                    <Border Width="20"
+                                            Height="20"
+                                            CornerRadius="10"
+                                            Background="#FFFFF4CE"
+                                            ToolTipService.ToolTip="{x:Bind DuplicateReviewState, Converter={StaticResource DuplicateReviewStateToStringConverter}, Mode=OneWay}"
+                                            AutomationProperties.Name="{x:Bind DuplicateReviewState, Converter={StaticResource DuplicateReviewStateToStringConverter}, Mode=OneWay}"
+                                            Visibility="{x:Bind IsDuplicatePending, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
+                                        <FontIcon Glyph="&#xE946;"
+                                                  FontSize="11"
+                                                  Foreground="#FF9A6700"
+                                                  HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center"/>
+                                    </Border>
+                                </controls:WrapPanel>
+                                <StackPanel Grid.Column="1"
+                                            Orientation="Horizontal"
+                                            Spacing="4"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Center"
+                                            Visibility="{x:Bind HasNotes, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
+                                    <FontIcon Glyph="&#xE823;"
+                                              FontSize="11"
+                                              VerticalAlignment="Center"
+                                              Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
+                                    <TextBlock Text="{x:Bind LatestNoteModifiedAt, Converter={StaticResource DateTimeToStringConverter}, Mode=OneWay}"
+                                               FontSize="11"
+                                               VerticalAlignment="Center"
+                                               Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
+                                </StackPanel>
+                            </Grid>
                         </StackPanel>
                     </Grid>
                 </DataTemplate>
@@ -259,7 +287,7 @@
 
                         <!-- Thumbnail Area -->
                         <Border x:Name="ListCardThumbnailHost" Grid.Column="0" Width="80" Height="50" Margin="0,0,16,0" Background="{ThemeResource LayerFillColorDefaultBrush}" CornerRadius="4" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}" BorderThickness="1">
-                            <Image Source="{x:Bind FrontImageData, Converter={StaticResource ByteArrayToImageSourceConverter}, Mode=OneWay}" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <Image Source="{x:Bind FrontImageData, Converter={StaticResource ByteArrayToImageSourceConverter}, ConverterParameter=320, Mode=OneWay}" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
 
                         <!-- Business Card Info -->
@@ -296,25 +324,51 @@
                                             VerticalAlignment="Center"
                                             HorizontalSpacing="6"
                                             VerticalSpacing="4">
-                            <!-- Status Badge -->
-                            <Grid HorizontalAlignment="Right">
-                                <Border Style="{StaticResource BcrStatusBadgeBorderStyle}" Background="{x:Bind Status, Converter={StaticResource StatusToBackgroundBrushConverter}, Mode=OneWay}"/>
-                                <StackPanel Style="{StaticResource BcrStatusBadgeContentStyle}">
-                                    <ProgressRing Style="{StaticResource BcrStatusBadgeProgressRingStyle}"
-                                                  Foreground="{x:Bind Status, Converter={StaticResource StatusToForegroundBrushConverter}, Mode=OneWay}" 
-                                                  Visibility="{x:Bind Status, Converter={StaticResource StatusToProgressVisibilityConverter}, Mode=OneWay}"/>
-                                    <TextBlock Text="{x:Bind Status, Converter={StaticResource StatusToStringConverter}, Mode=OneWay}" 
-                                               Style="{StaticResource BcrStatusBadgeTextStyle}"
-                                               Foreground="{x:Bind Status, Converter={StaticResource StatusToForegroundBrushConverter}, Mode=OneWay}"
-                                               />
+                            <Grid ColumnSpacing="6" VerticalAlignment="Center">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0"
+                                            Orientation="Horizontal"
+                                            Spacing="4"
+                                            VerticalAlignment="Center"
+                                            Visibility="{x:Bind HasNotes, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
+                                    <FontIcon Glyph="&#xE823;"
+                                              FontSize="11"
+                                              VerticalAlignment="Center"
+                                              Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
+                                    <TextBlock Text="{x:Bind LatestNoteModifiedAt, Converter={StaticResource DateTimeToStringConverter}, Mode=OneWay}"
+                                               FontSize="11"
+                                               VerticalAlignment="Center"
+                                               Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
                                 </StackPanel>
+                                <!-- Status Badge -->
+                                <Grid Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                    <Border Style="{StaticResource BcrStatusBadgeBorderStyle}" Background="{x:Bind Status, Converter={StaticResource StatusToBackgroundBrushConverter}, Mode=OneWay}"/>
+                                    <StackPanel Style="{StaticResource BcrStatusBadgeContentStyle}">
+                                        <ProgressRing Style="{StaticResource BcrStatusBadgeProgressRingStyle}"
+                                                      Foreground="{x:Bind Status, Converter={StaticResource StatusToForegroundBrushConverter}, Mode=OneWay}"
+                                                      Visibility="{x:Bind Status, Converter={StaticResource StatusToProgressVisibilityConverter}, Mode=OneWay}"/>
+                                        <TextBlock Text="{x:Bind Status, Converter={StaticResource StatusToStringConverter}, Mode=OneWay}"
+                                                   Style="{StaticResource BcrStatusBadgeTextStyle}"
+                                                   Foreground="{x:Bind Status, Converter={StaticResource StatusToForegroundBrushConverter}, Mode=OneWay}"/>
+                                    </StackPanel>
+                                </Grid>
                             </Grid>
-                            <Border Padding="8,3"
+                            <Border Width="20"
+                                    Height="20"
                                     HorizontalAlignment="Right"
-                                    CornerRadius="8"
+                                    CornerRadius="10"
                                     Background="#FFFFF4CE"
+                                    ToolTipService.ToolTip="{x:Bind DuplicateReviewState, Converter={StaticResource DuplicateReviewStateToStringConverter}, Mode=OneWay}"
+                                    AutomationProperties.Name="{x:Bind DuplicateReviewState, Converter={StaticResource DuplicateReviewStateToStringConverter}, Mode=OneWay}"
                                     Visibility="{x:Bind IsDuplicatePending, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
-                                <TextBlock Text="{x:Bind DuplicateReviewState, Converter={StaticResource DuplicateReviewStateToStringConverter}, Mode=OneWay}" Foreground="#FF8A4B00" FontSize="11" FontWeight="SemiBold"/>
+                                <FontIcon Glyph="&#xE946;"
+                                          FontSize="11"
+                                          Foreground="#FF9A6700"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"/>
                             </Border>
                         </controls:WrapPanel>
 
@@ -540,7 +594,7 @@
                                     Tapped="OnOpenSidebarFrontImageViewerClicked"
                                     ToolTipService.ToolTip="{Binding [View.ImageViewer.Open]}">
                                 <Image x:Name="SidebarFrontImage"
-                                       Source="{x:Bind ViewModel.SelectedCard.FrontImageData, Converter={StaticResource ByteArrayToImageSourceConverter}, Mode=OneWay}"
+                                       Source="{x:Bind ViewModel.SelectedCard.FrontImageData, Converter={StaticResource ByteArrayToImageSourceConverter}, ConverterParameter=1320, Mode=OneWay}"
                                        Stretch="Uniform"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"/>
@@ -556,7 +610,7 @@
                                     ToolTipService.ToolTip="{Binding [View.ImageViewer.Open]}"
                                     Visibility="{x:Bind ViewModel.SelectedCard.BackImageData, Converter={StaticResource ByteArrayToVisibilityConverter}, Mode=OneWay}">
                                 <Image x:Name="SidebarBackImage"
-                                       Source="{x:Bind ViewModel.SelectedCard.BackImageData, Converter={StaticResource ByteArrayToImageSourceConverter}, Mode=OneWay}"
+                                       Source="{x:Bind ViewModel.SelectedCard.BackImageData, Converter={StaticResource ByteArrayToImageSourceConverter}, ConverterParameter=1320, Mode=OneWay}"
                                        Stretch="Uniform"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"/>
@@ -1021,9 +1075,19 @@
                                 IsEnabled="{x:Bind ViewModel.SelectedCard.IsAiReprocessAvailable, Mode=OneWay}"
                                 Click="OnAiReprocessClicked">
                             <Grid>
-                                <Path Data="M6 3.5h1v6.238c0 .375-.094.744-.273 1.074l-3.584 6.603A1.75 1.75 0 0 0 4.68 20h6.734l.106-.423c.096-.383.252-.746.461-1.077H4.681a.25.25 0 0 1-.22-.37l1.97-3.63h7.137l.805 1.482 1.106-1.106-2.206-4.064A2.25 2.25 0 0 1 13 9.738V3.5h1A.75.75 0 0 0 14 2H6a.75.75 0 0 0 0 1.5Zm2.5 6.238V3.5h3v6.238c0 .625.156 1.24.454 1.79l.8 1.472H7.246l.8-1.473A3.75 3.75 0 0 0 8.5 9.738Zm10.6 2.931-5.903 5.903a2.686 2.686 0 0 0-.706 1.247l-.458 1.831a1.087 1.087 0 0 0 1.319 1.318l1.83-.457a2.685 2.685 0 0 0 1.248-.707l5.902-5.902A2.286 2.286 0 0 0 19.1 12.67Z"
-                                      Stretch="Uniform" Width="16" Height="16" Fill="{StaticResource BrandBlueBrush}"
-                                      Visibility="{x:Bind ViewModel.SelectedCard.IsRecognizing, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}"/>
+                                <Viewbox Width="24" Height="24" Stretch="Uniform"
+                                         Visibility="{x:Bind ViewModel.SelectedCard.IsRecognizing, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}">
+                                    <Grid Width="24" Height="24">
+                                        <Path Data="M8,4 L6.5,4 C5.12,4 4,5.12 4,6.5 L4,8 M16,4 L17.5,4 C18.88,4 20,5.12 20,6.5 L20,8 M4,16 L4,17.5 C4,18.88 5.12,20 6.5,20 L8,20 M20,16 L20,17.5 C20,18.88 18.88,20 17.5,20 L16,20"
+                                              Stroke="{StaticResource BrandBlueBrush}" StrokeThickness="1.75"
+                                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                                        <Path Data="M12,7.25 C12.45,9.2 13.8,10.55 15.75,11 C13.8,11.45 12.45,12.8 12,14.75 C11.55,12.8 10.2,11.45 8.25,11 C10.2,10.55 11.55,9.2 12,7.25 Z"
+                                              Stroke="{StaticResource BrandBlueBrush}" StrokeThickness="1.55"
+                                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                                        <Path Data="M16.7,13.9 C16.88,14.68 17.42,15.22 18.2,15.4 C17.42,15.58 16.88,16.12 16.7,16.9 C16.52,16.12 15.98,15.58 15.2,15.4 C15.98,15.22 16.52,14.68 16.7,13.9 Z"
+                                              Fill="{StaticResource BrandBlueBrush}"/>
+                                    </Grid>
+                                </Viewbox>
                                 <ProgressRing Width="16" Height="16" IsActive="True" Foreground="{StaticResource BrandBlueBrush}"
                                               Visibility="{x:Bind ViewModel.SelectedCard.IsRecognizing, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"
                                               MinHeight="0" MinWidth="0" BorderThickness="1.5"/>

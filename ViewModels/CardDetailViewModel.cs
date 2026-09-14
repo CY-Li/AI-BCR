@@ -62,6 +62,7 @@ namespace PlustekBCR.ViewModels
         public bool IsJapanMarket => CurrentMarket == MarketCode.JP;
 
         public Func<BusinessCard, Task<bool>>? ConfirmDeleteCardAsync { get; set; }
+        public Func<Note, Task<bool>>? ConfirmDeleteNoteAsync { get; set; }
         public Action? NavigateBackRequested { get; set; }
 
         public CardDetailViewModel()
@@ -162,6 +163,28 @@ namespace PlustekBCR.ViewModels
                 SelectedCard.Notes = notes;
 
                 NewNoteContent = string.Empty;
+                OnPropertyChanged(nameof(SelectedCard));
+            }
+        }
+
+        [RelayCommand]
+        private async Task DeleteNoteAsync(Note? note)
+        {
+            var card = SelectedCard;
+            if (card == null
+                || note == null
+                || !card.Notes.Contains(note)
+                || ConfirmDeleteNoteAsync == null
+                || !await ConfirmDeleteNoteAsync(note)
+                || !ReferenceEquals(SelectedCard, card))
+            {
+                return;
+            }
+
+            var notes = new List<Note>(card.Notes);
+            if (notes.Remove(note))
+            {
+                card.Notes = notes;
                 OnPropertyChanged(nameof(SelectedCard));
             }
         }

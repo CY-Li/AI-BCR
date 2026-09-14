@@ -14,9 +14,12 @@ namespace PlustekBCR.Services
         event Action<bool>? AiEnabledChanged;
         DuplicateComparisonSettings DuplicateComparison { get; }
         event Action<DuplicateComparisonSettings>? DuplicateComparisonChanged;
+        ScanSettings ScanSettings { get; }
+        event Action<ScanSettings>? ScanSettingsChanged;
         Task SetCurrentMarketAsync(MarketCode market);
         Task SetCurrentUiLanguageAsync(string languageTag);
         Task SetAiEnabledAsync(bool isEnabled);
         Task SetDuplicateComparisonAsync(DuplicateComparisonSettings settings);
+        Task SetScanSettingsAsync(ScanSettings settings);
     }
 }

@@ -855,6 +855,8 @@ namespace PlustekBCR.ViewModels
             _isResolvingDuplicate = true;
             try
             {
+                BusinessCardNoteMerger.MergeInto(candidate, existingCards);
+
                 foreach (var existing in existingCards)
                 {
                     AllCards.Remove(existing);

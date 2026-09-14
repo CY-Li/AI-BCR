@@ -19,15 +19,36 @@ namespace PlustekBCR.Models
         US
     }
 
-    public class Note
+    public partial class Note : ObservableObject
     {
-        public Guid Id { get; set; } = Guid.NewGuid();
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
-        public string Content { get; set; } = string.Empty;
+        [ObservableProperty]
+        public partial Guid Id { get; set; } = Guid.NewGuid();
+
+        [ObservableProperty]
+        public partial DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        [ObservableProperty]
+        public partial DateTime? UpdatedAt { get; set; }
+
+        [ObservableProperty]
+        public partial string Content { get; set; } = string.Empty;
+
+        public DateTime LastModifiedAt => UpdatedAt ?? CreatedAt;
+
+        public void UpdateContent(string content)
+        {
+            Content = content;
+            UpdatedAt = DateTime.Now;
+        }
+
+        partial void OnCreatedAtChanged(DateTime value) => OnPropertyChanged(nameof(LastModifiedAt));
+        partial void OnUpdatedAtChanged(DateTime? value) => OnPropertyChanged(nameof(LastModifiedAt));
     }
 
     public partial class BusinessCard : ObservableObject
     {
+        private readonly HashSet<Note> _subscribedNotes = new();
+
         [ObservableProperty]
         public partial Guid Id { get; set; }
 
@@ -152,6 +173,10 @@ namespace PlustekBCR.Models
         public bool IsAiReprocessAvailable => !IsQueued && !IsRecognizing;
         public bool IsDuplicatePending => DuplicateReviewState == DuplicateReviewState.Pending;
         public string DisplayName => !string.IsNullOrWhiteSpace(FullName) ? FullName : BusinessCardAddressHelper.ComposeFullName(MarketCode, FirstName, MiddleName, LastName, Suffix);
+        public bool HasNotes => Notes?.Count > 0;
+        public DateTime LatestNoteModifiedAt => HasNotes
+            ? Notes.Max(note => note.LastModifiedAt)
+            : default;
 
         partial void OnStatusChanged(ProcessingStatus value)
         {
@@ -163,6 +188,45 @@ namespace PlustekBCR.Models
         partial void OnDuplicateReviewStateChanged(DuplicateReviewState value)
         {
             OnPropertyChanged(nameof(IsDuplicatePending));
+        }
+
+        partial void OnNotesChanged(List<Note> value)
+        {
+            foreach (var note in _subscribedNotes)
+            {
+                note.PropertyChanged -= OnNotePropertyChanged;
+            }
+
+            _subscribedNotes.Clear();
+
+            if (value != null)
+            {
+                foreach (var note in value)
+                {
+                    if (_subscribedNotes.Add(note))
+                    {
+                        note.PropertyChanged += OnNotePropertyChanged;
+                    }
+                }
+            }
+
+            NotifyLatestNoteChanged();
+        }
+
+        private void OnNotePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(Note.CreatedAt)
+                || e.PropertyName == nameof(Note.UpdatedAt)
+                || e.PropertyName == nameof(Note.LastModifiedAt))
+            {
+                NotifyLatestNoteChanged();
+            }
+        }
+
+        private void NotifyLatestNoteChanged()
+        {
+            OnPropertyChanged(nameof(HasNotes));
+            OnPropertyChanged(nameof(LatestNoteModifiedAt));
         }
 
         partial void OnFirstNameChanged(string value) => SyncDerivedIdentityAndAddress();

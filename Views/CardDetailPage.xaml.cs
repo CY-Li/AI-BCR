@@ -56,6 +56,13 @@ namespace PlustekBCR.Views
                 return result == ContentDialogResult.Primary;
             };
 
+            ViewModel.ConfirmDeleteNoteAsync = async (_) =>
+            {
+                var dialog = CardPageUiHelper.CreateDeleteNoteConfirmationDialog(this.XamlRoot);
+                var result = await dialog.ShowAsync();
+                return result == ContentDialogResult.Primary;
+            };
+
             ViewModel.NavigateBackRequested = () =>
             {
                 if (Frame.CanGoBack)
@@ -100,6 +107,15 @@ namespace PlustekBCR.Views
         private void OnSelectedTagsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
             RebuildEditTagFlowItems();
+        }
+
+        private void OnDeleteNoteClicked(object sender, RoutedEventArgs e)
+        {
+            if (sender is FrameworkElement { DataContext: Note note }
+                && ViewModel.DeleteNoteCommand.CanExecute(note))
+            {
+                ViewModel.DeleteNoteCommand.Execute(note);
+            }
         }
 
         private void OnCurrentMarketChanged(MarketCode market)

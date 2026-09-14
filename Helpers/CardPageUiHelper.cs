@@ -21,6 +21,18 @@ namespace PlustekBCR.Helpers
                 defaultButton: ContentDialogButton.Close);
         }
 
+        public static ContentDialog CreateDeleteNoteConfirmationDialog(XamlRoot? xamlRoot)
+        {
+            var localization = App.GetService<ILocalizationService>();
+            return DialogHelper.CreateDialog(
+                xamlRoot,
+                localization.GetString("Dialog.DeleteNote.Title"),
+                localization.GetString("Dialog.DeleteNote.Message"),
+                primaryButtonText: localization.GetString("Button.Delete"),
+                closeButtonText: localization.GetString("Button.Cancel"),
+                defaultButton: ContentDialogButton.Close);
+        }
+
         public static ContentDialog CreateDuplicateReplaceConfirmationDialog(
             string? fullName,
             int duplicateCount,

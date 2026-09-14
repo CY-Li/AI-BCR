@@ -107,9 +107,9 @@
     <Style x:Key="SettingsChoiceChipStyle" TargetType="ToggleButton">
         <Setter Property="MinHeight" Value="34"/>
         <Setter Property="Padding" Value="12,6"/>
-        <Setter Property="Background" Value="{ThemeResource SettingsControlBackgroundBrush}"/>
-        <Setter Property="Foreground" Value="{ThemeResource SettingsControlForegroundBrush}"/>
-        <Setter Property="BorderBrush" Value="{ThemeResource SettingsControlBorderBrush}"/>
+        <Setter Property="Background" Value="{ThemeResource ToggleButtonBackground}"/>
+        <Setter Property="Foreground" Value="{ThemeResource ToggleButtonForeground}"/>
+        <Setter Property="BorderBrush" Value="{ThemeResource ToggleButtonBorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="CornerRadius" Value="17"/>
         <Setter Property="FontSize" Value="12"/>
@@ -131,40 +131,46 @@
                                 <VisualState x:Name="Normal"/>
                                 <VisualState x:Name="PointerOver">
                                     <VisualState.Setters>
-                                        <Setter Target="RootBorder.Background" Value="{ThemeResource SettingsControlHoverBackgroundBrush}"/>
-                                        <Setter Target="RootBorder.BorderBrush" Value="{ThemeResource SettingsSelectionBorderBrush}"/>
+                                        <Setter Target="RootBorder.Background" Value="{ThemeResource ToggleButtonBackgroundPointerOver}"/>
+                                        <Setter Target="RootBorder.BorderBrush" Value="{ThemeResource ToggleButtonBorderBrushPointerOver}"/>
+                                        <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource ToggleButtonForegroundPointerOver}"/>
                                     </VisualState.Setters>
                                 </VisualState>
                                 <VisualState x:Name="Pressed">
                                     <VisualState.Setters>
-                                        <Setter Target="RootBorder.Background" Value="{ThemeResource SettingsSelectionPressedBackgroundBrush}"/>
+                                        <Setter Target="RootBorder.Background" Value="{ThemeResource ToggleButtonBackgroundPressed}"/>
+                                        <Setter Target="RootBorder.BorderBrush" Value="{ThemeResource ToggleButtonBorderBrushPressed}"/>
+                                        <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource ToggleButtonForegroundPressed}"/>
                                     </VisualState.Setters>
                                 </VisualState>
                                 <VisualState x:Name="Checked">
                                     <VisualState.Setters>
-                                        <Setter Target="RootBorder.Background" Value="{ThemeResource SettingsSelectionBackgroundBrush}"/>
-                                        <Setter Target="RootBorder.BorderBrush" Value="{ThemeResource SettingsSelectionBorderBrush}"/>
-                                        <Setter Target="RootBorder.BorderThickness" Value="2"/>
-                                        <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource SettingsSelectionForegroundBrush}"/>
-                                        <Setter Target="CheckGlyph.Opacity" Value="1"/>
+                                        <Setter Target="RootBorder.Background" Value="{ThemeResource ToggleButtonBackgroundChecked}"/>
+                                        <Setter Target="RootBorder.BorderBrush" Value="{ThemeResource ToggleButtonBorderBrushChecked}"/>
+                                        <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource ToggleButtonForegroundChecked}"/>
+                                        <Setter Target="CheckGlyph.Foreground" Value="{ThemeResource ToggleButtonForegroundChecked}"/>
+                                        <Setter Target="CheckGlyph.Visibility" Value="Visible"/>
+                                        <Setter Target="ContentGrid.ColumnSpacing" Value="8"/>
                                     </VisualState.Setters>
                                 </VisualState>
                                 <VisualState x:Name="CheckedPointerOver">
                                     <VisualState.Setters>
-                                        <Setter Target="RootBorder.Background" Value="{ThemeResource SettingsSelectionHoverBackgroundBrush}"/>
-                                        <Setter Target="RootBorder.BorderBrush" Value="{ThemeResource SettingsSelectionBorderBrush}"/>
-                                        <Setter Target="RootBorder.BorderThickness" Value="2"/>
-                                        <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource SettingsSelectionForegroundBrush}"/>
-                                        <Setter Target="CheckGlyph.Opacity" Value="1"/>
+                                        <Setter Target="RootBorder.Background" Value="{ThemeResource ToggleButtonBackgroundCheckedPointerOver}"/>
+                                        <Setter Target="RootBorder.BorderBrush" Value="{ThemeResource ToggleButtonBorderBrushCheckedPointerOver}"/>
+                                        <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource ToggleButtonForegroundCheckedPointerOver}"/>
+                                        <Setter Target="CheckGlyph.Foreground" Value="{ThemeResource ToggleButtonForegroundCheckedPointerOver}"/>
+                                        <Setter Target="CheckGlyph.Visibility" Value="Visible"/>
+                                        <Setter Target="ContentGrid.ColumnSpacing" Value="8"/>
                                     </VisualState.Setters>
                                 </VisualState>
                                 <VisualState x:Name="CheckedPressed">
                                     <VisualState.Setters>
-                                        <Setter Target="RootBorder.Background" Value="{ThemeResource SettingsSelectionPressedBackgroundBrush}"/>
-                                        <Setter Target="RootBorder.BorderBrush" Value="{ThemeResource SettingsSelectionBorderBrush}"/>
-                                        <Setter Target="RootBorder.BorderThickness" Value="2"/>
-                                        <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource SettingsSelectionForegroundBrush}"/>
-                                        <Setter Target="CheckGlyph.Opacity" Value="1"/>
+                                        <Setter Target="RootBorder.Background" Value="{ThemeResource ToggleButtonBackgroundCheckedPressed}"/>
+                                        <Setter Target="RootBorder.BorderBrush" Value="{ThemeResource ToggleButtonBorderBrushCheckedPressed}"/>
+                                        <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource ToggleButtonForegroundCheckedPressed}"/>
+                                        <Setter Target="CheckGlyph.Foreground" Value="{ThemeResource ToggleButtonForegroundCheckedPressed}"/>
+                                        <Setter Target="CheckGlyph.Visibility" Value="Visible"/>
+                                        <Setter Target="ContentGrid.ColumnSpacing" Value="8"/>
                                     </VisualState.Setters>
                                 </VisualState>
                                 <VisualState x:Name="Disabled">
@@ -174,7 +180,7 @@
                                 </VisualState>
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
-                        <Grid ColumnSpacing="8">
+                        <Grid x:Name="ContentGrid" ColumnSpacing="0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
@@ -183,8 +189,7 @@
                                       Grid.Column="0"
                                       Glyph="&#xE73E;"
                                       FontSize="12"
-                                      Foreground="{ThemeResource SettingsSelectionForegroundBrush}"
-                                      Opacity="0"/>
+                                      Visibility="Collapsed"/>
                             <ContentPresenter x:Name="ContentPresenter"
                                               Grid.Column="1"
                                               Content="{TemplateBinding Content}"
