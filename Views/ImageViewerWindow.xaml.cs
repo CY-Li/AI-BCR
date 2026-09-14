@@ -37,6 +37,7 @@ namespace PlustekBCR.Views
             _state.IsAlwaysOnTop = isAlwaysOnTop;
 
             InitializeComponent();
+            ApplyWindowIcon();
             RootGrid.DataContext = App.GetService<LocalizedStrings>();
 
             var manager = WinUIEx.WindowManager.Get(this);
@@ -48,6 +49,22 @@ namespace PlustekBCR.Views
 
             _localizationService.LanguageChanged += OnLanguageChanged;
             Closed += OnWindowClosed;
+        }
+
+        private void ApplyWindowIcon()
+        {
+            try
+            {
+                var iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "PlustekBCR.ico");
+                if (File.Exists(iconPath))
+                {
+                    AppWindow.SetIcon(iconPath);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Apply window icon failed: {ex.Message}");
+            }
         }
 
         public void ShowCard(BusinessCard card, CardImageSide side)

@@ -39,6 +39,7 @@ namespace PlustekBCR.Views
             _localizationService = App.GetService<ILocalizationService>();
 
             this.InitializeComponent();
+            ApplyWindowIcon();
             RootGrid.DataContext = App.GetService<LocalizedStrings>();
             UpdateLocalizedToolTips();
             RootGrid.AddHandler(UIElement.PointerPressedEvent, new Microsoft.UI.Xaml.Input.PointerEventHandler(OnRootPointerPressed), true);
@@ -214,6 +215,22 @@ namespace PlustekBCR.Views
             finally
             {
                 _isUpdateCheckRunning = false;
+            }
+        }
+
+        private void ApplyWindowIcon()
+        {
+            try
+            {
+                var iconPath = System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "PlustekBCR.ico");
+                if (System.IO.File.Exists(iconPath))
+                {
+                    AppWindow.SetIcon(iconPath);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Apply window icon failed: {ex.Message}");
             }
         }
 
