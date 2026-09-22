@@ -16,7 +16,7 @@
                               Source="{x:Bind ViewModel.GroupedCards, Mode=OneWay}"/>
     </Page.Resources>
 
-    <Grid Background="Transparent" PointerPressed="OnOverlayClicked">
+    <Grid x:Name="PageRoot" Background="Transparent" PointerPressed="OnOverlayClicked">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -157,13 +157,29 @@
                             </Grid>
                             <TextBlock Text="{x:Bind CompanyName, Mode=OneWay}" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
 
-                            <!-- Status stays left; latest note time is aligned to the card's right edge. -->
-                            <Grid ColumnSpacing="6">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <controls:WrapPanel Grid.Column="0" HorizontalAlignment="Left" HorizontalSpacing="6" VerticalSpacing="4">
+                            <!-- Latest note update stays above the processing status. -->
+                            <StackPanel Spacing="4">
+                                <Grid Height="16">
+                                    <StackPanel Orientation="Horizontal"
+                                                Spacing="4"
+                                                HorizontalAlignment="Left"
+                                                VerticalAlignment="Center"
+                                                Visibility="{x:Bind HasNotes, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
+                                        <FontIcon Glyph="&#xE823;"
+                                                  FontSize="11"
+                                                  VerticalAlignment="Center"
+                                                  Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
+                                        <TextBlock Text="{Binding DataContext[View.AllCards.LastUpdate], ElementName=PageRoot}"
+                                                   FontSize="11"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
+                                        <TextBlock Text="{x:Bind LatestNoteModifiedAt, Converter={StaticResource DateTimeToStringConverter}, Mode=OneWay}"
+                                                   FontSize="11"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
+                                    </StackPanel>
+                                </Grid>
+                                <controls:WrapPanel HorizontalAlignment="Left" HorizontalSpacing="6" VerticalSpacing="4">
                                     <Grid>
                                         <Border Style="{StaticResource BcrStatusBadgeBorderStyle}" Background="{x:Bind Status, Converter={StaticResource StatusToBackgroundBrushConverter}, Mode=OneWay}"/>
                                         <StackPanel Style="{StaticResource BcrStatusBadgeContentStyle}">
@@ -189,22 +205,7 @@
                                                   VerticalAlignment="Center"/>
                                     </Border>
                                 </controls:WrapPanel>
-                                <StackPanel Grid.Column="1"
-                                            Orientation="Horizontal"
-                                            Spacing="4"
-                                            HorizontalAlignment="Right"
-                                            VerticalAlignment="Center"
-                                            Visibility="{x:Bind HasNotes, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
-                                    <FontIcon Glyph="&#xE823;"
-                                              FontSize="11"
-                                              VerticalAlignment="Center"
-                                              Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
-                                    <TextBlock Text="{x:Bind LatestNoteModifiedAt, Converter={StaticResource DateTimeToStringConverter}, Mode=OneWay}"
-                                               FontSize="11"
-                                               VerticalAlignment="Center"
-                                               Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
-                                </StackPanel>
-                            </Grid>
+                            </StackPanel>
                         </StackPanel>
                     </Grid>
                 </DataTemplate>
@@ -318,33 +319,35 @@
                         </StackPanel>
 
                         <!-- Contact Info Summary (Optional for List View) -->
-                        <controls:WrapPanel Grid.Column="2"
-                                            MaxWidth="220"
-                                            HorizontalAlignment="Right"
-                                            VerticalAlignment="Center"
-                                            HorizontalSpacing="6"
-                                            VerticalSpacing="4">
-                            <Grid ColumnSpacing="6" VerticalAlignment="Center">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <StackPanel Grid.Column="0"
-                                            Orientation="Horizontal"
-                                            Spacing="4"
-                                            VerticalAlignment="Center"
-                                            Visibility="{x:Bind HasNotes, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
+                        <StackPanel Grid.Column="2"
+                                    MaxWidth="300"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"
+                                    Spacing="4">
+                            <StackPanel Orientation="Horizontal"
+                                        Spacing="4"
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Center"
+                                        Visibility="{x:Bind HasNotes, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
                                     <FontIcon Glyph="&#xE823;"
                                               FontSize="11"
                                               VerticalAlignment="Center"
                                               Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
+                                    <TextBlock Text="{Binding DataContext[View.AllCards.LastUpdate], ElementName=PageRoot}"
+                                               FontSize="11"
+                                               VerticalAlignment="Center"
+                                               Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
                                     <TextBlock Text="{x:Bind LatestNoteModifiedAt, Converter={StaticResource DateTimeToStringConverter}, Mode=OneWay}"
                                                FontSize="11"
                                                VerticalAlignment="Center"
                                                Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
-                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal"
+                                        Spacing="6"
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Center">
                                 <!-- Status Badge -->
-                                <Grid Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <Grid HorizontalAlignment="Right" VerticalAlignment="Center">
                                     <Border Style="{StaticResource BcrStatusBadgeBorderStyle}" Background="{x:Bind Status, Converter={StaticResource StatusToBackgroundBrushConverter}, Mode=OneWay}"/>
                                     <StackPanel Style="{StaticResource BcrStatusBadgeContentStyle}">
                                         <ProgressRing Style="{StaticResource BcrStatusBadgeProgressRingStyle}"
@@ -355,22 +358,22 @@
                                                    Foreground="{x:Bind Status, Converter={StaticResource StatusToForegroundBrushConverter}, Mode=OneWay}"/>
                                     </StackPanel>
                                 </Grid>
-                            </Grid>
-                            <Border Width="20"
-                                    Height="20"
-                                    HorizontalAlignment="Right"
-                                    CornerRadius="10"
-                                    Background="#FFFFF4CE"
-                                    ToolTipService.ToolTip="{x:Bind DuplicateReviewState, Converter={StaticResource DuplicateReviewStateToStringConverter}, Mode=OneWay}"
-                                    AutomationProperties.Name="{x:Bind DuplicateReviewState, Converter={StaticResource DuplicateReviewStateToStringConverter}, Mode=OneWay}"
-                                    Visibility="{x:Bind IsDuplicatePending, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
-                                <FontIcon Glyph="&#xE946;"
-                                          FontSize="11"
-                                          Foreground="#FF9A6700"
-                                          HorizontalAlignment="Center"
-                                          VerticalAlignment="Center"/>
-                            </Border>
-                        </controls:WrapPanel>
+                                <Border Width="20"
+                                        Height="20"
+                                        HorizontalAlignment="Right"
+                                        CornerRadius="10"
+                                        Background="#FFFFF4CE"
+                                        ToolTipService.ToolTip="{x:Bind DuplicateReviewState, Converter={StaticResource DuplicateReviewStateToStringConverter}, Mode=OneWay}"
+                                        AutomationProperties.Name="{x:Bind DuplicateReviewState, Converter={StaticResource DuplicateReviewStateToStringConverter}, Mode=OneWay}"
+                                        Visibility="{x:Bind IsDuplicatePending, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
+                                    <FontIcon Glyph="&#xE946;"
+                                              FontSize="11"
+                                              Foreground="#FF9A6700"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                                </Border>
+                            </StackPanel>
+                        </StackPanel>
 
                     </Grid>
                 </DataTemplate>

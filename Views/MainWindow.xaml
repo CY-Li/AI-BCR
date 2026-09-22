@@ -424,6 +424,9 @@
         <NavigationView Grid.Row="1" x:Name="RootNavigationView" x:FieldModifier="public" IsPaneVisible="{x:Bind ViewModel.IsPaneVisible, Mode=OneWay}" IsBackButtonVisible="Collapsed" IsSettingsVisible="False" PaneDisplayMode="Left" OpenPaneLength="280" SelectionChanged="OnSelectionChanged">
             <NavigationView.MenuItems>
                 <NavigationViewItem x:Name="AllCardsItem" Content="All cards" Tag="AllCards">
+                    <NavigationViewItem.InfoBadge>
+                        <InfoBadge Value="{x:Bind CardsViewModel.AllCardCount, Mode=OneWay}"/>
+                    </NavigationViewItem.InfoBadge>
                     <NavigationViewItem.Icon>
                         <PathIcon Data="M19.75 4A2.25 2.25 0 0 1 22 6.25v11.505a2.25 2.25 0 0 1-2.25 2.25H4.25A2.25 2.25 0 0 1 2 17.755V6.25A2.25 2.25 0 0 1 4.25 4h15.5Zm0 1.5H4.25a.75.75 0 0 0-.75.75v11.505c0 .414.336.75.75.75h15.5a.75.75 0 0 0 .75-.75V6.25a.75.75 0 0 0-.75-.75Zm-10 7a.75.75 0 0 1 .75.75v.493l-.008.108c-.163 1.113-1.094 1.65-2.492 1.65s-2.33-.537-2.492-1.65l-.008-.11v-.491a.75.75 0 0 1 .75-.75h3.5Zm3.502.496h4.498a.75.75 0 0 1 .102 1.493l-.102.007h-4.498a.75.75 0 0 1-.102-1.493l.102-.007h4.498-4.498ZM8 8.502a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm5.252.998h4.498a.75.75 0 0 1 .102 1.493L17.75 11h-4.498a.75.75 0 0 1-.102-1.493l.102-.007h4.498-4.498Z"/>
                     </NavigationViewItem.Icon>
@@ -434,9 +437,21 @@
                         <PathIcon Data="M12 2c5.523 0 10 4.478 10 10s-4.477 10-10 10S2 17.522 2 12 6.477 2 12 2Zm0 1.667c-4.595 0-8.333 3.738-8.333 8.333 0 4.595 3.738 8.333 8.333 8.333 4.595 0 8.333-3.738 8.333-8.333 0-4.595-3.738-8.333-8.333-8.333ZM11.25 6a.75.75 0 0 1 .743.648L12 6.75V12h3.25a.75.75 0 0 1 .102 1.493l-.102.007h-4a.75.75 0 0 1-.743-.648l-.007-.102v-6a.75.75 0 0 1 .75-.75Z"/>
                     </NavigationViewItem.Icon>
                     <NavigationViewItem.MenuItems>
-                        <NavigationViewItem Content="{Binding [Button.Today]}" Tag="RecentPreset:Today"/>
-                        <NavigationViewItem Content="{Binding [Button.Within3Days]}" Tag="RecentPreset:Within 3 days"/>
-                        <NavigationViewItem Content="{Binding [Button.Within7Days]}" Tag="RecentPreset:Within 7 days"/>
+                        <NavigationViewItem Content="{Binding [Button.Today]}" Tag="RecentPreset:Today">
+                            <NavigationViewItem.InfoBadge>
+                                <InfoBadge Value="{x:Bind CardsViewModel.TodayCardCount, Mode=OneWay}"/>
+                            </NavigationViewItem.InfoBadge>
+                        </NavigationViewItem>
+                        <NavigationViewItem Content="{Binding [Button.Within3Days]}" Tag="RecentPreset:Within 3 days">
+                            <NavigationViewItem.InfoBadge>
+                                <InfoBadge Value="{x:Bind CardsViewModel.Within3DaysCardCount, Mode=OneWay}"/>
+                            </NavigationViewItem.InfoBadge>
+                        </NavigationViewItem>
+                        <NavigationViewItem Content="{Binding [Button.Within7Days]}" Tag="RecentPreset:Within 7 days">
+                            <NavigationViewItem.InfoBadge>
+                                <InfoBadge Value="{x:Bind CardsViewModel.Within7DaysCardCount, Mode=OneWay}"/>
+                            </NavigationViewItem.InfoBadge>
+                        </NavigationViewItem>
                     </NavigationViewItem.MenuItems>
                 </NavigationViewItem>
                 <NavigationViewItem x:Name="ByCompanyItem" Content="{Binding [Main.Navigation.ByCompany]}" Visibility="Collapsed">

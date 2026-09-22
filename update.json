@@ -1,5 +1,5 @@
 {
-  "version": "1.0.14",
-  "downloadUrl": "https://github.com/CY-Li/AI-BCR/releases/download/v1.0.14/PlustekBCR-v1.0.14-win-x64.zip",
-  "notes": "1. 名片重複比對條件預設為email\r\n2. 重複名片執行取代時，將其他名片note合併至欲保留的名片中\r\n3. 重新分類Setting頁面功能層級\r\n- Scan：掃描及IP參數\r\n- General：語言與地區\r\n- Duplicate Detection：名片重複比對條件\r\n- About：AP、FW版號\r\n4. 隱藏尚未實作的功能及按鈕\r\n5. UI優化"
+  "version": "1.0.15",
+  "downloadUrl": "https://github.com/CY-Li/AI-BCR/releases/download/v1.0.15/PlustekBCR-v1.0.15-win-x64.zip",
+  "notes": "1. Sidebar 新增全部名片與近期日期篩選統計\r\n2. Note 輸入框移至時間軸上方，並移除辨識成功時自動建立的系統 Note\r\n3. Grid 與 List View 新增 Note 最後更新時間，改善狀態排列與卡片等高\r\n4. Card Detail 將姓名與狀態移至返回按鈕下方"
 }

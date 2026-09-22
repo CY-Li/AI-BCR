@@ -17,6 +17,7 @@ namespace PlustekBCR.Views
     public sealed partial class MainWindow : Window
     {
         public MainViewModel ViewModel { get; }
+        public AllCardsViewModel CardsViewModel { get; }
         public ObservableCollection<TagFlowItem> AdvancedTagFlowItems { get; } = new();
         private bool _hasCheckedForUpdates;
         private bool _isUpdateCheckRunning;
@@ -35,6 +36,7 @@ namespace PlustekBCR.Views
         {
             // Assign ViewModel BEFORE InitializeComponent for x:Bind to work
             ViewModel = App.GetService<MainViewModel>();
+            CardsViewModel = App.GetService<AllCardsViewModel>();
             _tagCatalogService = App.GetService<ITagCatalogService>();
             _localizationService = App.GetService<ILocalizationService>();
 

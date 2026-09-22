@@ -450,6 +450,10 @@ namespace PlustekBCR.ViewModels
         }
 
         public IEnumerable<BusinessCard> FilteredCards => AllCards.Where(MatchesSearch);
+        public int AllCardCount => AllCards.Count;
+        public int TodayCardCount => CountCardsInRecentPreset("Today");
+        public int Within3DaysCardCount => CountCardsInRecentPreset("Within 3 days");
+        public int Within7DaysCardCount => CountCardsInRecentPreset("Within 7 days");
         public int FilteredCardCount => FilteredCards.Count();
         public bool HasCards => AllCards.Count > 0;
         public bool ShowEmptyState => !MainViewModel.IsSearchActive && !HasCards;
@@ -719,6 +723,12 @@ namespace PlustekBCR.ViewModels
             RefreshSearchResults();
         }
 
+        private int CountCardsInRecentPreset(string preset)
+        {
+            var (start, end) = RecentPresetHelper.GetRange(preset);
+            return AllCards.Count(card => card.ScanDate.Date >= start && card.ScanDate.Date <= end);
+        }
+
         private void SubscribeToAllCardsCollection(ObservableCollection<BusinessCard>? previousCards, ObservableCollection<BusinessCard>? currentCards)
         {
             if (previousCards != null)
@@ -768,6 +778,10 @@ namespace PlustekBCR.ViewModels
 
         private void RefreshSearchResults()
         {
+            OnPropertyChanged(nameof(AllCardCount));
+            OnPropertyChanged(nameof(TodayCardCount));
+            OnPropertyChanged(nameof(Within3DaysCardCount));
+            OnPropertyChanged(nameof(Within7DaysCardCount));
             OnPropertyChanged(nameof(FilteredCards));
             OnPropertyChanged(nameof(GroupedCards));
             OnPropertyChanged(nameof(FilteredCardCount));

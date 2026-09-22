@@ -6,6 +6,15 @@ namespace PlustekBCR.Tests;
 public class BusinessCardNoteTests
 {
     [Fact]
+    public void LatestNoteModifiedAt_IsHiddenWhenCardHasNoNotes()
+    {
+        var card = new BusinessCard { Notes = new List<Note>() };
+
+        Assert.False(card.HasNotes);
+        Assert.Equal(default, card.LatestNoteModifiedAt);
+    }
+
+    [Fact]
     public void LatestNoteModifiedAt_UsesCreatedAtForLegacyNotes()
     {
         var createdAt = new DateTime(2026, 9, 11, 9, 30, 0);
@@ -61,5 +70,26 @@ public class BusinessCardNoteTests
 
         Assert.Equal(note.UpdatedAt, card.LatestNoteModifiedAt);
         Assert.Contains(nameof(BusinessCard.LatestNoteModifiedAt), changedProperties);
+    }
+
+    [Fact]
+    public void LatestNoteModifiedAt_FallsBackWhenLatestNoteIsRemoved()
+    {
+        var earlierNote = new Note
+        {
+            CreatedAt = new DateTime(2026, 9, 11, 9, 0, 0),
+            Content = "Earlier note"
+        };
+        var latestNote = new Note
+        {
+            CreatedAt = new DateTime(2026, 9, 11, 16, 0, 0),
+            Content = "Latest note"
+        };
+        var card = new BusinessCard { Notes = new List<Note> { latestNote, earlierNote } };
+
+        card.Notes = new List<Note> { earlierNote };
+
+        Assert.True(card.HasNotes);
+        Assert.Equal(earlierNote.CreatedAt, card.LatestNoteModifiedAt);
     }
 }

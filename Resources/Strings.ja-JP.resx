@@ -251,6 +251,7 @@
   <data name="View.AllCards.NoResults.Description" xml:space="preserve"><value>検索条件をクリアすると、すべての名刺に戻ります。</value></data>
   <data name="View.AllCards.NoResults.Title" xml:space="preserve"><value>一致する名刺がありません</value></data>
   <data name="View.AllCards.SearchResults" xml:space="preserve"><value>検索結果</value></data>
+  <data name="View.AllCards.LastUpdate" xml:space="preserve"><value>最終更新</value></data>
   <data name="View.CardDetail.BackSide" xml:space="preserve"><value>裏面</value></data>
   <data name="View.CardDetail.CardInformation" xml:space="preserve"><value>名刺情報</value></data>
   <data name="View.CardDetail.Contact" xml:space="preserve"><value>連絡先</value></data>

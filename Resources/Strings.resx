@@ -252,6 +252,7 @@
   <data name="View.AllCards.NoResults.Description" xml:space="preserve"><value>Clear search conditions to return to all cards.</value></data>
   <data name="View.AllCards.NoResults.Title" xml:space="preserve"><value>No matching business cards</value></data>
   <data name="View.AllCards.SearchResults" xml:space="preserve"><value>Search results</value></data>
+  <data name="View.AllCards.LastUpdate" xml:space="preserve"><value>Last update</value></data>
   <data name="View.CardDetail.BackSide" xml:space="preserve"><value>Back Side</value></data>
   <data name="View.CardDetail.CardInformation" xml:space="preserve"><value>Card Information</value></data>
   <data name="View.CardDetail.Contact" xml:space="preserve"><value>Contact</value></data>
