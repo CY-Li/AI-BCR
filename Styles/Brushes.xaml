@@ -22,6 +22,14 @@
     <SolidColorBrush x:Key="BcrBrush.TextMuted" Color="#6E7781" />
     <SolidColorBrush x:Key="BcrBrush.Brand" Color="#2563EB" />
     <SolidColorBrush x:Key="BcrBrush.Success" Color="#14804A" />
+    <SolidColorBrush x:Key="BcrBrush.ExportAccent" Color="#14804A" />
+    <SolidColorBrush x:Key="BcrBrush.ExportAccentHover" Color="#106B3F" />
+    <SolidColorBrush x:Key="BcrBrush.ExportAccentPressed" Color="#0D5B35" />
+    <SolidColorBrush x:Key="BcrBrush.ExportSurface" Color="#F3F7F5" />
+    <SolidColorBrush x:Key="BcrBrush.ExportSurfaceStrong" Color="#E4F1EA" />
+    <SolidColorBrush x:Key="BcrBrush.ExportBorder" Color="#9FC8B2" />
+    <SolidColorBrush x:Key="BcrBrush.ExportHoverSubtle" Color="#0D14804A" />
+    <SolidColorBrush x:Key="BcrBrush.ExportSelectionSubtle" Color="#1F14804A" />
     <SolidColorBrush x:Key="BcrBrush.Warning" Color="#B7791F" />
     <SolidColorBrush x:Key="BcrBrush.Danger" Color="#D92D20" />
     <SolidColorBrush x:Key="BcrBrush.Info" Color="#0E7490" />

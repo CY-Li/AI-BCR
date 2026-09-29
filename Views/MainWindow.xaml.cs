@@ -46,6 +46,7 @@ namespace PlustekBCR.Views
             UpdateLocalizedToolTips();
             RootGrid.AddHandler(UIElement.PointerPressedEvent, new Microsoft.UI.Xaml.Input.PointerEventHandler(OnRootPointerPressed), true);
             ViewModel.ScanPulseRequested += OnScanPulseRequested;
+            CardsViewModel.PropertyChanged += OnCardsViewModelPropertyChanged;
             _mockPaperSensorTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(1450) };
             _mockPaperSensorTimer.Tick += OnMockPaperSensorTick;
 
@@ -335,6 +336,40 @@ namespace PlustekBCR.Views
             EnterSettingsWorkspace(_currentSettingsSection);
         }
 
+        private void OnExportClicked(object sender, RoutedEventArgs e)
+        {
+            ExitSettingsWorkspaceIfNeeded();
+            SelectAllCardsNavigationItem();
+
+            if (ContentFrame.SourcePageType != typeof(AllCardsPage))
+            {
+                NavigateToAllCardsPage();
+            }
+
+            CardsViewModel.EnterBatchExportModeCommand.Execute(null);
+        }
+
+        private void OnCardsViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName != nameof(AllCardsViewModel.IsBatchExportMode))
+            {
+                return;
+            }
+
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                HeaderExportButton.Background = CardsViewModel.IsBatchExportMode
+                    ? (Brush)Application.Current.Resources["BcrBrush.ExportSurfaceStrong"]
+                    : new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+                HeaderExportButton.BorderBrush = CardsViewModel.IsBatchExportMode
+                    ? (Brush)Application.Current.Resources["BcrBrush.ExportAccent"]
+                    : new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+                HeaderExportButton.BorderThickness = CardsViewModel.IsBatchExportMode
+                    ? new Thickness(1)
+                    : new Thickness(0);
+            });
+        }
+
         public void ReturnToCardsWorkspace()
         {
             ExitSettingsWorkspaceIfNeeded();
@@ -419,6 +454,7 @@ namespace PlustekBCR.Views
             HeaderGridButton.Visibility = headerWorkspaceVisibility;
             HeaderListButton.Visibility = headerWorkspaceVisibility;
             HeaderViewDivider.Visibility = headerWorkspaceVisibility;
+            HeaderExportButton.Visibility = headerWorkspaceVisibility;
 
             HeaderSettingButton.Background = _isInSettingsWorkspace
                 ? (Brush)Application.Current.Resources["SubtleFillColorSecondaryBrush"]

@@ -67,10 +67,87 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="GridViewItem">
-                    <Grid>
+                    <Grid Background="Transparent">
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal"/>
+                                <VisualState x:Name="PointerOver">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="HoverOutline" Storyboard.TargetProperty="Opacity" To="1" Duration="0"/>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="Pressed">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="HoverOutline" Storyboard.TargetProperty="Opacity" To="1" Duration="0"/>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="Selected">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionSurface" Storyboard.TargetProperty="Opacity" To="1" Duration="0"/>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionBadge" Storyboard.TargetProperty="Opacity" To="1" Duration="0"/>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="PointerOverSelected">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionSurface" Storyboard.TargetProperty="Opacity" To="1" Duration="0"/>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionBadge" Storyboard.TargetProperty="Opacity" To="1" Duration="0"/>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="SelectedPointerOver">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionSurface" Storyboard.TargetProperty="Opacity" To="1" Duration="0"/>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionBadge" Storyboard.TargetProperty="Opacity" To="1" Duration="0"/>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="PressedSelected">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionSurface" Storyboard.TargetProperty="Opacity" To="1" Duration="0"/>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionBadge" Storyboard.TargetProperty="Opacity" To="1" Duration="0"/>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="SelectedDisabled">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionSurface" Storyboard.TargetProperty="Opacity" To="0.65" Duration="0"/>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionBadge" Storyboard.TargetProperty="Opacity" To="0.65" Duration="0"/>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="Disabled"/>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
                         <ContentPresenter
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
                             HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                             VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        <Border x:Name="HoverOutline"
+                                Margin="20,4,4,20"
+                                CornerRadius="14"
+                                BorderBrush="{StaticResource BcrBrush.ExportBorder}"
+                                BorderThickness="1"
+                                Opacity="0"
+                                IsHitTestVisible="False"/>
+                        <Border x:Name="SelectionSurface"
+                                Margin="20,4,4,20"
+                                CornerRadius="14"
+                                Background="{StaticResource BcrBrush.ExportSelectionSubtle}"
+                                BorderBrush="{StaticResource BcrBrush.ExportAccent}"
+                                BorderThickness="3"
+                                Opacity="0"
+                                IsHitTestVisible="False"/>
+                        <Border x:Name="SelectionBadge"
+                                Width="30"
+                                Height="30"
+                                Margin="0,0,0,0"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Top"
+                                CornerRadius="15"
+                                Background="{StaticResource BcrBrush.ExportAccent}"
+                                BorderBrush="White"
+                                BorderThickness="2"
+                                Opacity="0"
+                                IsHitTestVisible="False">
+                            <FontIcon Glyph="&#xE73E;" FontSize="14" Foreground="White"/>
+                        </Border>
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>

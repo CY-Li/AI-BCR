@@ -22,18 +22,18 @@ namespace PlustekBCR.Views
     {
         public AllCardsViewModel ViewModel { get; }
         private readonly ITagCatalogService _tagCatalogService;
-        private readonly IBusinessCardFieldService _fieldService;
         private readonly IApplicationSettingsService _settingsService;
         private readonly ILocalizationService _localizationService;
         private readonly IImageViewerService _imageViewerService;
         public ObservableCollection<string> SidebarSelectedTags { get; } = new();
         public ObservableCollection<TagFlowItem> SidebarTagFlowItems { get; } = new();
+        private bool _isSynchronizingExportSelection;
+        private bool _isExportSelectionSyncQueued;
 
         public AllCardsPage()
         {
             ViewModel = App.GetService<AllCardsViewModel>();
             _tagCatalogService = App.GetService<ITagCatalogService>();
-            _fieldService = App.GetService<IBusinessCardFieldService>();
             _settingsService = App.GetService<IApplicationSettingsService>();
             _localizationService = App.GetService<ILocalizationService>();
             _imageViewerService = App.GetService<IImageViewerService>();
@@ -90,6 +90,11 @@ namespace PlustekBCR.Views
         {
             if (e.ClickedItem is PlustekBCR.Models.BusinessCard card)
             {
+                if (ViewModel.IsBatchExportMode)
+                {
+                    return;
+                }
+
                 ViewModel.SelectCardCommand.Execute(card);
             }
         }
@@ -101,6 +106,11 @@ namespace PlustekBCR.Views
 
         private void OnCardDoubleTapped(object sender, Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs e)
         {
+            if (ViewModel.IsBatchExportMode)
+            {
+                return;
+            }
+
             Microsoft.UI.Xaml.DependencyObject? visualParent = e.OriginalSource as Microsoft.UI.Xaml.DependencyObject;
             while (visualParent != null)
             {
@@ -321,7 +331,7 @@ namespace PlustekBCR.Views
         {
             if (sender is MenuFlyoutItem menuItem && menuItem.DataContext is BusinessCard card)
             {
-                await ExportCardAsCsvAsync(card);
+                await ViewModel.ExportSingleCardCsvAsync(card);
             }
         }
 
@@ -341,28 +351,6 @@ namespace PlustekBCR.Views
             }
 
             await ViewModel.ReprocessAiAsync(ViewModel.SelectedCard);
-        }
-
-        private async Task ExportCardAsCsvAsync(BusinessCard card)
-        {
-            var picker = new FileSavePicker
-            {
-                SuggestedStartLocation = PickerLocationId.DocumentsLibrary,
-                SuggestedFileName = string.IsNullOrWhiteSpace(card.FullName) ? "business_card" : card.FullName
-            };
-            picker.FileTypeChoices.Add("CSV (Comma delimited)", new System.Collections.Generic.List<string> { ".csv" });
-            PickerWindowHelper.Initialize(picker);
-
-            StorageFile? file = await picker.PickSaveFileAsync();
-            if (file == null) return;
-
-            var exportFields = _fieldService.GetFields(BusinessCardSurface.Export);
-            var headers = exportFields.Select(x => x.Key).ToArray();
-            var values = exportFields.Select(x => BusinessCardFieldAccessor.GetTextValue(card, x.PropertyName)).ToArray();
-
-            var csv = string.Join(",", headers) + Environment.NewLine +
-                      string.Join(",", System.Array.ConvertAll(values, EscapeCsv));
-            await File.WriteAllTextAsync(file.Path, csv, Encoding.UTF8);
         }
 
         private async Task ExportCardAsTxtAsync(BusinessCard card)
@@ -393,16 +381,6 @@ namespace PlustekBCR.Views
             sb.AppendLine($"Status: {card.Status}");
 
             await File.WriteAllTextAsync(file.Path, sb.ToString(), Encoding.UTF8);
-        }
-
-        private static string EscapeCsv(string? value)
-        {
-            var text = value ?? string.Empty;
-            if (text.Contains('\"') || text.Contains(',') || text.Contains('\n') || text.Contains('\r'))
-            {
-                return $"\"{text.Replace("\"", "\"\"")}\"";
-            }
-            return text;
         }
 
         private async void OnAddSidebarTagClicked(object sender, RoutedEventArgs e)
@@ -517,6 +495,108 @@ namespace PlustekBCR.Views
             {
                 RefreshSidebarTagsFromCard();
             }
+
+            if (e.PropertyName == nameof(AllCardsViewModel.IsBatchExportMode))
+            {
+                UpdateBatchExportSelectionMode();
+            }
+
+            if (ViewModel.IsBatchExportMode
+                && (e.PropertyName is nameof(AllCardsViewModel.SelectedExportCount)
+                    or nameof(AllCardsViewModel.GroupedCards)))
+            {
+                QueueExportSelectionSynchronization();
+            }
+        }
+
+        private void OnCardSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isSynchronizingExportSelection || !ViewModel.IsBatchExportMode)
+            {
+                return;
+            }
+
+            foreach (var card in e.RemovedItems.OfType<BusinessCard>())
+            {
+                ViewModel.SetCardExportSelected(card, false);
+            }
+
+            foreach (var card in e.AddedItems.OfType<BusinessCard>())
+            {
+                ViewModel.SetCardExportSelected(card, true);
+            }
+
+            QueueExportSelectionSynchronization();
+        }
+
+        private void UpdateBatchExportSelectionMode()
+        {
+            _isSynchronizingExportSelection = true;
+            try
+            {
+                var selectionMode = ViewModel.IsBatchExportMode
+                    ? ListViewSelectionMode.Multiple
+                    : ListViewSelectionMode.None;
+                CardGridView.SelectionMode = selectionMode;
+                CardListView.SelectionMode = selectionMode;
+            }
+            finally
+            {
+                _isSynchronizingExportSelection = false;
+            }
+
+            QueueExportSelectionSynchronization();
+        }
+
+        private void QueueExportSelectionSynchronization()
+        {
+            if (!ViewModel.IsBatchExportMode || _isExportSelectionSyncQueued)
+            {
+                return;
+            }
+
+            _isExportSelectionSyncQueued = true;
+            if (!DispatcherQueue.TryEnqueue(() =>
+            {
+                _isExportSelectionSyncQueued = false;
+                SynchronizeExportSelection();
+            }))
+            {
+                _isExportSelectionSyncQueued = false;
+            }
+        }
+
+        private void SynchronizeExportSelection()
+        {
+            if (_isSynchronizingExportSelection || !ViewModel.IsBatchExportMode)
+            {
+                return;
+            }
+
+            _isSynchronizingExportSelection = true;
+            try
+            {
+                SynchronizeExportSelection(CardGridView);
+                SynchronizeExportSelection(CardListView);
+            }
+            finally
+            {
+                _isSynchronizingExportSelection = false;
+            }
+        }
+
+        private void SynchronizeExportSelection(ListViewBase listView)
+        {
+            listView.SelectedItems.Clear();
+            foreach (var card in ViewModel.FilteredCards.Where(ViewModel.IsCardSelectedForExport))
+            {
+                listView.SelectedItems.Add(card);
+            }
+        }
+
+        private void OnExportInfoBarClosed(InfoBar sender, InfoBarClosedEventArgs args)
+        {
+            ViewModel.DismissExportMessageCommand.Execute(null);
         }
 
         private void OnTagCatalogChanged()

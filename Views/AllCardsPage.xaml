@@ -54,7 +54,93 @@
             Grid.Row="1"
             Grid.Column="0"
             Visibility="{x:Bind ViewModel.ShowCardsContent, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <StackPanel HorizontalAlignment="Stretch"
+                        VerticalAlignment="Top"
+                        Grid.Row="0"
+                        Margin="24,12,24,4"
+                        Spacing="8"
+                        Canvas.ZIndex="40">
+                <Border Padding="16,12"
+                        Background="{StaticResource BcrBrush.ExportSurface}"
+                        BorderBrush="{StaticResource BcrBrush.ExportBorder}"
+                        BorderThickness="1"
+                        CornerRadius="10"
+                        Visibility="{x:Bind ViewModel.IsBatchExportMode, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0"
+                                Width="40"
+                                Height="40"
+                                CornerRadius="20"
+                                Background="{StaticResource BcrBrush.ExportSurfaceStrong}">
+                            <FontIcon Glyph="&#xE74E;"
+                                      FontSize="18"
+                                      Foreground="{StaticResource BcrBrush.ExportAccent}"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                            <TextBlock Text="{Binding [Export.BatchTitle]}"
+                                       FontSize="15"
+                                       FontWeight="SemiBold"
+                                       Foreground="{ThemeResource TextFillColorPrimaryBrush}"/>
+                            <TextBlock Text="{x:Bind ViewModel.SelectedExportSummary, Mode=OneWay}"
+                                       FontSize="12"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                        </StackPanel>
+                        <Button Grid.Column="2"
+                                Content="{Binding [Export.SelectAll]}"
+                                Command="{x:Bind ViewModel.SelectAllVisibleForExportCommand}"/>
+                        <Button Grid.Column="3"
+                                Content="{Binding [Export.ClearSelection]}"
+                                Command="{x:Bind ViewModel.ClearExportSelectionCommand}"/>
+                        <Button Grid.Column="4"
+                                Style="{StaticResource AccentButtonStyle}"
+                                Background="{StaticResource BcrBrush.ExportAccent}"
+                                BorderBrush="{StaticResource BcrBrush.ExportAccent}"
+                                Foreground="White"
+                                Content="{x:Bind ViewModel.ExportSelectedButtonText, Mode=OneWay}"
+                                Command="{x:Bind ViewModel.ExportSelectedCommand}">
+                            <Button.Resources>
+                                <SolidColorBrush x:Key="AccentButtonBackground" Color="#14804A"/>
+                                <SolidColorBrush x:Key="AccentButtonBackgroundPointerOver" Color="#106B3F"/>
+                                <SolidColorBrush x:Key="AccentButtonBackgroundPressed" Color="#0D5B35"/>
+                            </Button.Resources>
+                        </Button>
+                        <Button Grid.Column="5"
+                                Width="36"
+                                Height="36"
+                                Padding="0"
+                                Command="{x:Bind ViewModel.ExitBatchExportModeCommand}"
+                                ToolTipService.ToolTip="{Binding [Export.Exit]}">
+                            <FontIcon Glyph="&#xE711;" FontSize="14"/>
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <InfoBar IsOpen="{x:Bind ViewModel.HasExportSuccessMessage, Mode=OneWay}"
+                         IsClosable="True"
+                         Severity="Success"
+                         Message="{x:Bind ViewModel.ExportMessage, Mode=OneWay}"
+                         Closed="OnExportInfoBarClosed"/>
+                <InfoBar IsOpen="{x:Bind ViewModel.HasExportErrorMessage, Mode=OneWay}"
+                         IsClosable="True"
+                         Severity="Error"
+                         Message="{x:Bind ViewModel.ExportMessage, Mode=OneWay}"
+                         Closed="OnExportInfoBarClosed"/>
+            </StackPanel>
+
             <Border HorizontalAlignment="Right"
+                    Grid.Row="1"
                     VerticalAlignment="Top"
                     Margin="0,12,28,0"
                     Padding="12,6"
@@ -70,9 +156,11 @@
             </Border>
             <GridView 
                 x:Name="CardGridView"
+                Grid.Row="1"
                 Visibility="{x:Bind ViewModel.MainViewModel.IsGridView, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"
                 ItemsSource="{x:Bind GroupedCardsSource.View, Mode=OneWay}"
                 SelectionMode="None"
+                SelectionChanged="OnCardSelectionChanged"
                 IsItemClickEnabled="True"
                 ItemClick="OnCardClick"
                 DoubleTapped="OnCardDoubleTapped"
@@ -234,9 +322,11 @@
             <!-- List View Mode -->
             <ListView
                 x:Name="CardListView"
+                Grid.Row="1"
                 Visibility="{x:Bind ViewModel.MainViewModel.IsGridView, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}"
                 ItemsSource="{x:Bind GroupedCardsSource.View, Mode=OneWay}"
                 SelectionMode="None"
+                SelectionChanged="OnCardSelectionChanged"
                 IsItemClickEnabled="True"
                 ItemClick="OnCardClick"
                 DoubleTapped="OnCardDoubleTapped"

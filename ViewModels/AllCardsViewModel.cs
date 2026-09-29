@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,6 +26,9 @@ namespace PlustekBCR.ViewModels
         private readonly ILocalizationService _localizationService;
         private readonly IBusinessCardDuplicateService _duplicateService;
         private readonly IApplicationSettingsService _settingsService;
+        private readonly IBusinessCardExportService _exportService;
+        private readonly IExportFilePickerService _exportFilePickerService;
+        private readonly HashSet<Guid> _selectedExportCardIds = new();
         private ObservableCollection<BusinessCard> _allCards = new();
         private BusinessCard? _selectedCard;
         private BusinessCard? _subscribedCard;
@@ -36,6 +40,10 @@ namespace PlustekBCR.ViewModels
         private CancellationTokenSource? _zipLookupCts;
         private bool _isApplyingZipLookupResult;
         private bool _isResolvingDuplicate;
+        private bool _isBatchExportMode;
+        private bool _isExporting;
+        private string _exportMessage = string.Empty;
+        private bool _isExportMessageError;
 
         public ObservableCollection<BusinessCard> AllCards
         {
@@ -85,6 +93,67 @@ namespace PlustekBCR.ViewModels
         {
             get => _isSidebarOpen;
             set => SetProperty(ref _isSidebarOpen, value);
+        }
+
+        public bool IsBatchExportMode
+        {
+            get => _isBatchExportMode;
+            private set => SetProperty(ref _isBatchExportMode, value);
+        }
+
+        public bool IsExporting
+        {
+            get => _isExporting;
+            private set
+            {
+                if (SetProperty(ref _isExporting, value))
+                {
+                    ExportSelectedCommand.NotifyCanExecuteChanged();
+                }
+            }
+        }
+
+        public string ExportMessage
+        {
+            get => _exportMessage;
+            private set
+            {
+                if (SetProperty(ref _exportMessage, value))
+                {
+                    OnPropertyChanged(nameof(HasExportMessage));
+                    OnPropertyChanged(nameof(HasExportSuccessMessage));
+                    OnPropertyChanged(nameof(HasExportErrorMessage));
+                }
+            }
+        }
+
+        public bool IsExportMessageError
+        {
+            get => _isExportMessageError;
+            private set
+            {
+                if (SetProperty(ref _isExportMessageError, value))
+                {
+                    OnPropertyChanged(nameof(HasExportSuccessMessage));
+                    OnPropertyChanged(nameof(HasExportErrorMessage));
+                }
+            }
+        }
+
+        public bool HasExportMessage => !string.IsNullOrWhiteSpace(ExportMessage);
+        public bool HasExportSuccessMessage => HasExportMessage && !IsExportMessageError;
+        public bool HasExportErrorMessage => HasExportMessage && IsExportMessageError;
+        public int SelectedExportCount => _selectedExportCardIds.Count;
+        public bool HasSelectedExportCards => SelectedExportCount > 0;
+        public string SelectedExportSummary => _localizationService.Format("Export.SelectedCount", SelectedExportCount);
+        public string ExportSelectedButtonText => _localizationService.Format("Export.ExportSelected", SelectedExportCount);
+        public bool AreAllVisibleCardsSelected
+        {
+            get
+            {
+                var eligibleIds = GetVisibleExportableCards().Select(card => card.Id).ToArray();
+                return eligibleIds.Length > 0 && eligibleIds.All(_selectedExportCardIds.Contains);
+            }
         }
 
         public string EditingFieldKey
@@ -300,6 +369,8 @@ namespace PlustekBCR.ViewModels
             _localizationService = App.GetService<ILocalizationService>();
             _duplicateService = App.GetService<IBusinessCardDuplicateService>();
             _settingsService = App.GetService<IApplicationSettingsService>();
+            _exportService = App.GetService<IBusinessCardExportService>();
+            _exportFilePickerService = App.GetService<IExportFilePickerService>();
             AllCards = new ObservableCollection<BusinessCard>();
             MainViewModel.SearchChanged += OnSearchChanged;
             _localizationService.LanguageChanged += OnLanguageChanged;
@@ -477,6 +548,30 @@ namespace PlustekBCR.ViewModels
         private IRelayCommand? _closeSidebarCommand;
         public IRelayCommand CloseSidebarCommand => _closeSidebarCommand ??= new RelayCommand(CloseSidebar);
 
+        private IRelayCommand? _enterBatchExportModeCommand;
+        public IRelayCommand EnterBatchExportModeCommand =>
+            _enterBatchExportModeCommand ??= new RelayCommand(EnterBatchExportMode);
+
+        private IRelayCommand? _exitBatchExportModeCommand;
+        public IRelayCommand ExitBatchExportModeCommand =>
+            _exitBatchExportModeCommand ??= new RelayCommand(ExitBatchExportMode);
+
+        private IRelayCommand? _selectAllVisibleForExportCommand;
+        public IRelayCommand SelectAllVisibleForExportCommand =>
+            _selectAllVisibleForExportCommand ??= new RelayCommand(SelectAllVisibleForExport);
+
+        private IRelayCommand? _clearExportSelectionCommand;
+        public IRelayCommand ClearExportSelectionCommand =>
+            _clearExportSelectionCommand ??= new RelayCommand(ClearExportSelection);
+
+        private IAsyncRelayCommand? _exportSelectedCommand;
+        public IAsyncRelayCommand ExportSelectedCommand =>
+            _exportSelectedCommand ??= new AsyncRelayCommand(ExportSelectedAsync, CanExportSelected);
+
+        private IRelayCommand? _dismissExportMessageCommand;
+        public IRelayCommand DismissExportMessageCommand =>
+            _dismissExportMessageCommand ??= new RelayCommand(() => ExportMessage = string.Empty);
+
         public Func<BusinessCard, Task<bool>>? ConfirmDeleteCardAsync { get; set; }
         public Func<BusinessCard, int, Task<bool>>? ConfirmReplaceDuplicatesAsync { get; set; }
 
@@ -496,6 +591,177 @@ namespace PlustekBCR.ViewModels
                     AllCards.Remove(card);
                 }
             }
+        }
+
+        public bool IsCardExportEligible(BusinessCard? card)
+        {
+            return card?.Status is ProcessingStatus.Done or ProcessingStatus.Manual;
+        }
+
+        public bool IsCardSelectedForExport(BusinessCard? card)
+        {
+            return card != null && _selectedExportCardIds.Contains(card.Id);
+        }
+
+        public void SetCardExportSelected(BusinessCard? card, bool isSelected)
+        {
+            if (!IsBatchExportMode || card == null)
+            {
+                return;
+            }
+
+            if (isSelected && IsCardExportEligible(card))
+            {
+                _selectedExportCardIds.Add(card.Id);
+            }
+            else
+            {
+                _selectedExportCardIds.Remove(card.Id);
+            }
+
+            NotifyExportSelectionChanged();
+        }
+
+        public async Task ExportSingleCardCsvAsync(BusinessCard card)
+        {
+            if (!IsCardExportEligible(card))
+            {
+                return;
+            }
+
+            var suggestedName = string.IsNullOrWhiteSpace(card.FullName) ? "business_card" : card.FullName;
+            var destinationPath = await _exportFilePickerService.PickCsvDestinationAsync(suggestedName);
+            if (string.IsNullOrWhiteSpace(destinationPath))
+            {
+                return;
+            }
+
+            await ExportCardsAsync(new[] { card }, destinationPath, leaveBatchModeOnSuccess: false);
+        }
+
+        private void EnterBatchExportMode()
+        {
+            ExportMessage = string.Empty;
+            _selectedExportCardIds.Clear();
+            SelectedCard = null;
+            IsSidebarOpen = false;
+            IsBatchExportMode = true;
+            NotifyExportSelectionChanged();
+        }
+
+        private void ExitBatchExportMode()
+        {
+            ExitBatchExportMode(clearMessage: true);
+        }
+
+        private void ExitBatchExportMode(bool clearMessage)
+        {
+            _selectedExportCardIds.Clear();
+            IsBatchExportMode = false;
+            if (clearMessage)
+            {
+                ExportMessage = string.Empty;
+            }
+
+            NotifyExportSelectionChanged();
+        }
+
+        private void SelectAllVisibleForExport()
+        {
+            foreach (var card in GetVisibleExportableCards())
+            {
+                _selectedExportCardIds.Add(card.Id);
+            }
+
+            NotifyExportSelectionChanged();
+        }
+
+        private void ClearExportSelection()
+        {
+            _selectedExportCardIds.Clear();
+            NotifyExportSelectionChanged();
+        }
+
+        private bool CanExportSelected()
+        {
+            return IsBatchExportMode && HasSelectedExportCards && !IsExporting;
+        }
+
+        private async Task ExportSelectedAsync()
+        {
+            var cards = GetVisibleExportableCards()
+                .Where(card => _selectedExportCardIds.Contains(card.Id))
+                .OrderByDescending(card => card.ScanDate)
+                .ToArray();
+            if (cards.Length == 0)
+            {
+                NotifyExportSelectionChanged();
+                return;
+            }
+
+            var suggestedName = $"business_cards_{DateTime.Now:yyyyMMdd_HHmmss}";
+            var destinationPath = await _exportFilePickerService.PickCsvDestinationAsync(suggestedName);
+            if (string.IsNullOrWhiteSpace(destinationPath))
+            {
+                return;
+            }
+
+            await ExportCardsAsync(cards, destinationPath, leaveBatchModeOnSuccess: true);
+        }
+
+        private async Task ExportCardsAsync(
+            IReadOnlyList<BusinessCard> cards,
+            string destinationPath,
+            bool leaveBatchModeOnSuccess)
+        {
+            IsExporting = true;
+            ExportMessage = string.Empty;
+            try
+            {
+                var exportedCount = await _exportService.ExportCsvAsync(cards, destinationPath);
+                IsExportMessageError = false;
+                ExportMessage = _localizationService.Format("Export.Success", exportedCount, destinationPath);
+                if (leaveBatchModeOnSuccess)
+                {
+                    ExitBatchExportMode(clearMessage: false);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Business card export failed: {ex}");
+                IsExportMessageError = true;
+                ExportMessage = _localizationService.GetString("Export.Failed");
+            }
+            finally
+            {
+                IsExporting = false;
+            }
+        }
+
+        private IReadOnlyList<BusinessCard> GetVisibleExportableCards()
+        {
+            return FilteredCards.Where(IsCardExportEligible).ToList();
+        }
+
+        private void PruneExportSelectionToVisible()
+        {
+            if (!IsBatchExportMode || _selectedExportCardIds.Count == 0)
+            {
+                return;
+            }
+
+            var visibleIds = GetVisibleExportableCards().Select(card => card.Id).ToHashSet();
+            _selectedExportCardIds.RemoveWhere(id => !visibleIds.Contains(id));
+        }
+
+        private void NotifyExportSelectionChanged()
+        {
+            OnPropertyChanged(nameof(SelectedExportCount));
+            OnPropertyChanged(nameof(HasSelectedExportCards));
+            OnPropertyChanged(nameof(SelectedExportSummary));
+            OnPropertyChanged(nameof(ExportSelectedButtonText));
+            OnPropertyChanged(nameof(AreAllVisibleCardsSelected));
+            ExportSelectedCommand.NotifyCanExecuteChanged();
         }
 
         [RelayCommand]
@@ -778,6 +1044,7 @@ namespace PlustekBCR.ViewModels
 
         private void RefreshSearchResults()
         {
+            PruneExportSelectionToVisible();
             OnPropertyChanged(nameof(AllCardCount));
             OnPropertyChanged(nameof(TodayCardCount));
             OnPropertyChanged(nameof(Within3DaysCardCount));
@@ -797,6 +1064,7 @@ namespace PlustekBCR.ViewModels
             OnPropertyChanged(nameof(SelectedDuplicateMatches));
             OnPropertyChanged(nameof(DuplicateCompactSummary));
             OnPropertyChanged(nameof(SelectedDuplicateFieldLabels));
+            NotifyExportSelectionChanged();
         }
 
         private void RebuildDuplicateReviewStates()
@@ -1083,6 +1351,8 @@ namespace PlustekBCR.ViewModels
             OnPropertyChanged(nameof(PendingDuplicateSummary));
             OnPropertyChanged(nameof(DuplicateCompactSummary));
             OnPropertyChanged(nameof(SelectedDuplicateFieldLabels));
+            OnPropertyChanged(nameof(SelectedExportSummary));
+            OnPropertyChanged(nameof(ExportSelectedButtonText));
         }
     }
 

@@ -12,6 +12,108 @@
         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
         <Setter Property="Margin" Value="12,2,12,2"/>
         <Setter Property="Padding" Value="0"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListViewItem">
+                    <Grid Background="Transparent">
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal"/>
+                                <VisualState x:Name="PointerOver">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="HoverSurface" Storyboard.TargetProperty="Opacity" To="1" Duration="0"/>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="Pressed">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="HoverSurface" Storyboard.TargetProperty="Opacity" To="1" Duration="0"/>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="Selected">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionSurface" Storyboard.TargetProperty="Opacity" To="1" Duration="0"/>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionIndicator" Storyboard.TargetProperty="Opacity" To="1" Duration="0"/>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionBadge" Storyboard.TargetProperty="Opacity" To="1" Duration="0"/>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="PointerOverSelected">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionSurface" Storyboard.TargetProperty="Opacity" To="1" Duration="0"/>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionIndicator" Storyboard.TargetProperty="Opacity" To="1" Duration="0"/>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionBadge" Storyboard.TargetProperty="Opacity" To="1" Duration="0"/>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="SelectedPointerOver">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionSurface" Storyboard.TargetProperty="Opacity" To="1" Duration="0"/>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionIndicator" Storyboard.TargetProperty="Opacity" To="1" Duration="0"/>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionBadge" Storyboard.TargetProperty="Opacity" To="1" Duration="0"/>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="PressedSelected">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionSurface" Storyboard.TargetProperty="Opacity" To="1" Duration="0"/>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionIndicator" Storyboard.TargetProperty="Opacity" To="1" Duration="0"/>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionBadge" Storyboard.TargetProperty="Opacity" To="1" Duration="0"/>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="SelectedDisabled">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionSurface" Storyboard.TargetProperty="Opacity" To="0.65" Duration="0"/>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionIndicator" Storyboard.TargetProperty="Opacity" To="0.65" Duration="0"/>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionBadge" Storyboard.TargetProperty="Opacity" To="0.65" Duration="0"/>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="Disabled"/>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          Padding="{TemplateBinding Padding}"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        <Border x:Name="HoverSurface"
+                                Background="{StaticResource BcrBrush.ExportHoverSubtle}"
+                                BorderBrush="{StaticResource BcrBrush.ExportBorder}"
+                                BorderThickness="1"
+                                CornerRadius="9"
+                                Opacity="0"
+                                IsHitTestVisible="False"/>
+                        <Border x:Name="SelectionSurface"
+                                Background="{StaticResource BcrBrush.ExportSelectionSubtle}"
+                                BorderBrush="{StaticResource BcrBrush.ExportAccent}"
+                                BorderThickness="2"
+                                CornerRadius="9"
+                                Opacity="0"
+                                IsHitTestVisible="False"/>
+                        <Rectangle x:Name="SelectionIndicator"
+                                   Width="5"
+                                   Margin="0,8,0,8"
+                                   HorizontalAlignment="Left"
+                                   Fill="{StaticResource BcrBrush.ExportAccent}"
+                                   RadiusX="2.5"
+                                   RadiusY="2.5"
+                                   Opacity="0"
+                                   IsHitTestVisible="False"/>
+                        <Border x:Name="SelectionBadge"
+                                Width="26"
+                                Height="26"
+                                Margin="10,0,0,0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                CornerRadius="13"
+                                Background="{StaticResource BcrBrush.ExportAccent}"
+                                BorderBrush="White"
+                                BorderThickness="2"
+                                Opacity="0"
+                                IsHitTestVisible="False">
+                            <FontIcon Glyph="&#xE73E;" FontSize="12" Foreground="White"/>
+                        </Border>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <Style x:Key="BusinessCardGridGroupHeaderItemStyle" TargetType="GridViewHeaderItem">
