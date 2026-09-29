@@ -1,5 +1,5 @@
 {
-  "version": "1.0.15",
-  "downloadUrl": "https://github.com/CY-Li/AI-BCR/releases/download/v1.0.15/PlustekBCR-v1.0.15-win-x64.zip",
-  "notes": "1. Sidebar 新增全部名片與近期日期篩選統計\r\n2. Note 輸入框移至時間軸上方，並移除辨識成功時自動建立的系統 Note\r\n3. Grid 與 List View 新增 Note 最後更新時間，改善狀態排列與卡片等高\r\n4. Card Detail 將姓名與狀態移至返回按鈕下方"
+  "version": "1.0.16",
+  "downloadUrl": "https://github.com/CY-Li/AI-BCR/releases/download/v1.0.16/PlustekBCR-v1.0.16-win-x64.zip",
+  "notes": "1. 美國地區調整聯絡欄位順序，日本地區維持既有順序\r\n2. 美國與日本地區新增電話、Email 與網站快捷操作\r\n3. 新增單張與批次 CSV 匯出，支援全選、清除選取及匯出結果提示\r\n4. 名片側欄新增 Notes 時間軸，並改善輸入、捲動與版面配置\r\n5. 搜尋改為即時篩選，List/Grid 檢視模式可保存\r\n6. 改善名片 hover、欄位對齊與地區選項文字"
 }
