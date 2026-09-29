@@ -1,5 +1,5 @@
 {
-  "version": "1.0.16",
-  "downloadUrl": "https://github.com/CY-Li/AI-BCR/releases/download/v1.0.16/PlustekBCR-v1.0.16-win-x64.zip",
-  "notes": "1. 美國地區調整聯絡欄位順序，日本地區維持既有順序\r\n2. 美國與日本地區新增電話、Email 與網站快捷操作\r\n3. 新增單張與批次 CSV 匯出，支援全選、清除選取及匯出結果提示\r\n4. 名片側欄新增 Notes 時間軸，並改善輸入、捲動與版面配置\r\n5. 搜尋改為即時篩選，List/Grid 檢視模式可保存\r\n6. 改善名片 hover、欄位對齊與地區選項文字"
+  "version": "1.0.17",
+  "downloadUrl": "https://github.com/CY-Li/AI-BCR/releases/download/v1.0.17/PlustekBCR-v1.0.17-win-x64.zip",
+  "notes": "1. 重新設計 Notes 時間軸節點、軸線、卡片與時間標籤\r\n2. 統一 Notes 標題 icon、字體、字重與其他詳細資料區塊的視覺規格\r\n3. 保留既有 Note 資料格式與新增、刪除操作流程"
 }

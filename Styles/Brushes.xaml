@@ -39,4 +39,11 @@
     <SolidColorBrush x:Key="BcrBrush.ControlPressedBorder" Color="#C7CED8" />
     <SolidColorBrush x:Key="BcrBrush.BrandHoverSubtle" Color="#120078D4" />
     <SolidColorBrush x:Key="BcrBrush.BrandPressedSubtle" Color="#240078D4" />
+
+    <!-- Notes timeline -->
+    <SolidColorBrush x:Key="BcrBrush.NoteSurface" Color="#FAFBFD" />
+    <SolidColorBrush x:Key="BcrBrush.NoteBorder" Color="#E1E7EF" />
+    <SolidColorBrush x:Key="BcrBrush.NoteRail" Color="#CBD5E1" />
+    <SolidColorBrush x:Key="BcrBrush.NoteNodeHalo" Color="#DCE9FF" />
+    <SolidColorBrush x:Key="BcrBrush.NoteTimeSurface" Color="#EEF3F9" />
 </ResourceDictionary>
