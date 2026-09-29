@@ -71,16 +71,8 @@
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup x:Name="CommonStates">
                                 <VisualState x:Name="Normal"/>
-                                <VisualState x:Name="PointerOver">
-                                    <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="HoverOutline" Storyboard.TargetProperty="Opacity" To="1" Duration="0"/>
-                                    </Storyboard>
-                                </VisualState>
-                                <VisualState x:Name="Pressed">
-                                    <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="HoverOutline" Storyboard.TargetProperty="Opacity" To="1" Duration="0"/>
-                                    </Storyboard>
-                                </VisualState>
+                                <VisualState x:Name="PointerOver"/>
+                                <VisualState x:Name="Pressed"/>
                                 <VisualState x:Name="Selected">
                                     <Storyboard>
                                         <DoubleAnimation Storyboard.TargetName="SelectionSurface" Storyboard.TargetProperty="Opacity" To="1" Duration="0"/>
@@ -119,13 +111,6 @@
                             ContentTemplate="{TemplateBinding ContentTemplate}"
                             HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                             VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
-                        <Border x:Name="HoverOutline"
-                                Margin="20,4,4,20"
-                                CornerRadius="14"
-                                BorderBrush="{StaticResource BcrBrush.ExportBorder}"
-                                BorderThickness="1"
-                                Opacity="0"
-                                IsHitTestVisible="False"/>
                         <Border x:Name="SelectionSurface"
                                 Margin="20,4,4,20"
                                 CornerRadius="14"

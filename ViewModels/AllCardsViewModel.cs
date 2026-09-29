@@ -28,6 +28,7 @@ namespace PlustekBCR.ViewModels
         private readonly IApplicationSettingsService _settingsService;
         private readonly IBusinessCardExportService _exportService;
         private readonly IExportFilePickerService _exportFilePickerService;
+        private readonly IContactActionService _contactActionService;
         private readonly HashSet<Guid> _selectedExportCardIds = new();
         private ObservableCollection<BusinessCard> _allCards = new();
         private BusinessCard? _selectedCard;
@@ -44,6 +45,8 @@ namespace PlustekBCR.ViewModels
         private bool _isExporting;
         private string _exportMessage = string.Empty;
         private bool _isExportMessageError;
+        private string _newNoteContent = string.Empty;
+        private string _contactActionMessage = string.Empty;
 
         public ObservableCollection<BusinessCard> AllCards
         {
@@ -73,6 +76,8 @@ namespace PlustekBCR.ViewModels
                 {
                     SubscribeToSelectedCard(value);
                     EditingFieldKey = string.Empty;
+                    NewNoteContent = string.Empty;
+                    ContactActionMessage = string.Empty;
                     SyncDepartmentInputCount(value);
                     ZipLookupStatusMessage = string.Empty;
                     OnPropertyChanged(nameof(HasDetailNameText));
@@ -84,6 +89,7 @@ namespace PlustekBCR.ViewModels
                     OnPropertyChanged(nameof(HasDetailDepartmentText));
                     OnPropertyChanged(nameof(DetailTelephoneText));
                     OnPropertyChanged(nameof(HasDetailTelephoneText));
+                    OnPropertyChanged(nameof(SelectedNotes));
                     SyncSelectedDuplicateState();
                 }
             }
@@ -143,6 +149,28 @@ namespace PlustekBCR.ViewModels
         public bool HasExportMessage => !string.IsNullOrWhiteSpace(ExportMessage);
         public bool HasExportSuccessMessage => HasExportMessage && !IsExportMessageError;
         public bool HasExportErrorMessage => HasExportMessage && IsExportMessageError;
+        public string NewNoteContent
+        {
+            get => _newNoteContent;
+            set => SetProperty(ref _newNoteContent, value);
+        }
+
+        public string ContactActionMessage
+        {
+            get => _contactActionMessage;
+            private set
+            {
+                if (SetProperty(ref _contactActionMessage, value))
+                {
+                    OnPropertyChanged(nameof(HasContactActionMessage));
+                }
+            }
+        }
+
+        public bool HasContactActionMessage => !string.IsNullOrWhiteSpace(ContactActionMessage);
+        public IReadOnlyList<Note> SelectedNotes => SelectedCard?.Notes?
+            .OrderByDescending(note => note.LastModifiedAt)
+            .ToList() ?? new List<Note>();
         public int SelectedExportCount => _selectedExportCardIds.Count;
         public bool HasSelectedExportCards => SelectedExportCount > 0;
         public string SelectedExportSummary => _localizationService.Format("Export.SelectedCount", SelectedExportCount);
@@ -371,6 +399,7 @@ namespace PlustekBCR.ViewModels
             _settingsService = App.GetService<IApplicationSettingsService>();
             _exportService = App.GetService<IBusinessCardExportService>();
             _exportFilePickerService = App.GetService<IExportFilePickerService>();
+            _contactActionService = App.GetService<IContactActionService>();
             AllCards = new ObservableCollection<BusinessCard>();
             MainViewModel.SearchChanged += OnSearchChanged;
             _localizationService.LanguageChanged += OnLanguageChanged;
@@ -573,7 +602,73 @@ namespace PlustekBCR.ViewModels
             _dismissExportMessageCommand ??= new RelayCommand(() => ExportMessage = string.Empty);
 
         public Func<BusinessCard, Task<bool>>? ConfirmDeleteCardAsync { get; set; }
+        public Func<Note, Task<bool>>? ConfirmDeleteNoteAsync { get; set; }
         public Func<BusinessCard, int, Task<bool>>? ConfirmReplaceDuplicatesAsync { get; set; }
+
+        [RelayCommand]
+        private void AddNote()
+        {
+            if (SelectedCard == null || string.IsNullOrWhiteSpace(NewNoteContent))
+            {
+                return;
+            }
+
+            var notes = new List<Note>(SelectedCard.Notes ?? new List<Note>());
+            notes.Insert(0, new Note
+            {
+                Content = NewNoteContent.Trim(),
+                CreatedAt = DateTime.Now
+            });
+            SelectedCard.Notes = notes;
+            NewNoteContent = string.Empty;
+        }
+
+        [RelayCommand]
+        private async Task DeleteNoteAsync(Note? note)
+        {
+            var card = SelectedCard;
+            if (card == null
+                || note == null
+                || !card.Notes.Contains(note)
+                || ConfirmDeleteNoteAsync == null
+                || !await ConfirmDeleteNoteAsync(note)
+                || !ReferenceEquals(card, SelectedCard))
+            {
+                return;
+            }
+
+            var notes = new List<Note>(card.Notes);
+            if (notes.Remove(note))
+            {
+                card.Notes = notes;
+            }
+        }
+
+        [RelayCommand]
+        private async Task OpenEmailAsync(string? email) =>
+            await HandleContactActionResultAsync(_contactActionService.OpenEmailAsync(email));
+
+        [RelayCommand]
+        private async Task OpenPhoneAsync(string? phoneNumber) =>
+            await HandleContactActionResultAsync(_contactActionService.OpenPhoneAsync(phoneNumber));
+
+        [RelayCommand]
+        private async Task OpenWebsiteAsync(string? website) =>
+            await HandleContactActionResultAsync(_contactActionService.OpenWebsiteAsync(website));
+
+        [RelayCommand]
+        private void DismissContactActionMessage() => ContactActionMessage = string.Empty;
+
+        private async Task HandleContactActionResultAsync(Task<ContactActionResult> resultTask)
+        {
+            var result = await resultTask;
+            ContactActionMessage = result switch
+            {
+                ContactActionResult.InvalidValue => _localizationService.GetString("Contact.Action.Invalid"),
+                ContactActionResult.LaunchFailed => _localizationService.GetString("Contact.Action.Failed"),
+                _ => string.Empty
+            };
+        }
 
         [RelayCommand]
         private async Task DeleteCardAsync(BusinessCard? card)
@@ -1288,6 +1383,9 @@ namespace PlustekBCR.ViewModels
                     SyncDepartmentInputCount(card);
                     OnPropertyChanged(nameof(DetailDepartmentText));
                     OnPropertyChanged(nameof(HasDetailDepartmentText));
+                    break;
+                case nameof(BusinessCard.Notes):
+                    OnPropertyChanged(nameof(SelectedNotes));
                     break;
             }
         }

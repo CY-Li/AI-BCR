@@ -118,6 +118,11 @@ namespace PlustekBCR.Views
             }
         }
 
+        private void OnContactActionInfoBarClosed(InfoBar sender, InfoBarClosedEventArgs args)
+        {
+            ViewModel.DismissContactActionMessageCommand.Execute(null);
+        }
+
         private void OnCurrentMarketChanged(MarketCode market)
         {
             DispatcherQueue.TryEnqueue(() =>

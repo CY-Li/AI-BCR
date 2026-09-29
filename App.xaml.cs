@@ -47,6 +47,7 @@ namespace PlustekBCR
                 services.AddSingleton<IExportFilePickerService, ExportFilePickerService>();
                 services.AddSingleton<IBusinessCardDuplicateService, BusinessCardDuplicateService>();
                 services.AddSingleton<IImageViewerService, ImageViewerService>();
+                services.AddSingleton<IContactActionService, ContactActionService>();
                 services.AddSingleton<IZipCodeLookupService, ZipCloudLookupService>();
                 services.AddSingleton<JapanZipLookupCoordinator>();
                 services.AddSingleton(new HttpClient());

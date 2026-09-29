@@ -50,6 +50,7 @@ namespace PlustekBCR.ViewModels
             _localizationService.LanguageChanged += OnLanguageChanged;
             RefreshTagFilters();
             _isAiEnabled = _applicationSettingsService.IsAiEnabled;
+            _isGridView = _applicationSettingsService.CardViewMode == CardViewMode.Grid;
 
             WeakReferenceMessenger.Default.Register<AutoScanRecognitionCountChangedMessage>(this, (recipient, message) =>
             {
@@ -162,11 +163,17 @@ namespace PlustekBCR.ViewModels
         public Microsoft.UI.Xaml.Visibility AiOffVisibility =>
             _isAiEnabled ? Microsoft.UI.Xaml.Visibility.Collapsed : Microsoft.UI.Xaml.Visibility.Visible;
 
-        private bool _isGridView = true; // Default to Grid view
+        private bool _isGridView;
         public bool IsGridView
         {
             get => _isGridView;
-            set => SetProperty(ref _isGridView, value);
+            set
+            {
+                if (SetProperty(ref _isGridView, value))
+                {
+                    _ = PersistCardViewModeAsync(value);
+                }
+            }
         }
 
         private IRelayCommand? _setGridViewCommand;
@@ -922,6 +929,18 @@ namespace PlustekBCR.ViewModels
             try
             {
                 await _applicationSettingsService.SetAiEnabledAsync(isAiEnabled);
+            }
+            catch
+            {
+            }
+        }
+
+        private async Task PersistCardViewModeAsync(bool isGridView)
+        {
+            try
+            {
+                await _applicationSettingsService.SetCardViewModeAsync(
+                    isGridView ? CardViewMode.Grid : CardViewMode.List);
             }
             catch
             {

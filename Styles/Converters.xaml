@@ -18,4 +18,5 @@
     <helpers:DateTimeToDateTimeOffsetConverter x:Key="DateTimeToDateTimeOffsetConverter"/>
     <helpers:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
     <helpers:FieldVisibilityConverter x:Key="FieldVisibilityConverter"/>
+    <helpers:ContactFieldRowConverter x:Key="ContactFieldRowConverter"/>
 </ResourceDictionary>

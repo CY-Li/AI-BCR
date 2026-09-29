@@ -862,8 +862,16 @@
                         <MenuFlyoutSeparator Margin="-24,0"/>
 
                         <!-- Contact Group -->
-                        <StackPanel Spacing="16">
-                            <Grid ColumnSpacing="16">
+                        <Grid RowSpacing="16">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid Grid.Row="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource ContactFieldRowConverter}, ConverterParameter=Address, Mode=OneTime}" ColumnSpacing="16">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="96"/>
                                     <ColumnDefinition Width="*"/>
@@ -973,13 +981,17 @@
                                 </Grid>
                             </Grid>
 
-                            <Grid ColumnSpacing="16">
+                            <Grid Grid.Row="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource ContactFieldRowConverter}, ConverterParameter=Telephone, Mode=OneTime}" ColumnSpacing="16">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="96"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Text="{Binding [Field.tel]}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center"/>
-                                <Grid Grid.Column="1">
+                                <Grid Grid.Column="1" ColumnSpacing="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
                                     <Border Background="Transparent"
                                             Padding="0,2"
                                             Tapped="OnDetailFieldTapped"
@@ -992,6 +1004,7 @@
                                             </Grid.ColumnDefinitions>
                                             <Grid Grid.Column="0">
                                                 <TextBlock Text="{x:Bind ViewModel.DetailTelephoneText, Mode=OneWay}"
+                                                           Style="{StaticResource BcrEditableFieldTextStyle}"
                                                            FontSize="14"
                                                            TextWrapping="WrapWholeWords"
                                                            Visibility="{x:Bind ViewModel.HasDetailTelephoneText, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"/>
@@ -1003,6 +1016,7 @@
                                         </Grid>
                                     </Border>
                                     <Grid x:Name="TelephoneEditContainer"
+                                          Grid.Column="0"
                                           ColumnSpacing="8"
                                           Visibility="{x:Bind ViewModel.IsEditingTelephone, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
                                         <Grid.ColumnDefinitions>
@@ -1019,39 +1033,82 @@
                                                  Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:extension, Mode=OneTime}"
                                                  LosingFocus="OnCompositeFieldLosingFocus"/>
                                     </Grid>
+                                    <Button Grid.Column="1"
+                                            Width="32"
+                                            Height="32"
+                                            Padding="0"
+                                            VerticalAlignment="Center"
+                                            Style="{StaticResource SidebarActionIconButtonStyle}"
+                                            Command="{x:Bind ViewModel.OpenPhoneCommand}"
+                                            CommandParameter="{x:Bind ViewModel.SelectedCard.Tel, Mode=OneWay}"
+                                            ToolTipService.ToolTip="{Binding [Contact.Action.Phone]}"
+                                            AutomationProperties.Name="{Binding [Contact.Action.Phone]}"
+                                            Visibility="{x:Bind ViewModel.SelectedCard.Tel, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}">
+                                        <FontIcon Glyph="&#xE717;" FontSize="14"/>
+                                    </Button>
                                 </Grid>
                             </Grid>
 
-                            <Grid ColumnSpacing="16"
+                            <Grid Grid.Row="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource ContactFieldRowConverter}, ConverterParameter=Mobile, Mode=OneTime}"
+                                  ColumnSpacing="16"
                                   Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:mobile, Mode=OneTime}">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="96"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Text="{Binding [Field.mobile]}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center"/>
-                                <controls:EditableField Grid.Column="1"
-                                                        EditStarted="OnSimpleFieldEditStarted"
-                                                        Text="{x:Bind ViewModel.SelectedCard.Mobile, Mode=TwoWay}"
-                                                        PlaceholderText="{Binding [Placeholder.ClickToEnterMobile]}"
-                                                        FontSize="14"
-                                                        VerticalAlignment="Center"/>
+                                <Grid Grid.Column="1" ColumnSpacing="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <controls:EditableField EditStarted="OnSimpleFieldEditStarted"
+                                                            Text="{x:Bind ViewModel.SelectedCard.Mobile, Mode=TwoWay}"
+                                                            PlaceholderText="{Binding [Placeholder.ClickToEnterMobile]}"
+                                                            FontSize="14"
+                                                            VerticalAlignment="Center"/>
+                                    <Button Grid.Column="1" Width="32" Height="32" Padding="0"
+                                            Style="{StaticResource SidebarActionIconButtonStyle}"
+                                            Command="{x:Bind ViewModel.OpenPhoneCommand}"
+                                            CommandParameter="{x:Bind ViewModel.SelectedCard.Mobile, Mode=OneWay}"
+                                            ToolTipService.ToolTip="{Binding [Contact.Action.Phone]}"
+                                            AutomationProperties.Name="{Binding [Contact.Action.Phone]}"
+                                            Visibility="{x:Bind ViewModel.SelectedCard.Mobile, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}">
+                                        <FontIcon Glyph="&#xE717;" FontSize="14"/>
+                                    </Button>
+                                </Grid>
                             </Grid>
 
-                            <Grid ColumnSpacing="16">
+                            <Grid Grid.Row="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource ContactFieldRowConverter}, ConverterParameter=Email, Mode=OneTime}" ColumnSpacing="16">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="96"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Text="{Binding [Field.email]}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center"/>
-                                <controls:EditableField Grid.Column="1"
-                                                        EditStarted="OnSimpleFieldEditStarted"
-                                                        Text="{x:Bind ViewModel.SelectedCard.Email, Mode=TwoWay}"
-                                                        PlaceholderText="{Binding [Placeholder.ClickToEnterEmail]}"
-                                                        FontSize="14"
-                                                        VerticalAlignment="Center"/>
+                                <Grid Grid.Column="1" ColumnSpacing="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <controls:EditableField EditStarted="OnSimpleFieldEditStarted"
+                                                            Text="{x:Bind ViewModel.SelectedCard.Email, Mode=TwoWay}"
+                                                            PlaceholderText="{Binding [Placeholder.ClickToEnterEmail]}"
+                                                            FontSize="14"
+                                                            VerticalAlignment="Center"/>
+                                    <Button Grid.Column="1" Width="32" Height="32" Padding="0"
+                                            Style="{StaticResource SidebarActionIconButtonStyle}"
+                                            Command="{x:Bind ViewModel.OpenEmailCommand}"
+                                            CommandParameter="{x:Bind ViewModel.SelectedCard.Email, Mode=OneWay}"
+                                            ToolTipService.ToolTip="{Binding [Contact.Action.Email]}"
+                                            AutomationProperties.Name="{Binding [Contact.Action.Email]}"
+                                            Visibility="{x:Bind ViewModel.SelectedCard.Email, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}">
+                                        <FontIcon Glyph="&#xE715;" FontSize="14"/>
+                                    </Button>
+                                </Grid>
                             </Grid>
 
-                            <Grid ColumnSpacing="16"
+                            <Grid Grid.Row="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource ContactFieldRowConverter}, ConverterParameter=SidebarFax, Mode=OneTime}"
+                                  ColumnSpacing="16"
                                   Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:fax, Mode=OneTime}">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="96"/>
@@ -1066,20 +1123,136 @@
                                                         VerticalAlignment="Center"/>
                             </Grid>
 
-                            <Grid ColumnSpacing="16"
+                            <Grid Grid.Row="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource ContactFieldRowConverter}, ConverterParameter=SidebarWebsite, Mode=OneTime}"
+                                  ColumnSpacing="16"
                                   Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:website, Mode=OneTime}">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="96"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Text="{Binding [Field.website]}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center"/>
-                                <controls:EditableField Grid.Column="1"
-                                                        EditStarted="OnSimpleFieldEditStarted"
-                                                        Text="{x:Bind ViewModel.SelectedCard.Website, Mode=TwoWay}"
-                                                        PlaceholderText="{Binding [Placeholder.ClickToEnterWebsite]}"
-                                                        FontSize="14"
-                                                        VerticalAlignment="Center"/>
+                                <Grid Grid.Column="1" ColumnSpacing="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <controls:EditableField EditStarted="OnSimpleFieldEditStarted"
+                                                            Text="{x:Bind ViewModel.SelectedCard.Website, Mode=TwoWay}"
+                                                            PlaceholderText="{Binding [Placeholder.ClickToEnterWebsite]}"
+                                                            FontSize="14"
+                                                            VerticalAlignment="Center"/>
+                                    <Button Grid.Column="1" Width="32" Height="32" Padding="0"
+                                            Style="{StaticResource SidebarActionIconButtonStyle}"
+                                            Command="{x:Bind ViewModel.OpenWebsiteCommand}"
+                                            CommandParameter="{x:Bind ViewModel.SelectedCard.Website, Mode=OneWay}"
+                                            ToolTipService.ToolTip="{Binding [Contact.Action.Website]}"
+                                            AutomationProperties.Name="{Binding [Contact.Action.Website]}"
+                                            Visibility="{x:Bind ViewModel.SelectedCard.Website, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}">
+                                        <FontIcon Glyph="&#xE774;" FontSize="14"/>
+                                    </Button>
+                                </Grid>
                             </Grid>
+                        </Grid>
+
+                        <InfoBar IsOpen="{x:Bind ViewModel.HasContactActionMessage, Mode=OneWay}"
+                                 IsClosable="True"
+                                 Severity="Warning"
+                                 Message="{x:Bind ViewModel.ContactActionMessage, Mode=OneWay}"
+                                 Closed="OnContactActionInfoBarClosed"/>
+
+                        <MenuFlyoutSeparator Margin="-24,0"/>
+
+                        <!-- Notes are available in the first-level sidebar and scroll independently. -->
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="{Binding [View.CardDetail.NotesTimeline]}"
+                                       FontSize="12"
+                                       FontWeight="SemiBold"
+                                       Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid Grid.Column="0" Height="40">
+                                    <TextBox x:Name="SidebarNewNoteTextBox"
+                                             Text="{x:Bind ViewModel.NewNoteContent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             Height="40"
+                                             Padding="12,8,32,8"
+                                             VerticalAlignment="Center"
+                                             VerticalContentAlignment="Center"
+                                             AcceptsReturn="False"
+                                             TextChanged="OnSidebarNewNoteTextChanged"
+                                             KeyDown="OnSidebarNewNoteKeyDown"/>
+                                    <TextBlock x:Name="SidebarNewNotePlaceholderText"
+                                               Text="{Binding [Placeholder.NewNote]}"
+                                               Margin="12,0,12,0"
+                                               VerticalAlignment="Center"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                               IsHitTestVisible="False"/>
+                                </Grid>
+                                <Button Grid.Column="1"
+                                        Width="40"
+                                        Height="40"
+                                        Padding="0"
+                                        Style="{StaticResource AccentButtonStyle}"
+                                        Command="{x:Bind ViewModel.AddNoteCommand}">
+                                    <FontIcon Glyph="&#xE724;" FontSize="16"/>
+                                </Button>
+                            </Grid>
+                            <ListView MaxHeight="220"
+                                      ItemsSource="{x:Bind ViewModel.SelectedNotes, Mode=OneWay}"
+                                      SelectionMode="None"
+                                      Visibility="{x:Bind ViewModel.SelectedCard.HasNotes, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"
+                                      ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate x:DataType="models:Note">
+                                        <Grid Margin="0,0,0,8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="28"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <Grid Grid.Column="0" Margin="0,2,6,0">
+                                                <Rectangle Width="2"
+                                                           HorizontalAlignment="Center"
+                                                           Fill="{ThemeResource DividerStrokeColorDefaultBrush}"/>
+                                                <Border Width="10"
+                                                        Height="10"
+                                                        Margin="0,5,0,0"
+                                                        CornerRadius="5"
+                                                        VerticalAlignment="Top"
+                                                        Background="{ThemeResource AccentFillColorDefaultBrush}"/>
+                                            </Grid>
+
+                                            <Border Grid.Column="1"
+                                                    Padding="10"
+                                                    CornerRadius="8"
+                                                    Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                                    BorderThickness="1">
+                                                <Grid ColumnSpacing="8">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel Spacing="4">
+                                                        <TextBlock Text="{x:Bind LastModifiedAt, Converter={StaticResource DateTimeToStringConverter}}"
+                                                                   FontSize="11"
+                                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                                        <TextBlock Text="{x:Bind Content}" TextWrapping="Wrap"/>
+                                                    </StackPanel>
+                                                    <Button Grid.Column="1" Width="28" Height="28" Padding="0"
+                                                            Style="{StaticResource HeaderIconButtonStyle}"
+                                                            Click="OnDeleteSidebarNoteClicked"
+                                                            ToolTipService.ToolTip="{Binding DataContext[Button.Delete], ElementName=PageRoot}">
+                                                        <FontIcon Glyph="&#xE74D;" FontSize="12" Foreground="{ThemeResource SystemFillColorCriticalBrush}"/>
+                                                    </Button>
+                                                </Grid>
+                                            </Border>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
                         </StackPanel>
 
                         <MenuFlyoutSeparator Margin="-24,0"/>

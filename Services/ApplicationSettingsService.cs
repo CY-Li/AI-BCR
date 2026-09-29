@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Threading;
 using System.Threading.Tasks;
 using PlustekBCR.Models;
 
@@ -15,18 +16,22 @@ namespace PlustekBCR.Services
         private MarketCode _currentMarket;
         private string _currentUiLanguage;
         private bool _isAiEnabled;
+        private CardViewMode _cardViewMode;
         private DuplicateComparisonSettings _duplicateComparison;
         private ScanSettings _scanSettings;
+        private readonly SemaphoreSlim _cardViewModeSaveGate = new(1, 1);
 
         public event Action<MarketCode>? CurrentMarketChanged;
         public event Action<string>? CurrentUiLanguageChanged;
         public event Action<bool>? AiEnabledChanged;
+        public event Action<CardViewMode>? CardViewModeChanged;
         public event Action<DuplicateComparisonSettings>? DuplicateComparisonChanged;
         public event Action<ScanSettings>? ScanSettingsChanged;
 
         public MarketCode CurrentMarket => _currentMarket;
         public string CurrentUiLanguage => _currentUiLanguage;
         public bool IsAiEnabled => _isAiEnabled;
+        public CardViewMode CardViewMode => _cardViewMode;
         public DuplicateComparisonSettings DuplicateComparison => _duplicateComparison.Clone();
         public ScanSettings ScanSettings => _scanSettings.Clone();
 
@@ -36,6 +41,7 @@ namespace PlustekBCR.Services
             _currentMarket = LoadCurrentMarket();
             _currentUiLanguage = LoadCurrentUiLanguage();
             _isAiEnabled = LoadAiEnabled();
+            _cardViewMode = LoadCardViewMode();
             _duplicateComparison = LoadDuplicateComparison();
             _scanSettings = LoadScanSettings();
         }
@@ -75,6 +81,27 @@ namespace PlustekBCR.Services
             _isAiEnabled = isEnabled;
             await SaveAiEnabledAsync(isEnabled);
             AiEnabledChanged?.Invoke(_isAiEnabled);
+        }
+
+        public async Task SetCardViewModeAsync(CardViewMode viewMode)
+        {
+            var normalized = Enum.IsDefined(viewMode) ? viewMode : CardViewMode.List;
+            if (_cardViewMode == normalized)
+            {
+                return;
+            }
+
+            _cardViewMode = normalized;
+            await _cardViewModeSaveGate.WaitAsync();
+            try
+            {
+                await SaveCardViewModeAsync(_cardViewMode);
+                CardViewModeChanged?.Invoke(_cardViewMode);
+            }
+            finally
+            {
+                _cardViewModeSaveGate.Release();
+            }
         }
 
         public async Task SetDuplicateComparisonAsync(DuplicateComparisonSettings settings)
@@ -167,6 +194,29 @@ namespace PlustekBCR.Services
             {
                 Debug.WriteLine($"Load AI enabled failed: {ex.Message}");
                 return true;
+            }
+        }
+
+        private CardViewMode LoadCardViewMode()
+        {
+            try
+            {
+                if (!File.Exists(_settingsPath))
+                {
+                    return CardViewMode.List;
+                }
+
+                var root = JsonNode.Parse(File.ReadAllText(_settingsPath)) as JsonObject;
+                var configured = root?["Display"]?["CardViewMode"]?.ToString();
+                return Enum.TryParse(configured, true, out CardViewMode viewMode)
+                    && Enum.IsDefined(viewMode)
+                    ? viewMode
+                    : CardViewMode.List;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Load card view mode failed: {ex.Message}");
+                return CardViewMode.List;
             }
         }
 
@@ -313,6 +363,34 @@ namespace PlustekBCR.Services
             catch (Exception ex)
             {
                 Debug.WriteLine($"Save AI enabled failed: {ex.Message}");
+            }
+        }
+
+        private async Task SaveCardViewModeAsync(CardViewMode viewMode)
+        {
+            try
+            {
+                JsonObject root;
+                if (File.Exists(_settingsPath))
+                {
+                    root = JsonNode.Parse(await File.ReadAllTextAsync(_settingsPath)) as JsonObject ?? new JsonObject();
+                }
+                else
+                {
+                    root = new JsonObject();
+                }
+
+                var display = root["Display"] as JsonObject ?? new JsonObject();
+                display["CardViewMode"] = viewMode.ToString();
+                root["Display"] = display;
+
+                await File.WriteAllTextAsync(
+                    _settingsPath,
+                    root.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Save card view mode failed: {ex.Message}");
             }
         }
 

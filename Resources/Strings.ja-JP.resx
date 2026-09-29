@@ -220,7 +220,7 @@
   <data name="Settings.Scan.SaveError" xml:space="preserve"><value>スキャン設定を保存できませんでした。以前の設定が引き続き有効です。</value></data>
   <data name="Settings.Import.Hint" xml:space="preserve"><value>取り込み設定は次のプロトタイプで追加予定です。</value></data>
   <data name="Settings.Market.Description" xml:space="preserve"><value>詳細、編集、取り込みで使う既定の項目セットと取り込みマッピングを制御します。</value></data>
-  <data name="Settings.Market.English" xml:space="preserve"><value>英語圏</value></data>
+  <data name="Settings.Market.English" xml:space="preserve"><value>アメリカ合衆国</value></data>
   <data name="Settings.Market.Japanese" xml:space="preserve"><value>日本</value></data>
   <data name="Settings.Market.Title" xml:space="preserve"><value>市場設定</value></data>
   <data name="Settings.RecognitionAi.Hint" xml:space="preserve"><value>認識 / AI 設定は次のプロトタイプで追加予定です。</value></data>
@@ -343,4 +343,9 @@
   <data name="Export.Failed" xml:space="preserve"><value>出力に失敗しました。保存先を確認して、もう一度お試しください。</value></data>
   <data name="Export.ProcessingUnavailable" xml:space="preserve"><value>認識が完了すると、この名刺を出力できます。</value></data>
   <data name="Export.BatchTitle" xml:space="preserve"><value>出力する名刺を選択</value></data>
+  <data name="Contact.Action.Email" xml:space="preserve"><value>メールを送信</value></data>
+  <data name="Contact.Action.Phone" xml:space="preserve"><value>電話をかける</value></data>
+  <data name="Contact.Action.Website" xml:space="preserve"><value>Webサイトを開く</value></data>
+  <data name="Contact.Action.Invalid" xml:space="preserve"><value>連絡先の値が正しくありません。</value></data>
+  <data name="Contact.Action.Failed" xml:space="preserve"><value>この操作を開けるWindowsアプリがありません。</value></data>
 </root>

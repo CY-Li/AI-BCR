@@ -33,11 +33,13 @@ namespace PlustekBCR.ViewModels
         private readonly JapanZipLookupCoordinator _zipLookupCoordinator;
         private readonly IRecognitionQueueService _recognitionQueueService;
         private readonly ILocalizationService _localizationService;
+        private readonly IContactActionService _contactActionService;
 
         private ObservableCollection<BusinessCard>? _originalCards;
         private BusinessCard? _subscribedCard;
         private CancellationTokenSource? _zipLookupCts;
         private bool _isApplyingZipLookupResult;
+        private string _contactActionMessage = string.Empty;
 
         [ObservableProperty]
         public partial ObservableCollection<string> AvailableTags { get; set; }
@@ -60,6 +62,22 @@ namespace PlustekBCR.ViewModels
         public bool CanAddDepartmentInput => DepartmentInputCount < 4;
         public MarketCode CurrentMarket => _fieldService.CurrentMarket;
         public bool IsJapanMarket => CurrentMarket == MarketCode.JP;
+        public string ContactActionMessage
+        {
+            get => _contactActionMessage;
+            private set
+            {
+                if (SetProperty(ref _contactActionMessage, value))
+                {
+                    OnPropertyChanged(nameof(HasContactActionMessage));
+                }
+            }
+        }
+
+        public bool HasContactActionMessage => !string.IsNullOrWhiteSpace(ContactActionMessage);
+        public IReadOnlyList<Note> SelectedNotes => SelectedCard?.Notes?
+            .OrderByDescending(note => note.LastModifiedAt)
+            .ToList() ?? new List<Note>();
 
         public Func<BusinessCard, Task<bool>>? ConfirmDeleteCardAsync { get; set; }
         public Func<Note, Task<bool>>? ConfirmDeleteNoteAsync { get; set; }
@@ -74,6 +92,7 @@ namespace PlustekBCR.ViewModels
             _zipLookupCoordinator = App.GetService<JapanZipLookupCoordinator>();
             _recognitionQueueService = App.GetService<IRecognitionQueueService>();
             _localizationService = App.GetService<ILocalizationService>();
+            _contactActionService = App.GetService<IContactActionService>();
             AllCards = new ObservableCollection<BusinessCard>();
             NewNoteContent = string.Empty;
             AvailableTags = new ObservableCollection<string>(_tagCatalogService.GetAllTags());
@@ -94,6 +113,9 @@ namespace PlustekBCR.ViewModels
 
         partial void OnSelectedCardChanged(BusinessCard? value)
         {
+            NewNoteContent = string.Empty;
+            ContactActionMessage = string.Empty;
+            OnPropertyChanged(nameof(SelectedNotes));
             SubscribeToSelectedCard(value);
             SyncSelectedTagsFromCard(value);
             SyncDepartmentInputCount(value);
@@ -192,6 +214,32 @@ namespace PlustekBCR.ViewModels
         [RelayCommand]
         private void GoBack()
         {
+        }
+
+        [RelayCommand]
+        private async Task OpenEmailAsync(string? email) =>
+            await HandleContactActionResultAsync(_contactActionService.OpenEmailAsync(email));
+
+        [RelayCommand]
+        private async Task OpenPhoneAsync(string? phoneNumber) =>
+            await HandleContactActionResultAsync(_contactActionService.OpenPhoneAsync(phoneNumber));
+
+        [RelayCommand]
+        private async Task OpenWebsiteAsync(string? website) =>
+            await HandleContactActionResultAsync(_contactActionService.OpenWebsiteAsync(website));
+
+        [RelayCommand]
+        private void DismissContactActionMessage() => ContactActionMessage = string.Empty;
+
+        private async Task HandleContactActionResultAsync(Task<ContactActionResult> resultTask)
+        {
+            var result = await resultTask;
+            ContactActionMessage = result switch
+            {
+                ContactActionResult.InvalidValue => _localizationService.GetString("Contact.Action.Invalid"),
+                ContactActionResult.LaunchFailed => _localizationService.GetString("Contact.Action.Failed"),
+                _ => string.Empty
+            };
         }
 
         [RelayCommand]
@@ -377,6 +425,11 @@ namespace PlustekBCR.ViewModels
             if (e.PropertyName == nameof(BusinessCard.ZipCode) && !card.SuppressAutoZipLookup)
             {
                 _ = TriggerZipLookupAsync(card.ZipCode);
+            }
+
+            if (e.PropertyName == nameof(BusinessCard.Notes))
+            {
+                OnPropertyChanged(nameof(SelectedNotes));
             }
         }
 

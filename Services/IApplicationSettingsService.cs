@@ -12,6 +12,8 @@ namespace PlustekBCR.Services
         event Action<string>? CurrentUiLanguageChanged;
         bool IsAiEnabled { get; }
         event Action<bool>? AiEnabledChanged;
+        CardViewMode CardViewMode { get; }
+        event Action<CardViewMode>? CardViewModeChanged;
         DuplicateComparisonSettings DuplicateComparison { get; }
         event Action<DuplicateComparisonSettings>? DuplicateComparisonChanged;
         ScanSettings ScanSettings { get; }
@@ -19,6 +21,7 @@ namespace PlustekBCR.Services
         Task SetCurrentMarketAsync(MarketCode market);
         Task SetCurrentUiLanguageAsync(string languageTag);
         Task SetAiEnabledAsync(bool isEnabled);
+        Task SetCardViewModeAsync(CardViewMode viewMode);
         Task SetDuplicateComparisonAsync(DuplicateComparisonSettings settings);
         Task SetScanSettingsAsync(ScanSettings settings);
     }

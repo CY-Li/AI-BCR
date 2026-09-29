@@ -11,6 +11,8 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace PlustekBCR.Views
 {
@@ -31,6 +33,7 @@ namespace PlustekBCR.Views
         private object? _lastCardsNavigationItem;
         private string _currentSettingsSection = "Scan";
         private bool _isRestoringWorkspaceSelection;
+        private CancellationTokenSource? _searchDebounceCts;
 
         public MainWindow()
         {
@@ -180,6 +183,8 @@ namespace PlustekBCR.Views
 
         private void OnWindowClosed(object sender, WindowEventArgs args)
         {
+            _searchDebounceCts?.Cancel();
+            _searchDebounceCts?.Dispose();
             App.GetService<IImageViewerService>().Close();
             ScannerReadyPulseStoryboard?.Stop();
             ViewModel.ScanPulseRequested -= OnScanPulseRequested;
@@ -866,6 +871,7 @@ namespace PlustekBCR.Views
         private void OnSearchScopeSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             UpdateSearchInputMode();
+            ScheduleLiveSearch();
         }
 
         private void OnSearchChanged()
@@ -1151,6 +1157,7 @@ namespace PlustekBCR.Views
 
             if (string.IsNullOrWhiteSpace(HeaderSearchBox.Text) && ViewModel.IsSearchActive)
             {
+                CancelLiveSearch();
                 ClearCardFilters();
                 return;
             }
@@ -1158,6 +1165,7 @@ namespace PlustekBCR.Views
             if (!string.IsNullOrWhiteSpace(HeaderSearchBox.Text))
             {
                 OpenDefaultSearchDropdown();
+                ScheduleLiveSearch();
             }
         }
 
@@ -1165,6 +1173,7 @@ namespace PlustekBCR.Views
         {
             if (e.Key == Windows.System.VirtualKey.Enter)
             {
+                CancelLiveSearch();
                 if (string.Equals(ViewModel.SelectedSearchScope, MainViewModel.SearchScopeDate, StringComparison.OrdinalIgnoreCase))
                 {
                     ApplyHeaderDateSearch();
@@ -1182,6 +1191,40 @@ namespace PlustekBCR.Views
             {
                 CloseSearchDropdown();
             }
+        }
+
+        private void ScheduleLiveSearch()
+        {
+            CancelLiveSearch();
+            if (_isSyncingFilterUi
+                || string.IsNullOrWhiteSpace(HeaderSearchBox.Text)
+                || string.Equals(ViewModel.SelectedSearchScope, MainViewModel.SearchScopeDate, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            _searchDebounceCts = new CancellationTokenSource();
+            _ = ApplyLiveSearchAfterDelayAsync(_searchDebounceCts.Token);
+        }
+
+        private async Task ApplyLiveSearchAfterDelayAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                await Task.Delay(250, cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
+                ApplyTextSearchFromHeader();
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }
+
+        private void CancelLiveSearch()
+        {
+            _searchDebounceCts?.Cancel();
+            _searchDebounceCts?.Dispose();
+            _searchDebounceCts = null;
         }
 
         private void OnRecentSearchItemClick(object sender, ItemClickEventArgs e)

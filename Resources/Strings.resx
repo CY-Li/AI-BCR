@@ -221,8 +221,8 @@
   <data name="Settings.Scan.SaveError" xml:space="preserve"><value>The scan settings could not be saved. The previous settings are still active.</value></data>
   <data name="Settings.Import.Hint" xml:space="preserve"><value>Import settings will be added in the next prototype iteration.</value></data>
   <data name="Settings.Market.Description" xml:space="preserve"><value>Controls the default field set and import mapping used in detail, edit, and import flows.</value></data>
-  <data name="Settings.Market.Japanese" xml:space="preserve"><value>Japanese</value></data>
-  <data name="Settings.Market.English" xml:space="preserve"><value>English</value></data>
+  <data name="Settings.Market.Japanese" xml:space="preserve"><value>Japan</value></data>
+  <data name="Settings.Market.English" xml:space="preserve"><value>United States</value></data>
   <data name="Settings.Market.Title" xml:space="preserve"><value>Market</value></data>
   <data name="Settings.RecognitionAi.Hint" xml:space="preserve"><value>Recognition / AI settings will be added in the next prototype iteration.</value></data>
   <data name="Settings.Scanner.Hint" xml:space="preserve"><value>Scanner settings will be added in the next prototype iteration.</value></data>
@@ -344,4 +344,9 @@
   <data name="Export.Failed" xml:space="preserve"><value>Export failed. Check the destination and try again.</value></data>
   <data name="Export.ProcessingUnavailable" xml:space="preserve"><value>This card can be exported after recognition finishes.</value></data>
   <data name="Export.BatchTitle" xml:space="preserve"><value>Select cards to export</value></data>
+  <data name="Contact.Action.Email" xml:space="preserve"><value>Send email</value></data>
+  <data name="Contact.Action.Phone" xml:space="preserve"><value>Call</value></data>
+  <data name="Contact.Action.Website" xml:space="preserve"><value>Open website</value></data>
+  <data name="Contact.Action.Invalid" xml:space="preserve"><value>This contact value is invalid.</value></data>
+  <data name="Contact.Action.Failed" xml:space="preserve"><value>Windows could not open an app for this action.</value></data>
 </root>

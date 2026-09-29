@@ -56,6 +56,12 @@ namespace PlustekBCR.Views
                 return result == ContentDialogResult.Primary;
             };
 
+            ViewModel.ConfirmDeleteNoteAsync = async (_) =>
+            {
+                var dialog = CardPageUiHelper.CreateDeleteNoteConfirmationDialog(this.XamlRoot);
+                return await dialog.ShowAsync() == ContentDialogResult.Primary;
+            };
+
             ViewModel.ConfirmReplaceDuplicatesAsync = async (card, duplicateCount) =>
             {
                 var dialog = CardPageUiHelper.CreateDuplicateReplaceConfirmationDialog(
@@ -102,6 +108,61 @@ namespace PlustekBCR.Views
         private void OnClearSearchClicked(object sender, RoutedEventArgs e)
         {
             ViewModel.MainViewModel.ClearSearch();
+        }
+
+        private void OnSidebarNewNoteKeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
+        {
+            if (e.Key != Windows.System.VirtualKey.Enter)
+            {
+                return;
+            }
+
+            if (sender is TextBox textBox)
+            {
+                ViewModel.NewNoteContent = textBox.Text;
+            }
+
+            if (ViewModel.AddNoteCommand.CanExecute(null))
+            {
+                ViewModel.AddNoteCommand.Execute(null);
+            }
+
+            UpdateSidebarNewNotePlaceholderVisibility(ViewModel.NewNoteContent);
+            e.Handled = true;
+        }
+
+        private void OnSidebarNewNoteTextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (sender is TextBox textBox)
+            {
+                UpdateSidebarNewNotePlaceholderVisibility(textBox.Text);
+            }
+        }
+
+        private void UpdateSidebarNewNotePlaceholderVisibility(string? text)
+        {
+            if (SidebarNewNotePlaceholderText == null)
+            {
+                return;
+            }
+
+            SidebarNewNotePlaceholderText.Visibility = string.IsNullOrWhiteSpace(text)
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+        }
+
+        private void OnDeleteSidebarNoteClicked(object sender, RoutedEventArgs e)
+        {
+            if (sender is FrameworkElement { DataContext: Note note }
+                && ViewModel.DeleteNoteCommand.CanExecute(note))
+            {
+                ViewModel.DeleteNoteCommand.Execute(note);
+            }
+        }
+
+        private void OnContactActionInfoBarClosed(InfoBar sender, InfoBarClosedEventArgs args)
+        {
+            ViewModel.DismissContactActionMessageCommand.Execute(null);
         }
 
         private void OnCardDoubleTapped(object sender, Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs e)

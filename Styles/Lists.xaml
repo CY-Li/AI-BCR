@@ -75,8 +75,6 @@
                                           VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
                         <Border x:Name="HoverSurface"
                                 Background="{StaticResource BcrBrush.ExportHoverSubtle}"
-                                BorderBrush="{StaticResource BcrBrush.ExportBorder}"
-                                BorderThickness="1"
                                 CornerRadius="9"
                                 Opacity="0"
                                 IsHitTestVisible="False"/>

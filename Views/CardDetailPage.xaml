@@ -155,7 +155,7 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     
-                    <Border Grid.Column="0" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
+                    <Border Grid.Column="0" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" 
                             BorderThickness="1" CornerRadius="16">
                         <Border.Shadow>
@@ -378,13 +378,14 @@
                     </Grid.ColumnDefinitions>
 
                     <!-- Left: Information Card -->
-                    <Border Grid.Column="0" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
+                    <Border Grid.Column="0" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            VerticalAlignment="Top"
                             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" 
                             BorderThickness="1" CornerRadius="16" Padding="24">
                         <Border.Shadow>
                             <ThemeShadow />
                         </Border.Shadow>
-                        <ScrollViewer VerticalScrollBarVisibility="Hidden">
+                        <Grid>
                             <StackPanel Spacing="28">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon Glyph="&#xE946;" FontSize="18" Foreground="{ThemeResource AccentFillColorDefaultBrush}"/>
@@ -477,6 +478,7 @@
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto" MinWidth="110"/>
                                             <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
@@ -487,8 +489,8 @@
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
 
-                                        <TextBlock Grid.Row="0" Text="{Binding [Field.full_address]}" VerticalAlignment="Top" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,8,0,0"/>
-                                        <StackPanel Grid.Row="0" Grid.Column="1" Spacing="8">
+                                        <TextBlock Grid.Row="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource ContactFieldRowConverter}, ConverterParameter=Address, Mode=OneTime}" Text="{Binding [Field.full_address]}" VerticalAlignment="Top" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,8,0,0"/>
+                                        <StackPanel Grid.Row="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource ContactFieldRowConverter}, ConverterParameter=Address, Mode=OneTime}" Grid.Column="1" Grid.ColumnSpan="2" Spacing="8">
                                             <Grid ColumnSpacing="8"
                                                   Visibility="{x:Bind ViewModel.IsJapanMarket, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
                                                 <Grid.ColumnDefinitions>
@@ -556,8 +558,8 @@
                                                           Visibility="{x:Bind ViewModel.IsZipLookupInProgress, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"/>
                                         </StackPanel>
 
-                                        <TextBlock Grid.Row="1" Text="{Binding [Field.tel]}" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                                        <Grid Grid.Row="1" Grid.Column="1" ColumnSpacing="8">
+                                        <TextBlock Grid.Row="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource ContactFieldRowConverter}, ConverterParameter=Telephone, Mode=OneTime}" Text="{Binding [Field.tel]}" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                        <Grid Grid.Row="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource ContactFieldRowConverter}, ConverterParameter=Telephone, Mode=OneTime}" Grid.Column="1" ColumnSpacing="8">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="180"/>
@@ -568,19 +570,61 @@
                                                      PlaceholderText="{Binding [Placeholder.Extension]}"
                                                      Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:extension, Mode=OneTime}"/>
                                         </Grid>
+                                        <Button Grid.Row="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource ContactFieldRowConverter}, ConverterParameter=Telephone, Mode=OneTime}"
+                                                Grid.Column="2" Width="32" Height="32" Padding="0"
+                                                Style="{StaticResource HeaderIconButtonStyle}"
+                                                Command="{x:Bind ViewModel.OpenPhoneCommand}"
+                                                CommandParameter="{x:Bind ViewModel.SelectedCard.Tel, Mode=OneWay}"
+                                                ToolTipService.ToolTip="{Binding [Contact.Action.Phone]}"
+                                                AutomationProperties.Name="{Binding [Contact.Action.Phone]}"
+                                                Visibility="{x:Bind ViewModel.SelectedCard.Tel, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}">
+                                            <FontIcon Glyph="&#xE717;" FontSize="14"/>
+                                        </Button>
 
-                                        <TextBlock Grid.Row="2" Text="{Binding [Field.mobile]}" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:mobile, Mode=OneTime}"/>
-                                        <TextBox Grid.Row="2" Grid.Column="1" Text="{x:Bind ViewModel.SelectedCard.Mobile, Mode=TwoWay}" PlaceholderText="{Binding [Field.mobile]}" Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:mobile, Mode=OneTime}"/>
+                                        <TextBlock Grid.Row="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource ContactFieldRowConverter}, ConverterParameter=Mobile, Mode=OneTime}" Text="{Binding [Field.mobile]}" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:mobile, Mode=OneTime}"/>
+                                        <TextBox Grid.Row="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource ContactFieldRowConverter}, ConverterParameter=Mobile, Mode=OneTime}" Grid.Column="1" Text="{x:Bind ViewModel.SelectedCard.Mobile, Mode=TwoWay}" PlaceholderText="{Binding [Field.mobile]}" Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:mobile, Mode=OneTime}"/>
+                                        <Button Grid.Row="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource ContactFieldRowConverter}, ConverterParameter=Mobile, Mode=OneTime}"
+                                                Grid.Column="2" Width="32" Height="32" Padding="0"
+                                                Style="{StaticResource HeaderIconButtonStyle}"
+                                                Command="{x:Bind ViewModel.OpenPhoneCommand}"
+                                                CommandParameter="{x:Bind ViewModel.SelectedCard.Mobile, Mode=OneWay}"
+                                                ToolTipService.ToolTip="{Binding [Contact.Action.Phone]}"
+                                                Visibility="{x:Bind ViewModel.SelectedCard.Mobile, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}">
+                                            <FontIcon Glyph="&#xE717;" FontSize="14"/>
+                                        </Button>
 
-                                        <TextBlock Grid.Row="3" Text="{Binding [Field.email]}" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                                        <TextBox Grid.Row="3" Grid.Column="1" Text="{x:Bind ViewModel.SelectedCard.Email, Mode=TwoWay}" PlaceholderText="{Binding [Placeholder.EmailAddress]}"/>
+                                        <TextBlock Grid.Row="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource ContactFieldRowConverter}, ConverterParameter=Email, Mode=OneTime}" Text="{Binding [Field.email]}" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                        <TextBox Grid.Row="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource ContactFieldRowConverter}, ConverterParameter=Email, Mode=OneTime}" Grid.Column="1" Text="{x:Bind ViewModel.SelectedCard.Email, Mode=TwoWay}" PlaceholderText="{Binding [Placeholder.EmailAddress]}"/>
+                                        <Button Grid.Row="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource ContactFieldRowConverter}, ConverterParameter=Email, Mode=OneTime}"
+                                                Grid.Column="2" Width="32" Height="32" Padding="0"
+                                                Style="{StaticResource HeaderIconButtonStyle}"
+                                                Command="{x:Bind ViewModel.OpenEmailCommand}"
+                                                CommandParameter="{x:Bind ViewModel.SelectedCard.Email, Mode=OneWay}"
+                                                ToolTipService.ToolTip="{Binding [Contact.Action.Email]}"
+                                                Visibility="{x:Bind ViewModel.SelectedCard.Email, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}">
+                                            <FontIcon Glyph="&#xE715;" FontSize="14"/>
+                                        </Button>
 
-                                        <TextBlock Grid.Row="4" Text="{Binding [Field.website]}" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:website, Mode=OneTime}"/>
-                                        <TextBox Grid.Row="4" Grid.Column="1" Text="{x:Bind ViewModel.SelectedCard.Website, Mode=TwoWay}" PlaceholderText="{Binding [Placeholder.WebsiteUrl]}" Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:website, Mode=OneTime}"/>
+                                        <TextBlock Grid.Row="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource ContactFieldRowConverter}, ConverterParameter=Website, Mode=OneTime}" Text="{Binding [Field.website]}" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:website, Mode=OneTime}"/>
+                                        <TextBox Grid.Row="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource ContactFieldRowConverter}, ConverterParameter=Website, Mode=OneTime}" Grid.Column="1" Text="{x:Bind ViewModel.SelectedCard.Website, Mode=TwoWay}" PlaceholderText="{Binding [Placeholder.WebsiteUrl]}" Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:website, Mode=OneTime}"/>
+                                        <Button Grid.Row="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource ContactFieldRowConverter}, ConverterParameter=Website, Mode=OneTime}"
+                                                Grid.Column="2" Width="32" Height="32" Padding="0"
+                                                Style="{StaticResource HeaderIconButtonStyle}"
+                                                Command="{x:Bind ViewModel.OpenWebsiteCommand}"
+                                                CommandParameter="{x:Bind ViewModel.SelectedCard.Website, Mode=OneWay}"
+                                                ToolTipService.ToolTip="{Binding [Contact.Action.Website]}"
+                                                Visibility="{x:Bind ViewModel.SelectedCard.Website, Converter={StaticResource StringToVisibilityConverter}, Mode=OneWay}">
+                                            <FontIcon Glyph="&#xE774;" FontSize="14"/>
+                                        </Button>
 
-                                        <TextBlock Grid.Row="5" Text="{Binding [Field.fax]}" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:fax, Mode=OneTime}"/>
-                                        <TextBox Grid.Row="5" Grid.Column="1" Text="{x:Bind ViewModel.SelectedCard.Fax, Mode=TwoWay}" PlaceholderText="{Binding [Field.fax]}" Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:fax, Mode=OneTime}"/>
+                                        <TextBlock Grid.Row="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource ContactFieldRowConverter}, ConverterParameter=Fax, Mode=OneTime}" Text="{Binding [Field.fax]}" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:fax, Mode=OneTime}"/>
+                                        <TextBox Grid.Row="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource ContactFieldRowConverter}, ConverterParameter=Fax, Mode=OneTime}" Grid.Column="1" Text="{x:Bind ViewModel.SelectedCard.Fax, Mode=TwoWay}" PlaceholderText="{Binding [Field.fax]}" Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:fax, Mode=OneTime}"/>
                                     </Grid>
+                                    <InfoBar IsOpen="{x:Bind ViewModel.HasContactActionMessage, Mode=OneWay}"
+                                             IsClosable="True"
+                                             Severity="Warning"
+                                             Message="{x:Bind ViewModel.ContactActionMessage, Mode=OneWay}"
+                                             Closed="OnContactActionInfoBarClosed"/>
                                 </StackPanel>
 
                                 <Border Height="1" Background="{ThemeResource DividerStrokeColorDefaultBrush}" Margin="0,4"/>
@@ -663,11 +707,12 @@
                                     </Grid>
                                 </StackPanel>
                             </StackPanel>
-                        </ScrollViewer>
+                        </Grid>
                     </Border>
 
                     <!-- Right: Note (Timeline concept) -->
-                    <Border Grid.Column="1" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
+                    <Border Grid.Column="1" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            VerticalAlignment="Top"
                             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" 
                             BorderThickness="1" CornerRadius="16" Padding="24">
                         <Border.Shadow>
@@ -712,7 +757,11 @@
                                 </Button>
                             </Grid>
 
-                            <ListView Grid.Row="2" ItemsSource="{x:Bind ViewModel.SelectedCard.Notes, Mode=OneWay}" SelectionMode="None">
+                            <ListView Grid.Row="2"
+                                      MaxHeight="520"
+                                      ItemsSource="{x:Bind ViewModel.SelectedNotes, Mode=OneWay}"
+                                      SelectionMode="None"
+                                      ScrollViewer.VerticalScrollBarVisibility="Auto">
                                 <ListView.ItemTemplate>
                                     <DataTemplate x:DataType="models:Note">
                                         <Grid>
