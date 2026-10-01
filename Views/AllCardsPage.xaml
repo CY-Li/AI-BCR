@@ -108,13 +108,47 @@
                                 Background="{StaticResource BcrBrush.ExportAccent}"
                                 BorderBrush="{StaticResource BcrBrush.ExportAccent}"
                                 Foreground="White"
-                                Content="{x:Bind ViewModel.ExportSelectedButtonText, Mode=OneWay}"
-                                Command="{x:Bind ViewModel.ExportSelectedCommand}">
+                                IsEnabled="{x:Bind ViewModel.CanExportSelected, Mode=OneWay}"
+                                AutomationProperties.Name="{x:Bind ViewModel.ExportSelectedButtonText, Mode=OneWay}">
                             <Button.Resources>
                                 <SolidColorBrush x:Key="AccentButtonBackground" Color="#14804A"/>
                                 <SolidColorBrush x:Key="AccentButtonBackgroundPointerOver" Color="#106B3F"/>
                                 <SolidColorBrush x:Key="AccentButtonBackgroundPressed" Color="#0D5B35"/>
                             </Button.Resources>
+                            <Button.Flyout>
+                                <MenuFlyout MenuFlyoutPresenterStyle="{StaticResource BcrTagMenuFlyoutPresenterStyle}">
+                                    <MenuFlyoutItem Text="{Binding [Export.Format.Csv]}" Click="OnExportSelectedCsvClicked">
+                                        <MenuFlyoutItem.Icon>
+                                            <FontIcon Glyph="&#xE9D5;"/>
+                                        </MenuFlyoutItem.Icon>
+                                    </MenuFlyoutItem>
+                                    <MenuFlyoutItem Text="{Binding [Export.Format.GoogleCsv]}" Click="OnExportSelectedGoogleCsvClicked">
+                                        <MenuFlyoutItem.Icon>
+                                            <ImageIcon Source="ms-appx:///Assets/brand-google.svg"/>
+                                        </MenuFlyoutItem.Icon>
+                                    </MenuFlyoutItem>
+                                    <MenuFlyoutItem Text="{Binding [Export.Format.OutlookCsv]}" Click="OnExportSelectedOutlookCsvClicked">
+                                        <MenuFlyoutItem.Icon>
+                                            <ImageIcon Source="ms-appx:///Assets/brand-microsoft-outlook.svg"/>
+                                        </MenuFlyoutItem.Icon>
+                                    </MenuFlyoutItem>
+                                    <MenuFlyoutItem Text="{Binding [Export.Format.VCard]}" Click="OnExportSelectedVCardClicked">
+                                        <MenuFlyoutItem.Icon>
+                                            <FontIcon Glyph="&#xE77B;"/>
+                                        </MenuFlyoutItem.Icon>
+                                    </MenuFlyoutItem>
+                                    <MenuFlyoutItem Text="{Binding [Button.ExportTxt]}" Click="OnExportSelectedPlainTextClicked">
+                                        <MenuFlyoutItem.Icon>
+                                            <FontIcon Glyph="&#xE8A5;"/>
+                                        </MenuFlyoutItem.Icon>
+                                    </MenuFlyoutItem>
+                                </MenuFlyout>
+                            </Button.Flyout>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="{x:Bind ViewModel.ExportSelectedButtonText, Mode=OneWay}"
+                                           VerticalAlignment="Center"/>
+                                <FontIcon Glyph="&#xE70D;" FontSize="10" VerticalAlignment="Center"/>
+                            </StackPanel>
                         </Button>
                         <Button Grid.Column="5"
                                 Width="36"
@@ -192,6 +226,21 @@
                                     <MenuFlyoutItem Text="{Binding [Button.ExportCsv]}" Click="OnExportCsvContextClicked">
                                         <MenuFlyoutItem.Icon>
                                             <FontIcon Glyph="&#xE9D5;"/>
+                                        </MenuFlyoutItem.Icon>
+                                    </MenuFlyoutItem>
+                                    <MenuFlyoutItem Text="{Binding [Export.Format.GoogleCsv]}" Click="OnExportGoogleCsvContextClicked">
+                                        <MenuFlyoutItem.Icon>
+                                            <ImageIcon Source="ms-appx:///Assets/brand-google.svg"/>
+                                        </MenuFlyoutItem.Icon>
+                                    </MenuFlyoutItem>
+                                    <MenuFlyoutItem Text="{Binding [Export.Format.OutlookCsv]}" Click="OnExportOutlookCsvContextClicked">
+                                        <MenuFlyoutItem.Icon>
+                                            <ImageIcon Source="ms-appx:///Assets/brand-microsoft-outlook.svg"/>
+                                        </MenuFlyoutItem.Icon>
+                                    </MenuFlyoutItem>
+                                    <MenuFlyoutItem Text="{Binding [Export.Format.VCard]}" Click="OnExportVCardContextClicked">
+                                        <MenuFlyoutItem.Icon>
+                                            <FontIcon Glyph="&#xE77B;"/>
                                         </MenuFlyoutItem.Icon>
                                     </MenuFlyoutItem>
                                     <MenuFlyoutItem Text="{Binding [Button.ExportTxt]}" Click="OnExportTxtContextClicked">
@@ -355,6 +404,21 @@
                                     <MenuFlyoutItem Text="{Binding [Button.ExportCsv]}" Click="OnExportCsvContextClicked">
                                         <MenuFlyoutItem.Icon>
                                             <FontIcon Glyph="&#xE9D5;"/>
+                                        </MenuFlyoutItem.Icon>
+                                    </MenuFlyoutItem>
+                                    <MenuFlyoutItem Text="{Binding [Export.Format.GoogleCsv]}" Click="OnExportGoogleCsvContextClicked">
+                                        <MenuFlyoutItem.Icon>
+                                            <ImageIcon Source="ms-appx:///Assets/brand-google.svg"/>
+                                        </MenuFlyoutItem.Icon>
+                                    </MenuFlyoutItem>
+                                    <MenuFlyoutItem Text="{Binding [Export.Format.OutlookCsv]}" Click="OnExportOutlookCsvContextClicked">
+                                        <MenuFlyoutItem.Icon>
+                                            <ImageIcon Source="ms-appx:///Assets/brand-microsoft-outlook.svg"/>
+                                        </MenuFlyoutItem.Icon>
+                                    </MenuFlyoutItem>
+                                    <MenuFlyoutItem Text="{Binding [Export.Format.VCard]}" Click="OnExportVCardContextClicked">
+                                        <MenuFlyoutItem.Icon>
+                                            <FontIcon Glyph="&#xE77B;"/>
                                         </MenuFlyoutItem.Icon>
                                     </MenuFlyoutItem>
                                     <MenuFlyoutItem Text="{Binding [Button.ExportTxt]}" Click="OnExportTxtContextClicked">

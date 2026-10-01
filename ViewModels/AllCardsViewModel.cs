@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -104,7 +105,14 @@ namespace PlustekBCR.ViewModels
         public bool IsBatchExportMode
         {
             get => _isBatchExportMode;
-            private set => SetProperty(ref _isBatchExportMode, value);
+            private set
+            {
+                if (SetProperty(ref _isBatchExportMode, value))
+                {
+                    OnPropertyChanged(nameof(CanExportSelected));
+                    ExportSelectedCommand.NotifyCanExecuteChanged();
+                }
+            }
         }
 
         public bool IsExporting
@@ -114,6 +122,7 @@ namespace PlustekBCR.ViewModels
             {
                 if (SetProperty(ref _isExporting, value))
                 {
+                    OnPropertyChanged(nameof(CanExportSelected));
                     ExportSelectedCommand.NotifyCanExecuteChanged();
                 }
             }
@@ -173,6 +182,7 @@ namespace PlustekBCR.ViewModels
             .ToList() ?? new List<Note>();
         public int SelectedExportCount => _selectedExportCardIds.Count;
         public bool HasSelectedExportCards => SelectedExportCount > 0;
+        public bool CanExportSelected => IsBatchExportMode && HasSelectedExportCards && !IsExporting;
         public string SelectedExportSummary => _localizationService.Format("Export.SelectedCount", SelectedExportCount);
         public string ExportSelectedButtonText => _localizationService.Format("Export.ExportSelected", SelectedExportCount);
         public bool AreAllVisibleCardsSelected
@@ -595,7 +605,7 @@ namespace PlustekBCR.ViewModels
 
         private IAsyncRelayCommand? _exportSelectedCommand;
         public IAsyncRelayCommand ExportSelectedCommand =>
-            _exportSelectedCommand ??= new AsyncRelayCommand(ExportSelectedAsync, CanExportSelected);
+            _exportSelectedCommand ??= new AsyncRelayCommand(ExportSelectedAsync, CanExecuteExportSelected);
 
         private IRelayCommand? _dismissExportMessageCommand;
         public IRelayCommand DismissExportMessageCommand =>
@@ -717,21 +727,24 @@ namespace PlustekBCR.ViewModels
             NotifyExportSelectionChanged();
         }
 
-        public async Task ExportSingleCardCsvAsync(BusinessCard card)
+        public Task ExportSingleCardCsvAsync(BusinessCard card) =>
+            ExportSingleCardAsync(card, ContactExportFormat.Csv);
+
+        public async Task ExportSingleCardAsync(BusinessCard card, ContactExportFormat format)
         {
-            if (!IsCardExportEligible(card))
+            if (IsExporting || !IsCardExportEligible(card))
             {
                 return;
             }
 
             var suggestedName = string.IsNullOrWhiteSpace(card.FullName) ? "business_card" : card.FullName;
-            var destinationPath = await _exportFilePickerService.PickCsvDestinationAsync(suggestedName);
+            var destinationPath = await _exportFilePickerService.PickDestinationAsync(suggestedName, format);
             if (string.IsNullOrWhiteSpace(destinationPath))
             {
                 return;
             }
 
-            await ExportCardsAsync(new[] { card }, destinationPath, leaveBatchModeOnSuccess: false);
+            await ExportCardsAsync(new[] { card }, destinationPath, format, leaveBatchModeOnSuccess: false);
         }
 
         private void EnterBatchExportMode()
@@ -777,13 +790,17 @@ namespace PlustekBCR.ViewModels
             NotifyExportSelectionChanged();
         }
 
-        private bool CanExportSelected()
-        {
-            return IsBatchExportMode && HasSelectedExportCards && !IsExporting;
-        }
+        private bool CanExecuteExportSelected() => CanExportSelected;
 
-        private async Task ExportSelectedAsync()
+        private Task ExportSelectedAsync() => ExportSelectedAsync(ContactExportFormat.Csv);
+
+        public async Task ExportSelectedAsync(ContactExportFormat format)
         {
+            if (!CanExportSelected)
+            {
+                return;
+            }
+
             var cards = GetVisibleExportableCards()
                 .Where(card => _selectedExportCardIds.Contains(card.Id))
                 .OrderByDescending(card => card.ScanDate)
@@ -795,31 +812,48 @@ namespace PlustekBCR.ViewModels
             }
 
             var suggestedName = $"business_cards_{DateTime.Now:yyyyMMdd_HHmmss}";
-            var destinationPath = await _exportFilePickerService.PickCsvDestinationAsync(suggestedName);
+            var destinationPath = await _exportFilePickerService.PickDestinationAsync(suggestedName, format);
             if (string.IsNullOrWhiteSpace(destinationPath))
             {
                 return;
             }
 
-            await ExportCardsAsync(cards, destinationPath, leaveBatchModeOnSuccess: true);
+            await ExportCardsAsync(cards, destinationPath, format, leaveBatchModeOnSuccess: true);
         }
 
         private async Task ExportCardsAsync(
             IReadOnlyList<BusinessCard> cards,
             string destinationPath,
+            ContactExportFormat format,
             bool leaveBatchModeOnSuccess)
         {
             IsExporting = true;
             ExportMessage = string.Empty;
             try
             {
-                var exportedCount = await _exportService.ExportCsvAsync(cards, destinationPath);
+                var exportedCount = await _exportService.ExportAsync(cards, destinationPath, format);
                 IsExportMessageError = false;
-                ExportMessage = _localizationService.Format("Export.Success", exportedCount, destinationPath);
+                ExportMessage = _localizationService.Format(
+                    "Export.SuccessWithFormat",
+                    exportedCount,
+                    GetExportFormatDisplayName(format),
+                    destinationPath);
                 if (leaveBatchModeOnSuccess)
                 {
                     ExitBatchExportMode(clearMessage: false);
                 }
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                Debug.WriteLine($"Business card export permission denied: {ex}");
+                IsExportMessageError = true;
+                ExportMessage = _localizationService.GetString("Export.Failed.Permission");
+            }
+            catch (IOException ex)
+            {
+                Debug.WriteLine($"Business card export file error: {ex}");
+                IsExportMessageError = true;
+                ExportMessage = _localizationService.GetString("Export.Failed.FileUnavailable");
             }
             catch (Exception ex)
             {
@@ -832,6 +866,17 @@ namespace PlustekBCR.ViewModels
                 IsExporting = false;
             }
         }
+
+        private string GetExportFormatDisplayName(ContactExportFormat format) =>
+            _localizationService.GetString(format switch
+            {
+                ContactExportFormat.Csv => "Export.Format.Csv",
+                ContactExportFormat.GoogleCsv => "Export.Format.GoogleCsv",
+                ContactExportFormat.OutlookCsv => "Export.Format.OutlookCsv",
+                ContactExportFormat.VCard => "Export.Format.VCard",
+                ContactExportFormat.PlainText => "Button.ExportTxt",
+                _ => throw new ArgumentOutOfRangeException(nameof(format), format, null)
+            });
 
         private IReadOnlyList<BusinessCard> GetVisibleExportableCards()
         {
@@ -856,6 +901,7 @@ namespace PlustekBCR.ViewModels
             OnPropertyChanged(nameof(SelectedExportSummary));
             OnPropertyChanged(nameof(ExportSelectedButtonText));
             OnPropertyChanged(nameof(AreAllVisibleCardsSelected));
+            OnPropertyChanged(nameof(CanExportSelected));
             ExportSelectedCommand.NotifyCanExecuteChanged();
         }
 
@@ -1464,4 +1510,5 @@ namespace PlustekBCR.ViewModels
             Key = key;
         }
     }
+
 }

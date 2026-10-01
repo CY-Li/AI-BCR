@@ -18,8 +18,8 @@
   <data name="Button.Clear" xml:space="preserve"><value>クリア</value></data>
   <data name="Button.ContinueManually" xml:space="preserve"><value>手動で続行</value></data>
   <data name="Button.Delete" xml:space="preserve"><value>削除</value></data>
-  <data name="Button.ExportCsv" xml:space="preserve"><value>.csv で出力</value></data>
-  <data name="Button.ExportTxt" xml:space="preserve"><value>.txt で出力</value></data>
+  <data name="Button.ExportCsv" xml:space="preserve"><value>Standard CSV (.csv)</value></data>
+  <data name="Button.ExportTxt" xml:space="preserve"><value>Plain Text (.txt)</value></data>
   <data name="Button.GetCsvTemplate" xml:space="preserve"><value>CSV テンプレートを取得</value></data>
   <data name="Button.Import" xml:space="preserve"><value>取り込み</value></data>
   <data name="Button.OK" xml:space="preserve"><value>OK</value></data>
@@ -343,6 +343,13 @@
   <data name="Export.Failed" xml:space="preserve"><value>出力に失敗しました。保存先を確認して、もう一度お試しください。</value></data>
   <data name="Export.ProcessingUnavailable" xml:space="preserve"><value>認識が完了すると、この名刺を出力できます。</value></data>
   <data name="Export.BatchTitle" xml:space="preserve"><value>出力する名刺を選択</value></data>
+  <data name="Export.Format.Csv" xml:space="preserve"><value>Standard CSV (.csv)</value></data>
+  <data name="Export.Format.GoogleCsv" xml:space="preserve"><value>Google (.csv)</value></data>
+  <data name="Export.Format.OutlookCsv" xml:space="preserve"><value>Outlook (.csv)</value></data>
+  <data name="Export.Format.VCard" xml:space="preserve"><value>vCard（.vcf）</value></data>
+  <data name="Export.SuccessWithFormat" xml:space="preserve"><value>{0} 件を {1} として {2} に出力しました</value></data>
+  <data name="Export.Failed.Permission" xml:space="preserve"><value>選択したフォルダーに書き込めないため、出力できませんでした。別の保存先を選択して、もう一度お試しください。</value></data>
+  <data name="Export.Failed.FileUnavailable" xml:space="preserve"><value>ファイルが使用中または利用できないため、出力できませんでした。ファイルを閉じるか、別の保存先を選択してください。</value></data>
   <data name="Contact.Action.Email" xml:space="preserve"><value>メールを送信</value></data>
   <data name="Contact.Action.Phone" xml:space="preserve"><value>電話をかける</value></data>
   <data name="Contact.Action.Website" xml:space="preserve"><value>Webサイトを開く</value></data>

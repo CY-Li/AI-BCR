@@ -2,8 +2,6 @@
 using Microsoft.UI.Xaml.Controls;
 using System.Numerics;
 using System.Threading.Tasks;
-using System.Text;
-using System.IO;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using Microsoft.UI.Xaml.Media.Animation;
@@ -13,8 +11,6 @@ using PlustekBCR.Helpers;
 using PlustekBCR.ViewModels;
 using PlustekBCR.Models;
 using PlustekBCR.Services;
-using Windows.Storage.Pickers;
-using Windows.Storage;
 
 namespace PlustekBCR.Views
 {
@@ -360,7 +356,22 @@ namespace PlustekBCR.Views
                     exportCsvItem.Text = _localizationService.GetString("Button.ExportCsv");
                 }
 
-                if (exportSubItem.Items.Count > 1 && exportSubItem.Items[1] is MenuFlyoutItem exportTxtItem)
+                if (exportSubItem.Items.Count > 1 && exportSubItem.Items[1] is MenuFlyoutItem exportGoogleCsvItem)
+                {
+                    exportGoogleCsvItem.Text = _localizationService.GetString("Export.Format.GoogleCsv");
+                }
+
+                if (exportSubItem.Items.Count > 2 && exportSubItem.Items[2] is MenuFlyoutItem exportOutlookCsvItem)
+                {
+                    exportOutlookCsvItem.Text = _localizationService.GetString("Export.Format.OutlookCsv");
+                }
+
+                if (exportSubItem.Items.Count > 3 && exportSubItem.Items[3] is MenuFlyoutItem exportVCardItem)
+                {
+                    exportVCardItem.Text = _localizationService.GetString("Export.Format.VCard");
+                }
+
+                if (exportSubItem.Items.Count > 4 && exportSubItem.Items[4] is MenuFlyoutItem exportTxtItem)
                 {
                     exportTxtItem.Text = _localizationService.GetString("Button.ExportTxt");
                 }
@@ -390,9 +401,54 @@ namespace PlustekBCR.Views
 
         private async void OnExportCsvContextClicked(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
         {
+            await ExportCardAsync(sender, ContactExportFormat.Csv);
+        }
+
+        private async void OnExportSelectedCsvClicked(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+        {
+            await ViewModel.ExportSelectedAsync(ContactExportFormat.Csv);
+        }
+
+        private async void OnExportSelectedGoogleCsvClicked(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+        {
+            await ViewModel.ExportSelectedAsync(ContactExportFormat.GoogleCsv);
+        }
+
+        private async void OnExportSelectedOutlookCsvClicked(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+        {
+            await ViewModel.ExportSelectedAsync(ContactExportFormat.OutlookCsv);
+        }
+
+        private async void OnExportSelectedVCardClicked(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+        {
+            await ViewModel.ExportSelectedAsync(ContactExportFormat.VCard);
+        }
+
+        private async void OnExportSelectedPlainTextClicked(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+        {
+            await ViewModel.ExportSelectedAsync(ContactExportFormat.PlainText);
+        }
+
+        private async void OnExportGoogleCsvContextClicked(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+        {
+            await ExportCardAsync(sender, ContactExportFormat.GoogleCsv);
+        }
+
+        private async void OnExportOutlookCsvContextClicked(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+        {
+            await ExportCardAsync(sender, ContactExportFormat.OutlookCsv);
+        }
+
+        private async void OnExportVCardContextClicked(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+        {
+            await ExportCardAsync(sender, ContactExportFormat.VCard);
+        }
+
+        private async Task ExportCardAsync(object sender, ContactExportFormat format)
+        {
             if (sender is MenuFlyoutItem menuItem && menuItem.DataContext is BusinessCard card)
             {
-                await ViewModel.ExportSingleCardCsvAsync(card);
+                await ViewModel.ExportSingleCardAsync(card, format);
             }
         }
 
@@ -400,7 +456,7 @@ namespace PlustekBCR.Views
         {
             if (sender is MenuFlyoutItem menuItem && menuItem.DataContext is BusinessCard card)
             {
-                await ExportCardAsTxtAsync(card);
+                await ViewModel.ExportSingleCardAsync(card, ContactExportFormat.PlainText);
             }
         }
 
@@ -412,36 +468,6 @@ namespace PlustekBCR.Views
             }
 
             await ViewModel.ReprocessAiAsync(ViewModel.SelectedCard);
-        }
-
-        private async Task ExportCardAsTxtAsync(BusinessCard card)
-        {
-            var picker = new FileSavePicker
-            {
-                SuggestedStartLocation = PickerLocationId.DocumentsLibrary,
-                SuggestedFileName = string.IsNullOrWhiteSpace(card.FullName) ? "business_card" : card.FullName
-            };
-            picker.FileTypeChoices.Add("Text File", new System.Collections.Generic.List<string> { ".txt" });
-            PickerWindowHelper.Initialize(picker);
-
-            StorageFile? file = await picker.PickSaveFileAsync();
-            if (file == null) return;
-
-            var sb = new StringBuilder();
-            sb.AppendLine($"Full Name: {card.FullName}");
-            sb.AppendLine($"Job Title: {card.JobTitle}");
-            sb.AppendLine($"Company: {card.CompanyName}");
-            sb.AppendLine($"Telephone: {card.Tel}");
-            sb.AppendLine($"Mobile: {card.Mobile}");
-            sb.AppendLine($"Email: {card.Email}");
-            sb.AppendLine($"Full Address: {card.FullAddress}");
-            sb.AppendLine($"Country: {card.Country}");
-            sb.AppendLine($"Website: {card.Website}");
-            sb.AppendLine($"Tag: {card.Tag}");
-            sb.AppendLine($"Scan Date: {card.ScanDate:yyyy-MM-dd HH:mm:ss}");
-            sb.AppendLine($"Status: {card.Status}");
-
-            await File.WriteAllTextAsync(file.Path, sb.ToString(), Encoding.UTF8);
         }
 
         private async void OnAddSidebarTagClicked(object sender, RoutedEventArgs e)
