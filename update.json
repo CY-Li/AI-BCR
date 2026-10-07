@@ -1,5 +1,5 @@
 {
-  "version": "1.0.18",
-  "downloadUrl": "https://github.com/CY-Li/AI-BCR/releases/download/v1.0.18/PlustekBCR-v1.0.18-win-x64.zip",
-  "notes": "1. 新增 Standard CSV、Google、Outlook、vCard 與 Plain Text 匯出格式\r\n2. 支援單筆與批次選擇匯出格式，並加入 Google／Outlook 品牌圖示\r\n3. 修正 Google Email 欄位映射並改善匯出錯誤處理"
+  "version": "1.0.19",
+  "downloadUrl": "https://github.com/CY-Li/AI-BCR/releases/download/v1.0.19/PlustekBCR-v1.0.19-win-x64.zip",
+  "notes": "1. 側邊欄隱藏 FAX，詳細編輯頁仍保留完整 FAX 編輯功能\r\n2. 縮減聯絡資訊與 Note 區之間的多餘留白\r\n3. 微調名片預覽與姓名區間距，提升預設畫面的資訊可見度"
 }
