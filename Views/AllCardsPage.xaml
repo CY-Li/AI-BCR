@@ -775,7 +775,7 @@
                         </Grid>
 
                         <!-- Personal Group -->
-                        <StackPanel Spacing="8">
+                        <StackPanel Margin="0,-16,0,0" Spacing="8">
                             <Grid>
                                     <Border Background="Transparent"
                                             Padding="0,4"
@@ -933,9 +933,8 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
-                            <Grid Grid.Row="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource ContactFieldRowConverter}, ConverterParameter=Address, Mode=OneTime}" ColumnSpacing="16">
+                            <Grid Grid.Row="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource ContactFieldRowConverter}, ConverterParameter=SidebarAddress, Mode=OneTime}" ColumnSpacing="16">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="96"/>
                                     <ColumnDefinition Width="*"/>
@@ -1171,22 +1170,6 @@
                                 </Grid>
                             </Grid>
 
-                            <Grid Grid.Row="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource ContactFieldRowConverter}, ConverterParameter=SidebarFax, Mode=OneTime}"
-                                  ColumnSpacing="16"
-                                  Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:fax, Mode=OneTime}">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="96"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Text="{Binding [Field.fax]}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center"/>
-                                <controls:EditableField Grid.Column="1"
-                                                        EditStarted="OnSimpleFieldEditStarted"
-                                                        Text="{x:Bind ViewModel.SelectedCard.Fax, Mode=TwoWay}"
-                                                        PlaceholderText="{Binding [Placeholder.ClickToEnterFax]}"
-                                                        FontSize="14"
-                                                        VerticalAlignment="Center"/>
-                            </Grid>
-
                             <Grid Grid.Row="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource ContactFieldRowConverter}, ConverterParameter=SidebarWebsite, Mode=OneTime}"
                                   ColumnSpacing="16"
                                   Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:website, Mode=OneTime}">
@@ -1219,6 +1202,7 @@
                         </Grid>
 
                         <InfoBar IsOpen="{x:Bind ViewModel.HasContactActionMessage, Mode=OneWay}"
+                                 Visibility="{x:Bind ViewModel.HasContactActionMessage, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"
                                  IsClosable="True"
                                  Severity="Warning"
                                  Message="{x:Bind ViewModel.ContactActionMessage, Mode=OneWay}"

@@ -19,6 +19,7 @@ namespace PlustekBCR.Helpers
                     "Email" => 2,
                     "Website" => 3,
                     "SidebarWebsite" => 3,
+                    "SidebarAddress" => 4,
                     "Fax" => 4,
                     "SidebarFax" => 4,
                     "Address" => 5,
@@ -31,8 +32,9 @@ namespace PlustekBCR.Helpers
                     "Mobile" => 2,
                     "Email" => 3,
                     "Website" => 4,
+                    "SidebarAddress" => 0,
                     "SidebarFax" => 4,
-                    "SidebarWebsite" => 5,
+                    "SidebarWebsite" => 4,
                     "Fax" => 5,
                     _ => 0
                 };

@@ -33,11 +33,13 @@ public class ContactFieldRowConverterTests
     }
 
     [Theory]
-    [InlineData("SidebarFax", 4)]
-    [InlineData("SidebarWebsite", 5)]
-    public void JpSidebarRows_PreserveExistingOrder(string field, int expectedRow)
+    [InlineData(MarketCode.US, "SidebarWebsite", 3)]
+    [InlineData(MarketCode.US, "SidebarAddress", 4)]
+    [InlineData(MarketCode.JP, "SidebarAddress", 0)]
+    [InlineData(MarketCode.JP, "SidebarWebsite", 4)]
+    public void SidebarRows_ExcludeFaxWithoutLeavingAGap(MarketCode market, string field, int expectedRow)
     {
-        Assert.Equal(expectedRow, Convert(MarketCode.JP, field));
+        Assert.Equal(expectedRow, Convert(market, field));
     }
 
     private int Convert(MarketCode market, string field) =>
