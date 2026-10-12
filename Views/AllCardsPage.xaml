@@ -926,15 +926,16 @@
                         <MenuFlyoutSeparator Margin="-24,0"/>
 
                         <!-- Contact Group -->
-                        <Grid RowSpacing="16">
+                        <Grid RowSpacing="8">
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto" MinHeight="28"/>
+                                <RowDefinition Height="Auto" MinHeight="28"/>
+                                <RowDefinition Height="Auto" MinHeight="28"/>
+                                <RowDefinition Height="Auto" MinHeight="28"/>
+                                <RowDefinition Height="Auto" MinHeight="28"/>
                             </Grid.RowDefinitions>
-                            <Grid Grid.Row="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource ContactFieldRowConverter}, ConverterParameter=SidebarAddress, Mode=OneTime}" ColumnSpacing="16">
+                            <Grid Grid.Row="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource ContactFieldRowConverter}, ConverterParameter=SidebarAddress, Mode=OneTime}"
+                                  ColumnSpacing="16">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="96"/>
                                     <ColumnDefinition Width="*"/>
@@ -1055,51 +1056,34 @@
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <Border Background="Transparent"
-                                            Padding="0,2"
-                                            Tapped="OnDetailFieldTapped"
-                                            Tag="Telephone"
-                                            Visibility="{x:Bind ViewModel.IsEditingTelephone, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}">
-                                        <Grid ColumnSpacing="8">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="180"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Grid Grid.Column="0">
-                                                <TextBlock Text="{x:Bind ViewModel.DetailTelephoneText, Mode=OneWay}"
-                                                           Style="{StaticResource BcrEditableFieldTextStyle}"
-                                                           FontSize="14"
-                                                           TextWrapping="WrapWholeWords"
-                                                           Visibility="{x:Bind ViewModel.HasDetailTelephoneText, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"/>
-                                                <TextBlock Text="{Binding [Placeholder.ClickToEnterTelephone]}"
-                                                           Style="{StaticResource BcrEditableFieldPlaceholderTextStyle}"
-                                                           FontSize="14"
-                                                           Visibility="{x:Bind ViewModel.HasDetailTelephoneText, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}"/>
-                                            </Grid>
-                                        </Grid>
-                                    </Border>
                                     <Grid x:Name="TelephoneEditContainer"
                                           Grid.Column="0"
-                                          ColumnSpacing="8"
-                                          Visibility="{x:Bind ViewModel.IsEditingTelephone, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
+                                          ColumnSpacing="8">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="180"/>
+                                            <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBox Grid.Column="0"
-                                                 Text="{x:Bind ViewModel.SelectedCard.Tel, Mode=TwoWay}"
-                                                 PlaceholderText="{Binding [Placeholder.Telephone]}"
-                                                 LosingFocus="OnCompositeFieldLosingFocus"/>
-                                        <TextBox Grid.Column="1"
-                                                 Text="{x:Bind ViewModel.SelectedCard.Extension, Mode=TwoWay}"
-                                                 PlaceholderText="{Binding [Placeholder.Extension]}"
-                                                 Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:extension, Mode=OneTime}"
-                                                 LosingFocus="OnCompositeFieldLosingFocus"/>
+                                        <controls:EditableField Grid.Column="0"
+                                                                EditStarted="OnSimpleFieldEditStarted"
+                                                                Text="{x:Bind ViewModel.SelectedCard.Tel, Mode=TwoWay}"
+                                                                PlaceholderText="{Binding [Placeholder.ClickToEnterTelephone]}"
+                                                                FontSize="14"
+                                                                VerticalAlignment="Center"/>
+                                        <controls:EditableField Grid.Column="1"
+                                                                Width="180"
+                                                                EditStarted="OnSimpleFieldEditStarted"
+                                                                Text="{x:Bind ViewModel.SelectedCard.Extension, Mode=TwoWay}"
+                                                                PlaceholderText="{Binding [Placeholder.Extension]}"
+                                                                FontSize="14"
+                                                                VerticalAlignment="Center"
+                                                                Visibility="{x:Bind ViewModel.CurrentMarket, Converter={StaticResource FieldVisibilityConverter}, ConverterParameter=edit:extension, Mode=OneTime}"/>
                                     </Grid>
                                     <Button Grid.Column="1"
-                                            Width="32"
-                                            Height="32"
+                                            Width="28"
+                                            Height="28"
                                             Padding="0"
+                                            Background="Transparent"
+                                            BorderThickness="0"
                                             VerticalAlignment="Center"
                                             Style="{StaticResource SidebarActionIconButtonStyle}"
                                             Command="{x:Bind ViewModel.OpenPhoneCommand}"
@@ -1130,7 +1114,9 @@
                                                             PlaceholderText="{Binding [Placeholder.ClickToEnterMobile]}"
                                                             FontSize="14"
                                                             VerticalAlignment="Center"/>
-                                    <Button Grid.Column="1" Width="32" Height="32" Padding="0"
+                                    <Button Grid.Column="1" Width="28" Height="28" Padding="0"
+                                            Background="Transparent"
+                                            BorderThickness="0"
                                             Style="{StaticResource SidebarActionIconButtonStyle}"
                                             Command="{x:Bind ViewModel.OpenPhoneCommand}"
                                             CommandParameter="{x:Bind ViewModel.SelectedCard.Mobile, Mode=OneWay}"
@@ -1158,7 +1144,9 @@
                                                             PlaceholderText="{Binding [Placeholder.ClickToEnterEmail]}"
                                                             FontSize="14"
                                                             VerticalAlignment="Center"/>
-                                    <Button Grid.Column="1" Width="32" Height="32" Padding="0"
+                                    <Button Grid.Column="1" Width="28" Height="28" Padding="0"
+                                            Background="Transparent"
+                                            BorderThickness="0"
                                             Style="{StaticResource SidebarActionIconButtonStyle}"
                                             Command="{x:Bind ViewModel.OpenEmailCommand}"
                                             CommandParameter="{x:Bind ViewModel.SelectedCard.Email, Mode=OneWay}"
@@ -1188,7 +1176,9 @@
                                                             PlaceholderText="{Binding [Placeholder.ClickToEnterWebsite]}"
                                                             FontSize="14"
                                                             VerticalAlignment="Center"/>
-                                    <Button Grid.Column="1" Width="32" Height="32" Padding="0"
+                                    <Button Grid.Column="1" Width="28" Height="28" Padding="0"
+                                            Background="Transparent"
+                                            BorderThickness="0"
                                             Style="{StaticResource SidebarActionIconButtonStyle}"
                                             Command="{x:Bind ViewModel.OpenWebsiteCommand}"
                                             CommandParameter="{x:Bind ViewModel.SelectedCard.Website, Mode=OneWay}"

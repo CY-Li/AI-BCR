@@ -351,6 +351,139 @@
                 </StackPanel>
             </Grid>
 
+            <Grid x:Name="LinkAppsContentPanel"
+                  Grid.Row="1"
+                  Margin="48,26,0,0"
+                  HorizontalAlignment="Stretch"
+                  Visibility="Collapsed">
+                <StackPanel Spacing="12">
+                    <Border Padding="16,12"
+                            Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                            CornerRadius="6">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE946;"
+                                      FontSize="16"
+                                      Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                      VerticalAlignment="Top"/>
+                            <TextBlock Grid.Column="1"
+                                       Text="{Binding [Settings.LinkApps.ManagedByWindows]}"
+                                       FontSize="12"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       TextWrapping="WrapWholeWords"/>
+                        </Grid>
+                    </Border>
+
+                    <ProgressRing Width="24"
+                                  Height="24"
+                                  HorizontalAlignment="Left"
+                                  IsActive="{x:Bind LinkAppsViewModel.IsBusy, Mode=OneWay}"
+                                  Visibility="{x:Bind LinkAppsViewModel.IsBusy, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"/>
+
+                    <Border Style="{StaticResource SettingsCardStyle}" Translation="0,0,8">
+                        <Grid ColumnSpacing="18">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE717;" FontSize="22" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Column="1" Spacing="7" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding [Settings.LinkApps.Phone.Title]}" FontSize="16" FontWeight="SemiBold"/>
+                                <StackPanel Orientation="Horizontal" Spacing="7">
+                                    <Border Padding="7,2" CornerRadius="4" Background="{ThemeResource SubtleFillColorSecondaryBrush}">
+                                        <TextBlock Text="TEL" FontSize="11" FontWeight="SemiBold"/>
+                                    </Border>
+                                    <TextBlock Text="{x:Bind LinkAppsViewModel.PhoneHandlerDisplay, Mode=OneWay}"
+                                               FontSize="12"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                               VerticalAlignment="Center"
+                                               TextWrapping="WrapWholeWords"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <Button Grid.Column="2"
+                                    Content="{Binding [Settings.LinkApps.Change]}"
+                                    Click="OnChangePhoneAppClicked"
+                                    VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+
+                    <Border Style="{StaticResource SettingsCardStyle}" Translation="0,0,8">
+                        <Grid ColumnSpacing="18">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE715;" FontSize="22" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Column="1" Spacing="7" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding [Settings.LinkApps.Email.Title]}" FontSize="16" FontWeight="SemiBold"/>
+                                <StackPanel Orientation="Horizontal" Spacing="7">
+                                    <Border Padding="7,2" CornerRadius="4" Background="{ThemeResource SubtleFillColorSecondaryBrush}">
+                                        <TextBlock Text="MAILTO" FontSize="11" FontWeight="SemiBold"/>
+                                    </Border>
+                                    <TextBlock Text="{x:Bind LinkAppsViewModel.EmailHandlerDisplay, Mode=OneWay}"
+                                               FontSize="12"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                               VerticalAlignment="Center"
+                                               TextWrapping="WrapWholeWords"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <Button Grid.Column="2"
+                                    Content="{Binding [Settings.LinkApps.Change]}"
+                                    Click="OnChangeEmailAppClicked"
+                                    VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+
+                    <Border Style="{StaticResource SettingsCardStyle}" Translation="0,0,8">
+                        <Grid ColumnSpacing="18">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Glyph="&#xE774;" FontSize="22" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Column="1" Spacing="8" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding [Settings.LinkApps.Web.Title]}" FontSize="16" FontWeight="SemiBold"/>
+                                <StackPanel Orientation="Horizontal" Spacing="20">
+                                    <StackPanel Orientation="Horizontal" Spacing="7">
+                                        <Border Padding="7,2" CornerRadius="4" Background="{ThemeResource SubtleFillColorSecondaryBrush}">
+                                            <TextBlock Text="HTTP" FontSize="11" FontWeight="SemiBold"/>
+                                        </Border>
+                                        <TextBlock Text="{x:Bind LinkAppsViewModel.HttpHandlerDisplay, Mode=OneWay}"
+                                                   FontSize="12"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Spacing="7">
+                                        <Border Padding="7,2" CornerRadius="4" Background="{ThemeResource SubtleFillColorSecondaryBrush}">
+                                            <TextBlock Text="HTTPS" FontSize="11" FontWeight="SemiBold"/>
+                                        </Border>
+                                        <TextBlock Text="{x:Bind LinkAppsViewModel.HttpsHandlerDisplay, Mode=OneWay}"
+                                                   FontSize="12"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </StackPanel>
+                            <Button Grid.Column="2"
+                                    Content="{Binding [Settings.LinkApps.Change]}"
+                                    Click="OnChangeWebAppClicked"
+                                    VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+
+                    <TextBlock Text="{x:Bind LinkAppsViewModel.ErrorMessage, Mode=OneWay}"
+                               Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                               TextWrapping="WrapWholeWords"
+                               Visibility="{x:Bind LinkAppsViewModel.HasError, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"/>
+                </StackPanel>
+            </Grid>
+
             <Grid x:Name="AboutContentPanel"
                   Grid.Row="1"
                   Margin="48,26,0,0"

@@ -453,6 +453,7 @@ namespace PlustekBCR.Views
             SettingsImportItem.Visibility = Visibility.Collapsed;
             SettingsRecognitionItem.Visibility = Visibility.Collapsed;
             SettingsScannerItem.Visibility = Visibility.Collapsed;
+            SettingsLinkAppsItem.Visibility = settingsVisibility;
             SettingsAboutItem.Visibility = settingsVisibility;
 
             SearchRoot.Visibility = headerWorkspaceVisibility;
@@ -482,6 +483,7 @@ namespace PlustekBCR.Views
                 ["Import"] = SettingsImportItem,
                 ["RecognitionAi"] = SettingsRecognitionItem,
                 ["Scanner"] = SettingsScannerItem,
+                ["LinkApps"] = SettingsLinkAppsItem,
                 ["About"] = SettingsAboutItem
             };
 

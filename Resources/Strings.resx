@@ -198,6 +198,34 @@
   <data name="Settings.Region.Description" xml:space="preserve"><value>Choose the regional field set and import mapping used by card workflows.</value></data>
   <data name="Settings.General.Hint" xml:space="preserve"><value>General settings are shown below.</value></data>
   <data name="Settings.General.Title" xml:space="preserve"><value>General</value></data>
+  <data name="Main.Navigation.LinkApps" xml:space="preserve"><value>Link apps</value></data>
+  <data name="Settings.LinkApps.Title" xml:space="preserve"><value>Default link apps</value></data>
+  <data name="Settings.LinkApps.Description" xml:space="preserve"><value>Review the Windows apps used to open phone numbers, email addresses, and websites.</value></data>
+  <data name="Settings.LinkApps.ManagedByWindows" xml:space="preserve"><value>Windows manages these defaults. Select Change for guided steps.</value></data>
+  <data name="Settings.LinkApps.CurrentApp" xml:space="preserve"><value>Current app:</value></data>
+  <data name="Settings.LinkApps.Change" xml:space="preserve"><value>Change…</value></data>
+  <data name="Settings.LinkApps.Phone.Title" xml:space="preserve"><value>Phone</value></data>
+  <data name="Settings.LinkApps.Phone.Guidance" xml:space="preserve"><value>In Windows Settings, search for TEL and select its default app.</value></data>
+  <data name="Settings.LinkApps.Email.Title" xml:space="preserve"><value>Email</value></data>
+  <data name="Settings.LinkApps.Email.Guidance" xml:space="preserve"><value>In Windows Settings, search for MAILTO and select its default app.</value></data>
+  <data name="Settings.LinkApps.Web.Title" xml:space="preserve"><value>Web</value></data>
+  <data name="Settings.LinkApps.Web.Guidance" xml:space="preserve"><value>In Windows Settings, search for HTTP and HTTPS and select the same browser for both.</value></data>
+  <data name="Settings.LinkApps.ChangeInWindows" xml:space="preserve"><value>Change in Windows</value></data>
+  <data name="Settings.LinkApps.NotConfigured" xml:space="preserve"><value>Not configured</value></data>
+  <data name="Settings.LinkApps.Unavailable" xml:space="preserve"><value>Unable to determine</value></data>
+  <data name="Settings.LinkApps.Web.Mixed" xml:space="preserve"><value>HTTP: {0} · HTTPS: {1}</value></data>
+  <data name="Settings.LinkApps.QueryFailed" xml:space="preserve"><value>The current default apps could not be read. You can still review them in Windows Settings.</value></data>
+  <data name="Settings.LinkApps.OpenFailed" xml:space="preserve"><value>Windows Default Apps settings could not be opened.</value></data>
+  <data name="Settings.LinkApps.Dialog.Phone.Title" xml:space="preserve"><value>Change the phone app</value></data>
+  <data name="Settings.LinkApps.Dialog.Email.Title" xml:space="preserve"><value>Change the email app</value></data>
+  <data name="Settings.LinkApps.Dialog.Web.Title" xml:space="preserve"><value>Change the web browser</value></data>
+  <data name="Settings.LinkApps.Dialog.Intro" xml:space="preserve"><value>Windows controls this default. Follow these steps in Windows Settings:</value></data>
+  <data name="Settings.LinkApps.Dialog.Step.Open" xml:space="preserve"><value>Open Default Apps settings.</value></data>
+  <data name="Settings.LinkApps.Dialog.Step.Search" xml:space="preserve"><value>Search for this link type:</value></data>
+  <data name="Settings.LinkApps.Dialog.Step.Select" xml:space="preserve"><value>Select the app you want to use.</value></data>
+  <data name="Settings.LinkApps.Dialog.Step.SelectWeb" xml:space="preserve"><value>Select a browser for HTTP, then repeat for HTTPS using the same browser.</value></data>
+  <data name="Settings.LinkApps.Dialog.ReturnHint" xml:space="preserve"><value>Return here when finished; the current apps will refresh automatically.</value></data>
+  <data name="Settings.LinkApps.Dialog.OpenSettings" xml:space="preserve"><value>Open Windows Settings</value></data>
   <data name="Settings.Scan.Description" xml:space="preserve"><value>Configure image quality and automatic correction for new scans.</value></data>
   <data name="Settings.Scan.Quality.Title" xml:space="preserve"><value>Scan quality</value></data>
   <data name="Settings.Scan.Quality.Description" xml:space="preserve"><value>Balance image detail, recognition quality, file size, and scan speed.</value></data>

@@ -1,5 +1,18 @@
 # Change Log
 
+## v1.0.20 — 2026-10-12 — 側欄聯絡欄位一致性改善
+
+### 名片側欄
+
+- 統一 Full Address、Telephone、Mobile、Email 與 Website 的列高及欄位間距，不再因資料或 icon 顯示狀態改變排列。
+- 縮小聯絡操作按鈕並移除常態外框，保留 hover、按下回饋與 Tooltip。
+- Telephone 改用與 Mobile 相同的 `EditableField`；日本市場使用完整可用寬度，美國市場仍保留 Extension 編輯。
+
+### 相容性與驗證
+
+- 未修改聯絡資料模型、OCR JSON schema、匯入匯出格式或詳細編輯頁欄位。
+- 版本同步更新為 `1.0.20`；MSIX 套件版本為 `1.0.20.0`。
+
 ## v1.0.19 — 2026-10-07 — 側欄資訊密度改善
 
 ### 名片側欄

@@ -197,6 +197,34 @@
   <data name="Settings.Region.Description" xml:space="preserve"><value>名刺ワークフローで使用する地域別の項目セットとインポートマッピングを選択します。</value></data>
   <data name="Settings.General.Hint" xml:space="preserve"><value>一般設定を表示しています。</value></data>
   <data name="Settings.General.Title" xml:space="preserve"><value>一般</value></data>
+  <data name="Main.Navigation.LinkApps" xml:space="preserve"><value>リンク アプリ</value></data>
+  <data name="Settings.LinkApps.Title" xml:space="preserve"><value>既定のリンク アプリ</value></data>
+  <data name="Settings.LinkApps.Description" xml:space="preserve"><value>電話番号、メールアドレス、Web サイトを開く Windows アプリを確認します。</value></data>
+  <data name="Settings.LinkApps.ManagedByWindows" xml:space="preserve"><value>これらの既定値は Windows によって管理されます。「変更」を選ぶと手順を確認できます。</value></data>
+  <data name="Settings.LinkApps.CurrentApp" xml:space="preserve"><value>現在のアプリ:</value></data>
+  <data name="Settings.LinkApps.Change" xml:space="preserve"><value>変更…</value></data>
+  <data name="Settings.LinkApps.Phone.Title" xml:space="preserve"><value>電話</value></data>
+  <data name="Settings.LinkApps.Phone.Guidance" xml:space="preserve"><value>Windows の設定で「TEL」を検索し、既定のアプリを選択します。</value></data>
+  <data name="Settings.LinkApps.Email.Title" xml:space="preserve"><value>メール</value></data>
+  <data name="Settings.LinkApps.Email.Guidance" xml:space="preserve"><value>Windows の設定で「MAILTO」を検索し、既定のアプリを選択します。</value></data>
+  <data name="Settings.LinkApps.Web.Title" xml:space="preserve"><value>Web</value></data>
+  <data name="Settings.LinkApps.Web.Guidance" xml:space="preserve"><value>Windows の設定で「HTTP」と「HTTPS」を検索し、両方に同じブラウザーを選択します。</value></data>
+  <data name="Settings.LinkApps.ChangeInWindows" xml:space="preserve"><value>Windows で変更</value></data>
+  <data name="Settings.LinkApps.NotConfigured" xml:space="preserve"><value>未設定</value></data>
+  <data name="Settings.LinkApps.Unavailable" xml:space="preserve"><value>確認できません</value></data>
+  <data name="Settings.LinkApps.Web.Mixed" xml:space="preserve"><value>HTTP: {0}・HTTPS: {1}</value></data>
+  <data name="Settings.LinkApps.QueryFailed" xml:space="preserve"><value>現在の既定アプリを読み取れませんでした。Windows の設定で確認できます。</value></data>
+  <data name="Settings.LinkApps.OpenFailed" xml:space="preserve"><value>Windows の既定のアプリ設定を開けませんでした。</value></data>
+  <data name="Settings.LinkApps.Dialog.Phone.Title" xml:space="preserve"><value>電話アプリを変更</value></data>
+  <data name="Settings.LinkApps.Dialog.Email.Title" xml:space="preserve"><value>メールアプリを変更</value></data>
+  <data name="Settings.LinkApps.Dialog.Web.Title" xml:space="preserve"><value>Web ブラウザーを変更</value></data>
+  <data name="Settings.LinkApps.Dialog.Intro" xml:space="preserve"><value>この既定値は Windows によって管理されます。Windows の設定で次の手順を行ってください。</value></data>
+  <data name="Settings.LinkApps.Dialog.Step.Open" xml:space="preserve"><value>「既定のアプリ」設定を開きます。</value></data>
+  <data name="Settings.LinkApps.Dialog.Step.Search" xml:space="preserve"><value>次のリンク種類を検索します。</value></data>
+  <data name="Settings.LinkApps.Dialog.Step.Select" xml:space="preserve"><value>使用するアプリを選択します。</value></data>
+  <data name="Settings.LinkApps.Dialog.Step.SelectWeb" xml:space="preserve"><value>HTTP のブラウザーを選び、HTTPS にも同じブラウザーを選択します。</value></data>
+  <data name="Settings.LinkApps.Dialog.ReturnHint" xml:space="preserve"><value>設定後にこの画面へ戻ると、現在のアプリが自動的に更新されます。</value></data>
+  <data name="Settings.LinkApps.Dialog.OpenSettings" xml:space="preserve"><value>Windows の設定を開く</value></data>
   <data name="Settings.Scan.Description" xml:space="preserve"><value>新しいスキャンの画質と自動補正を設定します。</value></data>
   <data name="Settings.Scan.Quality.Title" xml:space="preserve"><value>スキャン品質</value></data>
   <data name="Settings.Scan.Quality.Description" xml:space="preserve"><value>画像の精細度、認識品質、ファイルサイズ、スキャン速度のバランスを設定します。</value></data>

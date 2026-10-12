@@ -35,6 +35,7 @@ namespace PlustekBCR
                 services.AddTransient<CardDetailViewModel>();
                 services.AddTransient<DuplicateSettingsViewModel>();
                 services.AddTransient<ScanSettingsViewModel>();
+                services.AddTransient<DefaultLinkAppsViewModel>();
                 
                 // Register Services
                 services.AddSingleton<IUpdateService, UpdateService>();
@@ -48,6 +49,7 @@ namespace PlustekBCR
                 services.AddSingleton<IBusinessCardDuplicateService, BusinessCardDuplicateService>();
                 services.AddSingleton<IImageViewerService, ImageViewerService>();
                 services.AddSingleton<IContactActionService, ContactActionService>();
+                services.AddSingleton<IDefaultLinkAppService, DefaultLinkAppService>();
                 services.AddSingleton<IZipCodeLookupService, ZipCloudLookupService>();
                 services.AddSingleton<JapanZipLookupCoordinator>();
                 services.AddSingleton(new HttpClient());
