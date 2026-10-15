@@ -34,6 +34,7 @@ namespace PlustekBCR.Views
         private string _currentSettingsSection = "Scan";
         private bool _isRestoringWorkspaceSelection;
         private CancellationTokenSource? _searchDebounceCts;
+        private bool _suppressNextHeaderSearchTextChanged;
 
         public MainWindow()
         {
@@ -128,6 +129,7 @@ namespace PlustekBCR.Views
             // Set default page
             RootNavigationView.SelectedItem = AllCardsItem;
             ContentFrame.Navigate(typeof(AllCardsPage));
+            RebuildCompanyFilterMenu();
             RebuildTagFilterMenu();
             RebuildAdvancedTagFlowItems();
             ApplyWorkspaceState();
@@ -174,6 +176,7 @@ namespace PlustekBCR.Views
             Activated += async (_, _) => await EnsureUpdateCheckAsync();
             Closed += OnWindowClosed;
             _tagCatalogService.TagsChanged += OnTagCatalogChanged;
+            CardsViewModel.CompanyFiltersChanged += OnCompanyFiltersChanged;
             ViewModel.SearchChanged += OnSearchChanged;
             _localizationService.LanguageChanged += OnLanguageChanged;
             UpdateSearchInputMode();
@@ -191,6 +194,7 @@ namespace PlustekBCR.Views
             _mockPaperSensorTimer.Stop();
             _mockPaperSensorTimer.Tick -= OnMockPaperSensorTick;
             _tagCatalogService.TagsChanged -= OnTagCatalogChanged;
+            CardsViewModel.CompanyFiltersChanged -= OnCompanyFiltersChanged;
             ViewModel.SearchChanged -= OnSearchChanged;
             _localizationService.LanguageChanged -= OnLanguageChanged;
         }
@@ -302,6 +306,10 @@ namespace PlustekBCR.Views
                         ExitSettingsWorkspaceIfNeeded();
                         NavigateToAllCardsPage();
                         break;
+                    case "CompanyRoot":
+                        ExitSettingsWorkspaceIfNeeded();
+                        NavigateToAllCardsPage();
+                        break;
                     case "TagAction:Add":
                         ExitSettingsWorkspaceIfNeeded();
                         _ = AddTagFromSidebarAsync();
@@ -313,6 +321,13 @@ namespace PlustekBCR.Views
                             ExitSettingsWorkspaceIfNeeded();
                             var selectedTag = tag["TagFilter:".Length..];
                             ApplyTagSearchShortcutFromSidebar(selectedTag);
+                            NavigateToAllCardsPage();
+                        }
+                        else if (tag.StartsWith("CompanyFilter:", StringComparison.Ordinal))
+                        {
+                            ExitSettingsWorkspaceIfNeeded();
+                            var selectedCompany = tag["CompanyFilter:".Length..];
+                            ApplyCompanyFilterFromSidebar(selectedCompany);
                             NavigateToAllCardsPage();
                         }
                         else if (tag.StartsWith("RecentPreset:", StringComparison.Ordinal))
@@ -334,6 +349,11 @@ namespace PlustekBCR.Views
                 RebuildTagFilterMenu();
                 PruneAdvancedSelectedTags();
             });
+        }
+
+        private void OnCompanyFiltersChanged()
+        {
+            DispatcherQueue.TryEnqueue(RebuildCompanyFilterMenu);
         }
 
         private void OnSettingsClicked(object sender, RoutedEventArgs e)
@@ -442,7 +462,7 @@ namespace PlustekBCR.Views
             AllCardsItem.Visibility = cardsVisibility;
             CardsNavSeparator.Visibility = cardsVisibility;
             ByDateItem.Visibility = cardsVisibility;
-            ByCompanyItem.Visibility = Visibility.Collapsed;
+            ByCompanyItem.Visibility = cardsVisibility;
             ByNameItem.Visibility = Visibility.Collapsed;
             TagsItem.Visibility = cardsVisibility;
 
@@ -554,6 +574,51 @@ namespace PlustekBCR.Views
             }
         }
 
+        private void RebuildCompanyFilterMenu()
+        {
+            var selectedCompany = ViewModel.SelectedCompanyFilter;
+            NavigationViewItem? selectedItem = null;
+
+            ByCompanyItem.MenuItems.Clear();
+            var companies = CardsViewModel.AllCards
+                .Select(card => card.CompanyName?.Trim())
+                .Where(company => !string.IsNullOrWhiteSpace(company))
+                .GroupBy(company => company!, StringComparer.OrdinalIgnoreCase)
+                .Select(group => new { Name = group.Key, Count = group.Count() })
+                .OrderBy(company => company.Name, StringComparer.OrdinalIgnoreCase);
+
+            foreach (var company in companies)
+            {
+                var item = new NavigationViewItem
+                {
+                    Content = company.Name,
+                    Tag = $"CompanyFilter:{company.Name}",
+                    SelectsOnInvoked = true,
+                    InfoBadge = new InfoBadge { Value = company.Count }
+                };
+
+                ByCompanyItem.MenuItems.Add(item);
+                if (string.Equals(company.Name, selectedCompany, StringComparison.OrdinalIgnoreCase))
+                {
+                    selectedItem = item;
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(selectedCompany))
+            {
+                return;
+            }
+
+            if (selectedItem != null)
+            {
+                RunWithSearchUiSync(() => RootNavigationView.SelectedItem = selectedItem);
+                return;
+            }
+
+            ViewModel.ClearCompanyFilter();
+            RunWithSearchUiSync(SelectAllCardsNavigationItem);
+        }
+
         private void OnSidebarAddTagTapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
         {
             e.Handled = true;
@@ -587,6 +652,24 @@ namespace PlustekBCR.Views
                 HeaderSearchBox.Text = tag;
                 UpdateSearchInputMode();
             });
+        }
+
+        private void ApplyCompanyFilterFromSidebar(string company)
+        {
+            CancelLiveSearch();
+            CloseSearchDropdown();
+            RunWithSearchUiSync(() =>
+            {
+                ViewModel.ApplyCompanyFilter(company);
+                ViewModel.SelectedSearchScope = MainViewModel.SearchScopeCompany;
+                if (!string.Equals(HeaderSearchBox.Text, company, StringComparison.Ordinal))
+                {
+                    _suppressNextHeaderSearchTextChanged = true;
+                    HeaderSearchBox.Text = company;
+                }
+                UpdateSearchInputMode();
+            });
+            CloseSearchDropdown();
         }
 
         private void ApplyRecentPresetFromSidebar(string preset)
@@ -1147,6 +1230,14 @@ namespace PlustekBCR.Views
         private void OnHeaderSearchBoxTextChanged(object sender, TextChangedEventArgs e)
         {
             SearchPlaceholder.Visibility = string.IsNullOrEmpty(HeaderSearchBox.Text) ? Visibility.Visible : Visibility.Collapsed;
+            if (_suppressNextHeaderSearchTextChanged)
+            {
+                _suppressNextHeaderSearchTextChanged = false;
+                CancelLiveSearch();
+                CloseSearchDropdown();
+                return;
+            }
+
             if (_isSyncingFilterUi)
             {
                 return;

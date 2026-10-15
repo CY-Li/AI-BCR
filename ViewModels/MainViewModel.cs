@@ -286,6 +286,19 @@ namespace PlustekBCR.ViewModels
             }
         }
 
+        private string? _selectedCompanyFilter;
+        public string? SelectedCompanyFilter
+        {
+            get => _selectedCompanyFilter;
+            private set
+            {
+                if (SetProperty(ref _selectedCompanyFilter, NormalizeSearchText(value)))
+                {
+                    NotifySearchChanged();
+                }
+            }
+        }
+
         private string? _nameSearchKeyword;
         public string? NameSearchKeyword
         {
@@ -341,6 +354,7 @@ namespace PlustekBCR.ViewModels
         public bool IsSearchActive =>
             !string.IsNullOrWhiteSpace(SearchKeyword)
             || !string.IsNullOrWhiteSpace(CompanySearchKeyword)
+            || !string.IsNullOrWhiteSpace(SelectedCompanyFilter)
             || !string.IsNullOrWhiteSpace(NameSearchKeyword)
             || !string.IsNullOrWhiteSpace(TagSearchKeyword)
             || AdvancedTagSearchKeywords.Count > 0
@@ -354,7 +368,7 @@ namespace PlustekBCR.ViewModels
             {
                 var parts = new System.Collections.Generic.List<string>();
                 AddSummaryPart(parts, _localizationService.GetString("Search.Summary.All"), SearchKeyword);
-                AddSummaryPart(parts, _localizationService.GetString("Search.Scope.Company"), CompanySearchKeyword);
+                AddSummaryPart(parts, _localizationService.GetString("Search.Scope.Company"), SelectedCompanyFilter ?? CompanySearchKeyword);
                 AddSummaryPart(parts, _localizationService.GetString("Search.Scope.Name"), NameSearchKeyword);
                 var tagSummary = AdvancedTagSearchKeywords.Count > 0
                     ? string.Join(", ", AdvancedTagSearchKeywords)
@@ -402,6 +416,17 @@ namespace PlustekBCR.ViewModels
         {
             ResetSearchState(clearTagFilters: false);
             SelectedTagFilter = string.IsNullOrWhiteSpace(tag) ? null : tag.Trim();
+        }
+
+        public void ApplyCompanyFilter(string? company)
+        {
+            ResetSearchState(clearCompanyFilter: false);
+            SelectedCompanyFilter = company;
+        }
+
+        public void ClearCompanyFilter()
+        {
+            SelectedCompanyFilter = null;
         }
 
         public void ApplyTagSearchKeyword(string? keyword)
@@ -490,7 +515,7 @@ namespace PlustekBCR.ViewModels
             NotifySearchChanged();
         }
 
-        private void ResetSearchState(bool clearTagFilters = true)
+        private void ResetSearchState(bool clearTagFilters = true, bool clearCompanyFilter = true)
         {
             SearchKeyword = null;
             CompanySearchKeyword = null;
@@ -499,6 +524,11 @@ namespace PlustekBCR.ViewModels
             StartDate = null;
             EndDate = null;
             SelectedRecentPreset = null;
+
+            if (clearCompanyFilter)
+            {
+                SelectedCompanyFilter = null;
+            }
 
             if (clearTagFilters)
             {

@@ -49,6 +49,8 @@ namespace PlustekBCR.ViewModels
         private string _newNoteContent = string.Empty;
         private string _contactActionMessage = string.Empty;
 
+        public event Action? CompanyFiltersChanged;
+
         public ObservableCollection<BusinessCard> AllCards
         {
             get => _allCards;
@@ -425,7 +427,11 @@ namespace PlustekBCR.ViewModels
 
             WeakReferenceMessenger.Default.Register<BusinessCardRecognitionCompletedMessage>(this, (r, m) =>
             {
-                App.Window?.DispatcherQueue.TryEnqueue(RebuildDuplicateReviewStates);
+                App.Window?.DispatcherQueue.TryEnqueue(() =>
+                {
+                    CompanyFiltersChanged?.Invoke();
+                    RebuildDuplicateReviewStates();
+                });
             });
         }
 
@@ -1034,6 +1040,12 @@ namespace PlustekBCR.ViewModels
 
         private bool MatchesAdvancedFilters(BusinessCard card)
         {
+            if (!string.IsNullOrWhiteSpace(MainViewModel.SelectedCompanyFilter)
+                && !string.Equals(card.CompanyName?.Trim(), MainViewModel.SelectedCompanyFilter, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
             if (!string.IsNullOrWhiteSpace(MainViewModel.CompanySearchKeyword)
                 && !Contains(card.CompanyName, MainViewModel.CompanySearchKeyword))
             {
@@ -1155,6 +1167,8 @@ namespace PlustekBCR.ViewModels
             {
                 return;
             }
+
+            CompanyFiltersChanged?.Invoke();
 
             if (e.Action is NotifyCollectionChangedAction.Remove
                 or NotifyCollectionChangedAction.Replace
@@ -1390,6 +1404,10 @@ namespace PlustekBCR.ViewModels
 
             switch (e.PropertyName)
             {
+                case nameof(BusinessCard.CompanyName):
+                    CompanyFiltersChanged?.Invoke();
+                    RefreshSearchResults();
+                    break;
                 case nameof(BusinessCard.ZipCode):
                     OnPropertyChanged(nameof(HasDetailAddressText));
                     OnPropertyChanged(nameof(DetailAddressText));
