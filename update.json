@@ -1,5 +1,5 @@
 {
   "version": "1.0.21",
   "downloadUrl": "https://github.com/CY-Li/AI-BCR/releases/download/v1.0.21/PlustekBCR-v1.0.21-win-x64.zip",
-  "notes": "1. 統一側欄聯絡欄位列高與間距，避免資料或 icon 狀態造成排列不一致\r\n2. 縮小聯絡操作按鈕並移除常態邊框，提升資訊密度\r\n3. Telephone 改用與 Mobile 相同的編輯元件，同時保留美國市場 Extension"
+  "notes": "1. 首頁左側Sidebar新增By Company篩選功能"
 }
