@@ -19,12 +19,16 @@
   <data name="Button.Clear" xml:space="preserve"><value>Clear</value></data>
   <data name="Button.ContinueManually" xml:space="preserve"><value>Continue Manually</value></data>
   <data name="Button.Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="Button.EditNote" xml:space="preserve"><value>Edit note</value></data>
+  <data name="Button.Save" xml:space="preserve"><value>Save</value></data>
   <data name="Button.ExportCsv" xml:space="preserve"><value>Standard CSV (.csv)</value></data>
   <data name="Button.ExportTxt" xml:space="preserve"><value>Plain Text (.txt)</value></data>
   <data name="Button.GetCsvTemplate" xml:space="preserve"><value>Get CSV Template</value></data>
   <data name="Button.Import" xml:space="preserve"><value>Import</value></data>
   <data name="Button.OK" xml:space="preserve"><value>OK</value></data>
   <data name="Button.Scan" xml:space="preserve"><value>Scan</value></data>
+  <data name="Button.FinishScan" xml:space="preserve"><value>Finish Scan</value></data>
+  <data name="Button.Retry" xml:space="preserve"><value>Retry</value></data>
   <data name="Button.ScanFromScanner" xml:space="preserve"><value>Scan from scanner</value></data>
   <data name="Button.Search" xml:space="preserve"><value>Search</value></data>
   <data name="Button.SelectCardImages" xml:space="preserve"><value>Select Card Images</value></data>
@@ -94,6 +98,14 @@
   <data name="Import.Template.FileName" xml:space="preserve"><value>business_cards_template</value></data>
   <data name="Main.AutoScan.Mode" xml:space="preserve"><value>Auto Scan Mode</value></data>
   <data name="Main.AutoScan.PlaceCard" xml:space="preserve"><value>Please place the business card face up in the scanner.</value></data>
+  <data name="Main.Scan.Title" xml:space="preserve"><value>Scan Business Cards</value></data>
+  <data name="Main.Scan.Waiting" xml:space="preserve"><value>Place a business card in the scanner</value></data>
+  <data name="Main.Scan.Scanning" xml:space="preserve"><value>Scanning business card...</value></data>
+  <data name="Main.Scan.WaitingNext" xml:space="preserve"><value>{0} scanned · waiting for next card</value></data>
+  <data name="Main.Scan.AutoFinish" xml:space="preserve"><value>Auto finish in {0} seconds</value></data>
+  <data name="Main.Scan.MockPlaceCard" xml:space="preserve"><value>Simulate card placement</value></data>
+  <data name="Main.Scan.ScannerDisconnected" xml:space="preserve"><value>Scanner disconnected. Reconnect it, then retry.</value></data>
+  <data name="Main.Scan.CaptureFailed" xml:space="preserve"><value>Scan failed. Please retry.</value></data>
   <data name="Main.Ai.Off" xml:space="preserve"><value>AI OFF</value></data>
   <data name="Main.Ai.On" xml:space="preserve"><value>AI ON</value></data>
   <data name="Main.Help" xml:space="preserve"><value>Help</value></data>
@@ -227,6 +239,9 @@
   <data name="Settings.LinkApps.Dialog.ReturnHint" xml:space="preserve"><value>Return here when finished; the current apps will refresh automatically.</value></data>
   <data name="Settings.LinkApps.Dialog.OpenSettings" xml:space="preserve"><value>Open Windows Settings</value></data>
   <data name="Settings.Scan.Description" xml:space="preserve"><value>Configure image quality and automatic correction for new scans.</value></data>
+  <data name="Settings.Scan.AutoFinish.Title" xml:space="preserve"><value>Finish scan after inactivity</value></data>
+  <data name="Settings.Scan.AutoFinish.Description" xml:space="preserve"><value>After each card is added to the list, wait this long for the next card before closing the scan window (1–60 seconds).</value></data>
+  <data name="Settings.Scan.AutoFinish.Unit" xml:space="preserve"><value>seconds</value></data>
   <data name="Settings.Scan.Quality.Title" xml:space="preserve"><value>Scan quality</value></data>
   <data name="Settings.Scan.Quality.Description" xml:space="preserve"><value>Balance image detail, recognition quality, file size, and scan speed.</value></data>
   <data name="Settings.Scan.Resolution.Title" xml:space="preserve"><value>Resolution</value></data>

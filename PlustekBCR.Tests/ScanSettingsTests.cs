@@ -16,6 +16,7 @@ public sealed class ScanSettingsTests
         Assert.True(settings.AutoCrop);
         Assert.True(settings.AutoDeskew);
         Assert.True(settings.AutoRotate);
+        Assert.Equal(5, settings.AutoFinishDelaySeconds);
     }
 
     [Fact]
@@ -27,16 +28,20 @@ public sealed class ScanSettingsTests
             ColorMode = ScanColorMode.Grayscale,
             AutoCrop = false,
             AutoDeskew = true,
-            AutoRotate = false
+            AutoRotate = false,
+            AutoFinishDelaySeconds = 12
         };
 
         var clone = original.Clone();
         clone.Resolution = ScanResolution.Good;
+        clone.AutoFinishDelaySeconds = 3;
 
         Assert.Equal(ScanResolution.Excellent, original.Resolution);
         Assert.Equal(ScanColorMode.Grayscale, clone.ColorMode);
         Assert.False(clone.AutoCrop);
         Assert.True(clone.AutoDeskew);
         Assert.False(clone.AutoRotate);
+        Assert.Equal(12, original.AutoFinishDelaySeconds);
+        Assert.Equal(3, clone.AutoFinishDelaySeconds);
     }
 }

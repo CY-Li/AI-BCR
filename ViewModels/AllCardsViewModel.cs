@@ -47,6 +47,8 @@ namespace PlustekBCR.ViewModels
         private string _exportMessage = string.Empty;
         private bool _isExportMessageError;
         private string _newNoteContent = string.Empty;
+        private IReadOnlyList<NoteEditorItemViewModel> _selectedNoteItems = Array.Empty<NoteEditorItemViewModel>();
+        private NoteEditorItemViewModel? _editingNoteItem;
         private string _contactActionMessage = string.Empty;
 
         public event Action? CompanyFiltersChanged;
@@ -93,6 +95,7 @@ namespace PlustekBCR.ViewModels
                     OnPropertyChanged(nameof(DetailTelephoneText));
                     OnPropertyChanged(nameof(HasDetailTelephoneText));
                     OnPropertyChanged(nameof(SelectedNotes));
+                    RefreshSelectedNoteItems();
                     SyncSelectedDuplicateState();
                 }
             }
@@ -182,6 +185,11 @@ namespace PlustekBCR.ViewModels
         public IReadOnlyList<Note> SelectedNotes => SelectedCard?.Notes?
             .OrderByDescending(note => note.LastModifiedAt)
             .ToList() ?? new List<Note>();
+        public IReadOnlyList<NoteEditorItemViewModel> SelectedNoteItems
+        {
+            get => _selectedNoteItems;
+            private set => SetProperty(ref _selectedNoteItems, value);
+        }
         public int SelectedExportCount => _selectedExportCardIds.Count;
         public bool HasSelectedExportCards => SelectedExportCount > 0;
         public bool CanExportSelected => IsBatchExportMode && HasSelectedExportCards && !IsExporting;
@@ -419,10 +427,15 @@ namespace PlustekBCR.ViewModels
 
             WeakReferenceMessenger.Default.Register<CardsImportedMessage>(this, (r, m) =>
             {
-                App.Window?.DispatcherQueue.TryEnqueue(() =>
+                var dispatcher = App.Window?.DispatcherQueue;
+                if (dispatcher?.HasThreadAccess == true)
                 {
                     OnCardsImported(m.Cards);
-                });
+                }
+                else
+                {
+                    dispatcher?.TryEnqueue(() => OnCardsImported(m.Cards));
+                }
             });
 
             WeakReferenceMessenger.Default.Register<BusinessCardRecognitionCompletedMessage>(this, (r, m) =>
@@ -637,6 +650,21 @@ namespace PlustekBCR.ViewModels
             });
             SelectedCard.Notes = notes;
             NewNoteContent = string.Empty;
+        }
+
+        private void BeginNoteEdit(NoteEditorItemViewModel item)
+        {
+            _editingNoteItem?.CancelEdit();
+            _editingNoteItem = item;
+        }
+
+        private void RefreshSelectedNoteItems()
+        {
+            _editingNoteItem?.CancelEdit();
+            _editingNoteItem = null;
+            SelectedNoteItems = SelectedNotes
+                .Select(note => new NoteEditorItemViewModel(note, () => SelectedCard, BeginNoteEdit))
+                .ToList();
         }
 
         [RelayCommand]
@@ -1450,6 +1478,7 @@ namespace PlustekBCR.ViewModels
                     break;
                 case nameof(BusinessCard.Notes):
                     OnPropertyChanged(nameof(SelectedNotes));
+                    RefreshSelectedNoteItems();
                     break;
             }
         }

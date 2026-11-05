@@ -40,6 +40,8 @@ namespace PlustekBCR.ViewModels
         private CancellationTokenSource? _zipLookupCts;
         private bool _isApplyingZipLookupResult;
         private string _contactActionMessage = string.Empty;
+        private IReadOnlyList<NoteEditorItemViewModel> _selectedNoteItems = Array.Empty<NoteEditorItemViewModel>();
+        private NoteEditorItemViewModel? _editingNoteItem;
 
         [ObservableProperty]
         public partial ObservableCollection<string> AvailableTags { get; set; }
@@ -78,6 +80,11 @@ namespace PlustekBCR.ViewModels
         public IReadOnlyList<Note> SelectedNotes => SelectedCard?.Notes?
             .OrderByDescending(note => note.LastModifiedAt)
             .ToList() ?? new List<Note>();
+        public IReadOnlyList<NoteEditorItemViewModel> SelectedNoteItems
+        {
+            get => _selectedNoteItems;
+            private set => SetProperty(ref _selectedNoteItems, value);
+        }
 
         public Func<BusinessCard, Task<bool>>? ConfirmDeleteCardAsync { get; set; }
         public Func<Note, Task<bool>>? ConfirmDeleteNoteAsync { get; set; }
@@ -116,6 +123,7 @@ namespace PlustekBCR.ViewModels
             NewNoteContent = string.Empty;
             ContactActionMessage = string.Empty;
             OnPropertyChanged(nameof(SelectedNotes));
+            RefreshSelectedNoteItems();
             SubscribeToSelectedCard(value);
             SyncSelectedTagsFromCard(value);
             SyncDepartmentInputCount(value);
@@ -187,6 +195,21 @@ namespace PlustekBCR.ViewModels
                 NewNoteContent = string.Empty;
                 OnPropertyChanged(nameof(SelectedCard));
             }
+        }
+
+        private void BeginNoteEdit(NoteEditorItemViewModel item)
+        {
+            _editingNoteItem?.CancelEdit();
+            _editingNoteItem = item;
+        }
+
+        private void RefreshSelectedNoteItems()
+        {
+            _editingNoteItem?.CancelEdit();
+            _editingNoteItem = null;
+            SelectedNoteItems = SelectedNotes
+                .Select(note => new NoteEditorItemViewModel(note, () => SelectedCard, BeginNoteEdit))
+                .ToList();
         }
 
         [RelayCommand]
@@ -430,6 +453,7 @@ namespace PlustekBCR.ViewModels
             if (e.PropertyName == nameof(BusinessCard.Notes))
             {
                 OnPropertyChanged(nameof(SelectedNotes));
+                RefreshSelectedNoteItems();
             }
         }
 

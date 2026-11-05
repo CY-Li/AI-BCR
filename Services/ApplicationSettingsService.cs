@@ -125,7 +125,8 @@ namespace PlustekBCR.Services
                 && _scanSettings.ColorMode == normalized.ColorMode
                 && _scanSettings.AutoCrop == normalized.AutoCrop
                 && _scanSettings.AutoDeskew == normalized.AutoDeskew
-                && _scanSettings.AutoRotate == normalized.AutoRotate)
+                && _scanSettings.AutoRotate == normalized.AutoRotate
+                && _scanSettings.AutoFinishDelaySeconds == normalized.AutoFinishDelaySeconds)
             {
                 return;
             }
@@ -272,7 +273,10 @@ namespace PlustekBCR.Services
                         : ScanColorMode.Color,
                     AutoCrop = section?["AutoCrop"]?.GetValue<bool?>() ?? true,
                     AutoDeskew = section?["AutoDeskew"]?.GetValue<bool?>() ?? true,
-                    AutoRotate = section?["AutoRotate"]?.GetValue<bool?>() ?? true
+                    AutoRotate = section?["AutoRotate"]?.GetValue<bool?>() ?? true,
+                    AutoFinishDelaySeconds = int.TryParse(section?["AutoFinishDelaySeconds"]?.ToString(), out var delaySeconds)
+                        ? delaySeconds
+                        : ScanSettings.DefaultAutoFinishDelaySeconds
                 });
             }
             catch (Exception ex)
@@ -447,7 +451,8 @@ namespace PlustekBCR.Services
                     ["ColorMode"] = settings.ColorMode.ToString(),
                     ["AutoCrop"] = settings.AutoCrop,
                     ["AutoDeskew"] = settings.AutoDeskew,
-                    ["AutoRotate"] = settings.AutoRotate
+                    ["AutoRotate"] = settings.AutoRotate,
+                    ["AutoFinishDelaySeconds"] = settings.AutoFinishDelaySeconds
                 };
 
                 await File.WriteAllTextAsync(
@@ -494,6 +499,11 @@ namespace PlustekBCR.Services
             {
                 normalized.ColorMode = ScanColorMode.Color;
             }
+
+            normalized.AutoFinishDelaySeconds = Math.Clamp(
+                normalized.AutoFinishDelaySeconds,
+                ScanSettings.MinAutoFinishDelaySeconds,
+                ScanSettings.MaxAutoFinishDelaySeconds);
 
             return normalized;
         }

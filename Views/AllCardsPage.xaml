@@ -1242,7 +1242,7 @@
                             <ListView MaxHeight="220"
                                       Padding="0"
                                       Background="Transparent"
-                                      ItemsSource="{x:Bind ViewModel.SelectedNotes, Mode=OneWay}"
+                                      ItemsSource="{x:Bind ViewModel.SelectedNoteItems, Mode=OneWay}"
                                       SelectionMode="None"
                                       Visibility="{x:Bind ViewModel.SelectedCard.HasNotes, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"
                                       ScrollViewer.VerticalScrollBarVisibility="Auto">
@@ -1255,7 +1255,7 @@
                                     </Style>
                                 </ListView.ItemContainerStyle>
                                 <ListView.ItemTemplate>
-                                    <DataTemplate x:DataType="models:Note">
+                                    <DataTemplate x:DataType="viewmodels:NoteEditorItemViewModel">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="30"/>
@@ -1301,21 +1301,49 @@
                                                                 <FontIcon Glyph="&#xE823;"
                                                                           FontSize="9"
                                                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                                                                <TextBlock Text="{x:Bind LastModifiedAt, Converter={StaticResource DateTimeToStringConverter}}"
+                                                                 <TextBlock Text="{x:Bind Note.LastModifiedAt, Converter={StaticResource DateTimeToStringConverter}, Mode=OneWay}"
                                                                            FontSize="11"
                                                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                                                             </StackPanel>
                                                         </Border>
-                                                        <TextBlock Text="{x:Bind Content}"
+                                                         <TextBlock Text="{x:Bind Note.Content, Mode=OneWay}"
+                                                                    Visibility="{x:Bind IsEditing, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}"
                                                                    TextWrapping="Wrap"
                                                                    LineHeight="20"/>
+                                                         <StackPanel Spacing="8"
+                                                                     Visibility="{x:Bind IsEditing, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
+                                                             <TextBox x:Name="SidebarNoteEditTextBox"
+                                                                      Text="{x:Bind DraftContent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                      AcceptsReturn="True"
+                                                                      TextWrapping="Wrap"
+                                                                      MinHeight="72"
+                                                                      MaxHeight="180"/>
+                                                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                                                                 <Button Content="{Binding DataContext[Button.Cancel], ElementName=PageRoot}"
+                                                                         Command="{x:Bind CancelEditCommand}"/>
+                                                                 <Button Content="{Binding DataContext[Button.Save], ElementName=PageRoot}"
+                                                                         Command="{x:Bind SaveEditCommand}"
+                                                                         IsEnabled="{x:Bind CanSave, Mode=OneWay}"/>
+                                                             </StackPanel>
+                                                         </StackPanel>
                                                     </StackPanel>
-                                                    <Button Grid.Column="1" Width="28" Height="28" Padding="0"
-                                                            Style="{StaticResource HeaderIconButtonStyle}"
-                                                            Click="OnDeleteSidebarNoteClicked"
-                                                            ToolTipService.ToolTip="{Binding DataContext[Button.Delete], ElementName=PageRoot}">
-                                                        <FontIcon Glyph="&#xE74D;" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                                                    </Button>
+                                                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="2"
+                                                                 Visibility="{x:Bind IsEditing, Converter={StaticResource InvertedBoolToVisibilityConverter}, Mode=OneWay}">
+                                                         <Button Width="28" Height="28" Padding="0"
+                                                                 Style="{StaticResource HeaderIconButtonStyle}"
+                                                                 Click="OnEditSidebarNoteClicked"
+                                                                 ToolTipService.ToolTip="{Binding DataContext[Button.EditNote], ElementName=PageRoot}"
+                                                                 AutomationProperties.Name="{Binding DataContext[Button.EditNote], ElementName=PageRoot}">
+                                                             <FontIcon Glyph="&#xE70F;" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                                         </Button>
+                                                         <Button Width="28" Height="28" Padding="0"
+                                                                 Style="{StaticResource HeaderIconButtonStyle}"
+                                                                 Click="OnDeleteSidebarNoteClicked"
+                                                                 ToolTipService.ToolTip="{Binding DataContext[Button.Delete], ElementName=PageRoot}"
+                                                                 AutomationProperties.Name="{Binding DataContext[Button.Delete], ElementName=PageRoot}">
+                                                             <FontIcon Glyph="&#xE74D;" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                                         </Button>
+                                                     </StackPanel>
                                                 </Grid>
                                             </Border>
                                         </Grid>

@@ -18,12 +18,16 @@
   <data name="Button.Clear" xml:space="preserve"><value>クリア</value></data>
   <data name="Button.ContinueManually" xml:space="preserve"><value>手動で続行</value></data>
   <data name="Button.Delete" xml:space="preserve"><value>削除</value></data>
+  <data name="Button.EditNote" xml:space="preserve"><value>メモを編集</value></data>
+  <data name="Button.Save" xml:space="preserve"><value>保存</value></data>
   <data name="Button.ExportCsv" xml:space="preserve"><value>Standard CSV (.csv)</value></data>
   <data name="Button.ExportTxt" xml:space="preserve"><value>Plain Text (.txt)</value></data>
   <data name="Button.GetCsvTemplate" xml:space="preserve"><value>CSV テンプレートを取得</value></data>
   <data name="Button.Import" xml:space="preserve"><value>取り込み</value></data>
   <data name="Button.OK" xml:space="preserve"><value>OK</value></data>
   <data name="Button.Scan" xml:space="preserve"><value>スキャン</value></data>
+  <data name="Button.FinishScan" xml:space="preserve"><value>スキャンを終了</value></data>
+  <data name="Button.Retry" xml:space="preserve"><value>再試行</value></data>
   <data name="Button.ScanFromScanner" xml:space="preserve"><value>スキャナーからスキャン</value></data>
   <data name="Button.Search" xml:space="preserve"><value>検索</value></data>
   <data name="Button.SelectCardImages" xml:space="preserve"><value>名刺画像を選択</value></data>
@@ -93,6 +97,14 @@
   <data name="Import.Template.FileName" xml:space="preserve"><value>business_cards_template</value></data>
   <data name="Main.AutoScan.Mode" xml:space="preserve"><value>自動スキャンモード</value></data>
   <data name="Main.AutoScan.PlaceCard" xml:space="preserve"><value>名刺を表向きにしてスキャナーにセットしてください。</value></data>
+  <data name="Main.Scan.Title" xml:space="preserve"><value>名刺をスキャン</value></data>
+  <data name="Main.Scan.Waiting" xml:space="preserve"><value>名刺をスキャナーにセットしてください</value></data>
+  <data name="Main.Scan.Scanning" xml:space="preserve"><value>名刺をスキャン中...</value></data>
+  <data name="Main.Scan.WaitingNext" xml:space="preserve"><value>{0} 枚スキャン済み・次の名刺を待機中</value></data>
+  <data name="Main.Scan.AutoFinish" xml:space="preserve"><value>あと {0} 秒で自動終了</value></data>
+  <data name="Main.Scan.MockPlaceCard" xml:space="preserve"><value>名刺のセットをシミュレート</value></data>
+  <data name="Main.Scan.ScannerDisconnected" xml:space="preserve"><value>スキャナーが切断されました。再接続してから再試行してください。</value></data>
+  <data name="Main.Scan.CaptureFailed" xml:space="preserve"><value>スキャンに失敗しました。再試行してください。</value></data>
   <data name="Main.Ai.Off" xml:space="preserve"><value>AI オフ</value></data>
   <data name="Main.Ai.On" xml:space="preserve"><value>AI オン</value></data>
   <data name="Main.Help" xml:space="preserve"><value>ヘルプ</value></data>
@@ -226,6 +238,9 @@
   <data name="Settings.LinkApps.Dialog.ReturnHint" xml:space="preserve"><value>設定後にこの画面へ戻ると、現在のアプリが自動的に更新されます。</value></data>
   <data name="Settings.LinkApps.Dialog.OpenSettings" xml:space="preserve"><value>Windows の設定を開く</value></data>
   <data name="Settings.Scan.Description" xml:space="preserve"><value>新しいスキャンの画質と自動補正を設定します。</value></data>
+  <data name="Settings.Scan.AutoFinish.Title" xml:space="preserve"><value>待機後にスキャンを自動終了</value></data>
+  <data name="Settings.Scan.AutoFinish.Description" xml:space="preserve"><value>名刺を一覧に追加した後、次の名刺を待つ時間を設定します（1～60秒）。</value></data>
+  <data name="Settings.Scan.AutoFinish.Unit" xml:space="preserve"><value>秒</value></data>
   <data name="Settings.Scan.Quality.Title" xml:space="preserve"><value>スキャン品質</value></data>
   <data name="Settings.Scan.Quality.Description" xml:space="preserve"><value>画像の精細度、認識品質、ファイルサイズ、スキャン速度のバランスを設定します。</value></data>
   <data name="Settings.Scan.Resolution.Title" xml:space="preserve"><value>解像度</value></data>

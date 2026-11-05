@@ -120,6 +120,13 @@ namespace PlustekBCR.ViewModels
                     OnPropertyChanged(nameof(ScannerNameVisibility));
                     OnPropertyChanged(nameof(ScannerReadyIndicatorVisibility));
                     OnPropertyChanged(nameof(ScannerOfflineIndicatorVisibility));
+                    OnPropertyChanged(nameof(AutoScanMockButtonVisibility));
+                    if (IsAutoScanMode && !value)
+                    {
+                        StopAutoScanIdleTimer();
+                        _autoScanErrorText = _localizationService.GetString("Main.Scan.ScannerDisconnected");
+                        AutoScanState = AutoScanState.Error;
+                    }
                 }
             }
         }
@@ -615,6 +622,14 @@ namespace PlustekBCR.ViewModels
                     OnPropertyChanged(nameof(AutoScanLoadingVisibility));
                     OnPropertyChanged(nameof(AutoScanIdleVisibility));
                     OnPropertyChanged(nameof(AutoScanPhaseText));
+                    OnPropertyChanged(nameof(AutoScanProgressText));
+                    OnPropertyChanged(nameof(AutoScanInstructionVisibility));
+                    OnPropertyChanged(nameof(AutoScanCounterVisibility));
+                    OnPropertyChanged(nameof(AutoScanErrorVisibility));
+                    OnPropertyChanged(nameof(AutoScanCountdownVisibility));
+                    OnPropertyChanged(nameof(AutoScanMockButtonVisibility));
+                    OnPropertyChanged(nameof(AutoScanRetryVisibility));
+                    OnPropertyChanged(nameof(AutoScanActionText));
                 }
             }
         }
@@ -623,7 +638,17 @@ namespace PlustekBCR.ViewModels
         public int AutoScanScannedCount
         {
             get => _autoScanScannedCount;
-            private set => SetProperty(ref _autoScanScannedCount, value);
+            private set
+            {
+                if (SetProperty(ref _autoScanScannedCount, value))
+                {
+                    OnPropertyChanged(nameof(AutoScanProgressText));
+                    OnPropertyChanged(nameof(AutoScanInstructionVisibility));
+                    OnPropertyChanged(nameof(AutoScanCounterVisibility));
+                    OnPropertyChanged(nameof(AutoScanCountdownVisibility));
+                    OnPropertyChanged(nameof(AutoScanActionText));
+                }
+            }
         }
 
         private int _autoScanRecognizingCount;
@@ -642,9 +667,23 @@ namespace PlustekBCR.ViewModels
 
         private DateTime _lastPaperDetectedAt = DateTime.MinValue;
         private static readonly TimeSpan PaperDebounceInterval = TimeSpan.FromMilliseconds(800);
-        private CancellationTokenSource? _autoScanSimulationCts;
-        private Task? _autoScanSimulationTask;
-        private CancellationTokenSource? _autoScanInstructionCts;
+        private int _autoScanIdleTimeoutSeconds = ScanSettings.DefaultAutoFinishDelaySeconds;
+        private CancellationTokenSource? _autoScanSessionCts;
+        private CancellationTokenSource? _autoScanIdleCts;
+        private string _autoScanErrorText = string.Empty;
+        private int _autoScanCountdownSeconds;
+        public int AutoScanCountdownSeconds
+        {
+            get => _autoScanCountdownSeconds;
+            private set
+            {
+                if (SetProperty(ref _autoScanCountdownSeconds, value))
+                {
+                    OnPropertyChanged(nameof(AutoScanCountdownText));
+                    OnPropertyChanged(nameof(AutoScanCountdownVisibility));
+                }
+            }
+        }
 
         public string ScanButtonText => IsAutoScanMode
             ? _localizationService.GetString("Button.StopAutoScan")
@@ -656,25 +695,47 @@ namespace PlustekBCR.ViewModels
         public Microsoft.UI.Xaml.Visibility AutoScanActiveVisibility =>
             IsAutoScanMode ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
 
-        private bool _isAutoScanInstructionVisible = true;
-        public bool IsAutoScanInstructionVisible
-        {
-            get => _isAutoScanInstructionVisible;
-            private set
-            {
-                if (SetProperty(ref _isAutoScanInstructionVisible, value))
-                {
-                    OnPropertyChanged(nameof(AutoScanInstructionVisibility));
-                    OnPropertyChanged(nameof(AutoScanCounterVisibility));
-                }
-            }
-        }
-
         public Microsoft.UI.Xaml.Visibility AutoScanInstructionVisibility =>
-            IsAutoScanInstructionVisible ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
+            AutoScanState == AutoScanState.Ready && AutoScanScannedCount == 0
+                ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
 
         public Microsoft.UI.Xaml.Visibility AutoScanCounterVisibility =>
-            IsAutoScanInstructionVisible ? Microsoft.UI.Xaml.Visibility.Collapsed : Microsoft.UI.Xaml.Visibility.Visible;
+            AutoScanState == AutoScanState.Scanning ||
+            (AutoScanState == AutoScanState.Ready && AutoScanScannedCount > 0)
+                ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
+
+        public Microsoft.UI.Xaml.Visibility AutoScanErrorVisibility =>
+            AutoScanState == AutoScanState.Error || AutoScanState == AutoScanState.Connecting
+                ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
+
+        public Microsoft.UI.Xaml.Visibility AutoScanCountdownVisibility =>
+            AutoScanState == AutoScanState.Ready && AutoScanScannedCount > 0 && AutoScanCountdownSeconds > 0
+                ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
+
+        public Microsoft.UI.Xaml.Visibility AutoScanMockButtonVisibility =>
+            AutoScanState == AutoScanState.Ready && IsScannerConnected
+                ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
+
+        public Microsoft.UI.Xaml.Visibility AutoScanRetryVisibility =>
+            AutoScanState == AutoScanState.Error
+                ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
+
+        public string AutoScanActionText => _localizationService.GetString(
+            AutoScanState == AutoScanState.Error || AutoScanScannedCount > 0
+                ? "Button.FinishScan" : "Button.Cancel");
+
+        public string AutoScanProgressText => AutoScanState switch
+        {
+            AutoScanState.Scanning => _localizationService.GetString("Main.Scan.Scanning"),
+            AutoScanState.Connecting => _localizationService.GetString("Status.AutoScan.Connecting"),
+            AutoScanState.Error => _autoScanErrorText,
+            AutoScanState.Ready when AutoScanScannedCount > 0 =>
+                string.Format(_localizationService.GetString("Main.Scan.WaitingNext"), AutoScanScannedCount),
+            _ => _localizationService.GetString("Main.Scan.Waiting")
+        };
+
+        public string AutoScanCountdownText =>
+            string.Format(_localizationService.GetString("Main.Scan.AutoFinish"), AutoScanCountdownSeconds);
 
         public bool IsAutoScanReady => IsAutoScanMode && AutoScanState == AutoScanState.Ready;
         public bool IsAutoScanScanning => IsAutoScanMode && AutoScanState == AutoScanState.Scanning;
@@ -722,151 +783,73 @@ namespace PlustekBCR.ViewModels
             await StartAutoScanAsync();
         }
 
-        private async Task StartAutoScanAsync()
+        private Task StartAutoScanAsync()
         {
-            // 1. Check AI status
-            if (!IsAiEnabled && ShowAiDisabledWarningAsync != null)
-            {
-                var turnOn = await ShowAiDisabledWarningAsync();
-                if (turnOn)
-                {
-                    IsAiEnabled = true;
-                }
-            }
-
-            // Prototype flow: enter Auto Scan modal directly without pre-confirmation dialog.
-
+            _autoScanSessionCts = new CancellationTokenSource();
+            _lastPaperDetectedAt = DateTime.MinValue;
             IsAutoScanMode = true;
-            IsAutoScanInstructionVisible = true;
             AutoScanScannedCount = 0;
             AutoScanRecognizingCount = 0;
             AutoScanFailedCount = 0;
-
-            AutoScanState = AutoScanState.Ready;
-            StartAutoScanInstructionTimer();
-            StartAutoScanSimulationLoop();
+            AutoScanCountdownSeconds = 0;
+            _autoScanIdleTimeoutSeconds = _applicationSettingsService.ScanSettings.AutoFinishDelaySeconds;
+            _autoScanErrorText = _localizationService.GetString("Main.Scan.ScannerDisconnected");
+            AutoScanState = IsScannerConnected ? AutoScanState.Ready : AutoScanState.Error;
+            return Task.CompletedTask;
         }
 
-        private async Task StopAutoScanAsync()
+        private Task StopAutoScanAsync()
         {
             if (!IsAutoScanMode)
             {
-                return;
+                return Task.CompletedTask;
             }
 
-            StopAutoScanSimulationLoop();
-            StopAutoScanInstructionTimer();
+            StopAutoScanIdleTimer();
+            _autoScanSessionCts?.Cancel();
+            _autoScanSessionCts?.Dispose();
+            _autoScanSessionCts = null;
             AutoScanState = AutoScanState.Stopping;
-            await Task.Delay(200);
             AutoScanState = AutoScanState.Idle;
             IsAutoScanMode = false;
-            IsAutoScanInstructionVisible = true;
+            return Task.CompletedTask;
         }
 
-        private void StartAutoScanInstructionTimer()
+        private void StartAutoScanIdleTimer()
         {
-            StopAutoScanInstructionTimer();
-            _autoScanInstructionCts = new CancellationTokenSource();
-            _ = RunAutoScanInstructionTimerAsync(_autoScanInstructionCts.Token);
+            StopAutoScanIdleTimer();
+            AutoScanCountdownSeconds = _autoScanIdleTimeoutSeconds;
+            _autoScanIdleCts = new CancellationTokenSource();
+            _ = RunAutoScanIdleTimerAsync(_autoScanIdleCts.Token);
         }
 
-        private void StopAutoScanInstructionTimer()
+        private void StopAutoScanIdleTimer()
         {
-            try
-            {
-                _autoScanInstructionCts?.Cancel();
-            }
-            catch
-            {
-            }
-            finally
-            {
-                _autoScanInstructionCts?.Dispose();
-                _autoScanInstructionCts = null;
-            }
+            _autoScanIdleCts?.Cancel();
+            _autoScanIdleCts?.Dispose();
+            _autoScanIdleCts = null;
+            AutoScanCountdownSeconds = 0;
         }
 
-        private async Task RunAutoScanInstructionTimerAsync(CancellationToken cancellationToken)
+        private async Task RunAutoScanIdleTimerAsync(CancellationToken cancellationToken)
         {
             try
             {
-                await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
-                if (!cancellationToken.IsCancellationRequested && IsAutoScanMode)
+                for (var seconds = _autoScanIdleTimeoutSeconds - 1; seconds >= 0; seconds--)
                 {
-                    IsAutoScanInstructionVisible = false;
+                    await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
+                    if (cancellationToken.IsCancellationRequested || !IsAutoScanMode || AutoScanState != AutoScanState.Ready)
+                    {
+                        return;
+                    }
+
+                    AutoScanCountdownSeconds = seconds;
                 }
+
+                await StopAutoScanAsync();
             }
             catch (OperationCanceledException)
             {
-            }
-        }
-
-        private void StartAutoScanSimulationLoop()
-        {
-            StopAutoScanSimulationLoop();
-            _autoScanSimulationCts = new CancellationTokenSource();
-            _autoScanSimulationTask = RunAutoScanSimulationAsync(_autoScanSimulationCts.Token);
-        }
-
-        private void StopAutoScanSimulationLoop()
-        {
-            try
-            {
-                _autoScanSimulationCts?.Cancel();
-            }
-            catch
-            {
-            }
-            finally
-            {
-                _autoScanSimulationCts?.Dispose();
-                _autoScanSimulationCts = null;
-                _autoScanSimulationTask = null;
-            }
-        }
-
-        private async Task RunAutoScanSimulationAsync(CancellationToken cancellationToken)
-        {
-            try
-            {
-                while (!cancellationToken.IsCancellationRequested && IsAutoScanMode)
-                {
-                    AutoScanState = AutoScanState.Ready;
-                    await Task.Delay(2000, cancellationToken);
-                    if (cancellationToken.IsCancellationRequested || !IsAutoScanMode)
-                    {
-                        break;
-                    }
-
-                    AutoScanState = AutoScanState.Scanning;
-                    ScanPulseRequested?.Invoke();
-                    await Task.Delay(5000, cancellationToken);
-                    if (cancellationToken.IsCancellationRequested || !IsAutoScanMode)
-                    {
-                        break;
-                    }
-
-                    var scanningCard = new BusinessCard
-                    {
-                        FullName = _localizationService.GetString("Main.Mock.ScannedDocument"),
-                        CompanyName = _localizationService.GetString("Processing.Recognizing"),
-                        Status = ProcessingStatus.Pending,
-                        ScanDate = DateTime.Now,
-                        IsAutoScanSession = true,
-                        FrontImageData = TryGetPrototypeScanImageData()
-                    };
-
-                    AutoScanScannedCount++;
-                    WeakReferenceMessenger.Default.Send(new CardsImportedMessage(new System.Collections.Generic.List<BusinessCard> { scanningCard }));
-                }
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            catch
-            {
-                AutoScanFailedCount++;
-                AutoScanState = AutoScanState.Error;
             }
         }
 
@@ -884,13 +867,26 @@ namespace PlustekBCR.ViewModels
             }
             _lastPaperDetectedAt = now;
 
+            StopAutoScanIdleTimer();
             AutoScanState = AutoScanState.Scanning;
             ScanPulseRequested?.Invoke();
 
             try
             {
-                await Task.Delay(450);
+                await Task.Delay(450, _autoScanSessionCts?.Token ?? CancellationToken.None);
+                if (!IsAutoScanMode || AutoScanState != AutoScanState.Scanning)
+                {
+                    return;
+                }
 
+                if (!IsScannerConnected)
+                {
+                    AutoScanState = AutoScanState.Error;
+                    return;
+                }
+
+                var imageData = TryGetPrototypeScanImageData()
+                    ?? throw new InvalidOperationException("Prototype scan image is unavailable.");
                 var scanningCard = new BusinessCard
                 {
                     FullName = _localizationService.GetString("Main.Mock.ScannedDocument"),
@@ -898,16 +894,21 @@ namespace PlustekBCR.ViewModels
                     Status = ProcessingStatus.Pending,
                     ScanDate = DateTime.Now,
                     IsAutoScanSession = true,
-                    FrontImageData = TryGetPrototypeScanImageData()
+                    FrontImageData = imageData
                 };
 
-                AutoScanScannedCount++;
                 WeakReferenceMessenger.Default.Send(new CardsImportedMessage(new System.Collections.Generic.List<BusinessCard> { scanningCard }));
+                AutoScanScannedCount++;
                 AutoScanState = AutoScanState.Ready;
+                StartAutoScanIdleTimer();
+            }
+            catch (OperationCanceledException)
+            {
             }
             catch
             {
                 AutoScanFailedCount++;
+                _autoScanErrorText = _localizationService.GetString("Main.Scan.CaptureFailed");
                 AutoScanState = AutoScanState.Error;
             }
         }
@@ -919,9 +920,27 @@ namespace PlustekBCR.ViewModels
                 return;
             }
 
+            if (!IsScannerConnected)
+            {
+                return;
+            }
+
             AutoScanState = AutoScanState.Connecting;
-            await Task.Delay(700);
-            AutoScanState = AutoScanState.Ready;
+            try
+            {
+                await Task.Delay(700, _autoScanSessionCts?.Token ?? CancellationToken.None);
+                if (IsAutoScanMode && IsScannerConnected)
+                {
+                    AutoScanState = AutoScanState.Ready;
+                    if (AutoScanScannedCount > 0)
+                    {
+                        StartAutoScanIdleTimer();
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+            }
         }
 
         public void MarkRecognizingCompleted(int count = 1)
@@ -1044,6 +1063,9 @@ namespace PlustekBCR.ViewModels
             OnPropertyChanged(nameof(AutoScanPhaseText));
             OnPropertyChanged(nameof(AutoScanStateText));
             OnPropertyChanged(nameof(AutoScanHintText));
+            OnPropertyChanged(nameof(AutoScanProgressText));
+            OnPropertyChanged(nameof(AutoScanCountdownText));
+            OnPropertyChanged(nameof(AutoScanActionText));
         }
     }
 }

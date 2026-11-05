@@ -29,11 +29,16 @@ namespace PlustekBCR.ViewModels
         public partial bool AutoRotate { get; set; }
 
         [ObservableProperty]
+        public partial double AutoFinishDelaySeconds { get; set; }
+
+        [ObservableProperty]
         public partial string SaveErrorMessage { get; set; } = string.Empty;
 
         public ObservableCollection<ScanResolutionOption> ResolutionOptions { get; } = new();
         public ObservableCollection<ScanColorModeOption> ColorModeOptions { get; } = new();
         public bool HasSaveError => !string.IsNullOrWhiteSpace(SaveErrorMessage);
+        public double MinAutoFinishDelaySeconds => ScanSettings.MinAutoFinishDelaySeconds;
+        public double MaxAutoFinishDelaySeconds => ScanSettings.MaxAutoFinishDelaySeconds;
 
         public ScanSettingsViewModel(
             IApplicationSettingsService settingsService,
@@ -67,6 +72,19 @@ namespace PlustekBCR.ViewModels
         partial void OnAutoCropChanged(bool value) => QueueSave();
         partial void OnAutoDeskewChanged(bool value) => QueueSave();
         partial void OnAutoRotateChanged(bool value) => QueueSave();
+        partial void OnAutoFinishDelaySecondsChanged(double value)
+        {
+            var normalized = double.IsFinite(value)
+                ? Math.Clamp(Math.Round(value, MidpointRounding.AwayFromZero), MinAutoFinishDelaySeconds, MaxAutoFinishDelaySeconds)
+                : _settingsService.ScanSettings.AutoFinishDelaySeconds;
+            if (value != normalized)
+            {
+                AutoFinishDelaySeconds = normalized;
+                return;
+            }
+
+            QueueSave();
+        }
         partial void OnSaveErrorMessageChanged(string value) => OnPropertyChanged(nameof(HasSaveError));
 
         private void QueueSave(bool isValidSelection = true)
@@ -98,6 +116,7 @@ namespace PlustekBCR.ViewModels
                 AutoCrop = settings.AutoCrop;
                 AutoDeskew = settings.AutoDeskew;
                 AutoRotate = settings.AutoRotate;
+                AutoFinishDelaySeconds = settings.AutoFinishDelaySeconds;
                 SaveErrorMessage = string.Empty;
             }
             finally
@@ -143,7 +162,8 @@ namespace PlustekBCR.ViewModels
                 ColorMode = SelectedColorModeOption.Value,
                 AutoCrop = AutoCrop,
                 AutoDeskew = AutoDeskew,
-                AutoRotate = AutoRotate
+                AutoRotate = AutoRotate,
+                AutoFinishDelaySeconds = (int)AutoFinishDelaySeconds
             };
 
             await _saveSemaphore.WaitAsync();

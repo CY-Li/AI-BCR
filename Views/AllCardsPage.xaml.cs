@@ -149,11 +149,28 @@ namespace PlustekBCR.Views
 
         private void OnDeleteSidebarNoteClicked(object sender, RoutedEventArgs e)
         {
-            if (sender is FrameworkElement { DataContext: Note note }
-                && ViewModel.DeleteNoteCommand.CanExecute(note))
+            if (sender is FrameworkElement { DataContext: NoteEditorItemViewModel item }
+                && ViewModel.DeleteNoteCommand.CanExecute(item.Note))
             {
-                ViewModel.DeleteNoteCommand.Execute(note);
+                ViewModel.DeleteNoteCommand.Execute(item.Note);
             }
+        }
+
+        private void OnEditSidebarNoteClicked(object sender, RoutedEventArgs e)
+        {
+            if (sender is not FrameworkElement { DataContext: NoteEditorItemViewModel item } element)
+            {
+                return;
+            }
+
+            item.BeginEditCommand.Execute(null);
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                if (item.IsEditing && element.FindName("SidebarNoteEditTextBox") is TextBox textBox)
+                {
+                    textBox.Focus(Microsoft.UI.Xaml.FocusState.Programmatic);
+                }
+            });
         }
 
         private void OnContactActionInfoBarClosed(InfoBar sender, InfoBarClosedEventArgs args)

@@ -620,7 +620,22 @@
                     </Grid.RowDefinitions>
 
                     <Grid Grid.Row="0" Margin="24,20,24,12">
-                        <TextBlock Text="{Binding [Main.AutoScan.Mode]}" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{Binding [Main.Scan.Title]}" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <Button x:Name="MockCardPlacementButton"
+                                Grid.Column="1"
+                                Style="{StaticResource HeaderActionIconButtonStyle}"
+                                Width="32"
+                                Height="32"
+                                Click="OnMockCardPlacedClicked"
+                                Visibility="{x:Bind ViewModel.AutoScanMockButtonVisibility, Mode=OneWay}"
+                                ToolTipService.ToolTip="{Binding [Main.Scan.MockPlaceCard]}"
+                                AutomationProperties.Name="{Binding [Main.Scan.MockPlaceCard]}">
+                            <SymbolIcon Symbol="Add"/>
+                        </Button>
                     </Grid>
 
                     <Grid Grid.Row="1" Margin="16,0,16,0">
@@ -636,12 +651,14 @@
 
                             <Grid Visibility="{x:Bind ViewModel.AutoScanInstructionVisibility, Mode=OneWay}">
                                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="16">
-                                    <TextBlock Text="{Binding [Main.AutoScan.PlaceCard]}"
-                                               FontSize="16"
-                                               TextAlignment="Center"/>
                                     <Image Source="ms-appx:///Assets/scanner_illustration.png"
                                            Height="180"
                                            Stretch="Uniform"/>
+                                    <TextBlock Text="{x:Bind ViewModel.AutoScanProgressText, Mode=OneWay}"
+                                               FontSize="16"
+                                               Foreground="{StaticResource BrandBlueBrush}"
+                                               HorizontalAlignment="Center"
+                                               TextAlignment="Center"/>
                                 </StackPanel>
                             </Grid>
 
@@ -678,19 +695,40 @@
                                                        Margin="0,-10,0,0"/>
                                         </Grid>
                                     </Grid>
-                                    <TextBlock Text="{x:Bind ViewModel.AutoScanStateText, Mode=OneWay}" FontSize="14" Foreground="{StaticResource BrandBlueBrush}" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{x:Bind ViewModel.AutoScanProgressText, Mode=OneWay}"
+                                               Visibility="{x:Bind ViewModel.AutoScanLoadingVisibility, Mode=OneWay}"
+                                               FontSize="16"
+                                               Foreground="{StaticResource BrandBlueBrush}"
+                                               HorizontalAlignment="Center"
+                                               TextAlignment="Center"/>
+                                    <TextBlock Text="{x:Bind ViewModel.AutoScanCountdownText, Mode=OneWay}"
+                                               Visibility="{x:Bind ViewModel.AutoScanCountdownVisibility, Mode=OneWay}"
+                                               FontSize="16"
+                                               Foreground="{StaticResource BrandBlueBrush}"
+                                               HorizontalAlignment="Center"
+                                               TextAlignment="Center"/>
                                 </StackPanel>
                             </Grid>
+                            <TextBlock Text="{x:Bind ViewModel.AutoScanProgressText, Mode=OneWay}"
+                                       Visibility="{x:Bind ViewModel.AutoScanErrorVisibility, Mode=OneWay}"
+                                       FontSize="18"
+                                       TextAlignment="Center"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Foreground="{ThemeResource SystemFillColorCriticalBrush}"/>
                         </Grid>
                     </Grid>
 
-                    <Grid Grid.Row="2" Margin="16,0,16,16">
+                    <StackPanel Grid.Row="2" Margin="16,0,16,16" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12">
+                        <Button Content="{Binding [Button.Retry]}"
+                                Click="OnRetryScanClicked"
+                                Visibility="{x:Bind ViewModel.AutoScanRetryVisibility, Mode=OneWay}"/>
                         <Button
-                            Content="{Binding [Button.StopAutoScan]}"
+                            Content="{x:Bind ViewModel.AutoScanActionText, Mode=OneWay}"
                             Click="OnScanClicked"
                             HorizontalAlignment="Center"
                             Style="{StaticResource StopAutoScanButtonStyle}"/>
-                    </Grid>
+                    </StackPanel>
                 </Grid>
             </Border>
         </Grid>

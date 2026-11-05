@@ -23,7 +23,6 @@ namespace PlustekBCR.Views
         public ObservableCollection<TagFlowItem> AdvancedTagFlowItems { get; } = new();
         private bool _hasCheckedForUpdates;
         private bool _isUpdateCheckRunning;
-        private readonly DispatcherTimer _mockPaperSensorTimer;
         private readonly ITagCatalogService _tagCatalogService;
         private readonly ILocalizationService _localizationService;
         private bool _isSyncingFilterUi;
@@ -51,8 +50,6 @@ namespace PlustekBCR.Views
             RootGrid.AddHandler(UIElement.PointerPressedEvent, new Microsoft.UI.Xaml.Input.PointerEventHandler(OnRootPointerPressed), true);
             ViewModel.ScanPulseRequested += OnScanPulseRequested;
             CardsViewModel.PropertyChanged += OnCardsViewModelPropertyChanged;
-            _mockPaperSensorTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(1450) };
-            _mockPaperSensorTimer.Tick += OnMockPaperSensorTick;
 
             // Set minimum window size using WinUIEx to avoid flickering
             var manager = WinUIEx.WindowManager.Get(this);
@@ -191,8 +188,6 @@ namespace PlustekBCR.Views
             App.GetService<IImageViewerService>().Close();
             ScannerReadyPulseStoryboard?.Stop();
             ViewModel.ScanPulseRequested -= OnScanPulseRequested;
-            _mockPaperSensorTimer.Stop();
-            _mockPaperSensorTimer.Tick -= OnMockPaperSensorTick;
             _tagCatalogService.TagsChanged -= OnTagCatalogChanged;
             CardsViewModel.CompanyFiltersChanged -= OnCompanyFiltersChanged;
             ViewModel.SearchChanged -= OnSearchChanged;
@@ -775,7 +770,6 @@ namespace PlustekBCR.Views
                 if (ViewModel.ScanCommand.CanExecute(null))
                 {
                     await ViewModel.ScanCommand.ExecuteAsync(null);
-                    _mockPaperSensorTimer.Stop();
                 }
             }
             catch (System.Exception ex)
@@ -788,9 +782,28 @@ namespace PlustekBCR.Views
             }
         }
 
-        private async void OnMockPaperSensorTick(object? sender, object e)
+        private async void OnMockCardPlacedClicked(object sender, RoutedEventArgs e)
         {
-            await Task.CompletedTask;
+            try
+            {
+                await ViewModel.TryHandlePaperDetectedAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"OnMockCardPlacedClicked error ({ex.GetType().Name}): {ex.Message}");
+            }
+        }
+
+        private async void OnRetryScanClicked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                await ViewModel.RetryAutoScanAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"OnRetryScanClicked error ({ex.GetType().Name}): {ex.Message}");
+            }
         }
 
         private void OnScanPulseRequested()

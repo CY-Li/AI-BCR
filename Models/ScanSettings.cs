@@ -16,11 +16,16 @@ namespace PlustekBCR.Models
 
     public sealed class ScanSettings
     {
+        public const int DefaultAutoFinishDelaySeconds = 5;
+        public const int MinAutoFinishDelaySeconds = 1;
+        public const int MaxAutoFinishDelaySeconds = 60;
+
         public ScanResolution Resolution { get; set; } = ScanResolution.Better;
         public ScanColorMode ColorMode { get; set; } = ScanColorMode.Color;
         public bool AutoCrop { get; set; } = true;
         public bool AutoDeskew { get; set; } = true;
         public bool AutoRotate { get; set; } = true;
+        public int AutoFinishDelaySeconds { get; set; } = DefaultAutoFinishDelaySeconds;
 
         public static ScanSettings Default => new();
 
@@ -30,7 +35,8 @@ namespace PlustekBCR.Models
             ColorMode = ColorMode,
             AutoCrop = AutoCrop,
             AutoDeskew = AutoDeskew,
-            AutoRotate = AutoRotate
+            AutoRotate = AutoRotate,
+            AutoFinishDelaySeconds = AutoFinishDelaySeconds
         };
     }
 }
