@@ -1,5 +1,5 @@
 {
-  "version": "1.0.21",
-  "downloadUrl": "https://github.com/CY-Li/AI-BCR/releases/download/v1.0.21/PlustekBCR-v1.0.21-win-x64.zip",
-  "notes": "1. 首頁左側Sidebar新增By Company篩選功能"
+  "version": "1.0.22",
+  "downloadUrl": "https://github.com/CY-Li/AI-BCR/releases/download/v1.0.22/PlustekBCR-v1.0.22-win-x64.zip",
+  "notes": "1. 掃描視窗在擷取完成後依設定倒數自動結束，後續辨識由主畫面列表持續處理\r\n2. 可在設定中調整掃描視窗的自動結束秒數\r\n3. 名片側欄與詳細頁支援原位編輯筆記"
 }
