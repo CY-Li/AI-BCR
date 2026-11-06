@@ -506,6 +506,26 @@
                 </StackPanel>
             </Grid>
 
+            <Grid x:Name="CalibrationContentPanel"
+                  Grid.Row="1"
+                  Margin="48,26,0,0"
+                  HorizontalAlignment="Stretch"
+                  Visibility="Collapsed">
+                <Border Style="{StaticResource SettingsCardStyle}" Translation="0,0,8">
+                    <StackPanel Spacing="14">
+                        <TextBlock Text="{Binding [Settings.Calibration.Card.Description]}"
+                                   FontSize="14"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                   TextWrapping="WrapWholeWords"/>
+                        <Button x:Name="CalibrationEntryButton" Content="{Binding [Settings.Calibration.Start]}"
+                                Command="{x:Bind CalibrationViewModel.OpenCommand}"
+                                Click="OnCalibrationOpenClicked"
+                                HorizontalAlignment="Left"
+                                Style="{StaticResource AccentButtonStyle}"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
             <Grid x:Name="AboutContentPanel"
                   Grid.Row="1"
                   Margin="48,26,0,0"

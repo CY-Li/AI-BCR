@@ -182,7 +182,7 @@
         </Grid.RowDefinitions>
 
         <!-- Top Bar -->
-        <Border Grid.Row="0" Canvas.ZIndex="20" Background="{ThemeResource LayerFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="0,0,0,1" Padding="16,8">
+        <Border Grid.Row="0" Canvas.ZIndex="20" IsHitTestVisible="{x:Bind CalibrationViewModel.IsBackgroundEnabled, Mode=OneWay}" Background="{ThemeResource LayerFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="0,0,0,1" Padding="16,8">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="400"/>
@@ -430,7 +430,7 @@
         </Border>
 
         <!-- Main Content Area -->
-        <NavigationView Grid.Row="1" x:Name="RootNavigationView" x:FieldModifier="public" IsPaneVisible="{x:Bind ViewModel.IsPaneVisible, Mode=OneWay}" IsBackButtonVisible="Collapsed" IsSettingsVisible="False" PaneDisplayMode="Left" OpenPaneLength="280" SelectionChanged="OnSelectionChanged">
+        <NavigationView Grid.Row="1" x:Name="RootNavigationView" x:FieldModifier="public" IsEnabled="{x:Bind CalibrationViewModel.IsBackgroundEnabled, Mode=OneWay}" IsPaneVisible="{x:Bind ViewModel.IsPaneVisible, Mode=OneWay}" IsBackButtonVisible="Collapsed" IsSettingsVisible="False" PaneDisplayMode="Left" OpenPaneLength="280" SelectionChanged="OnSelectionChanged">
             <NavigationView.MenuItems>
                 <NavigationViewItem x:Name="AllCardsItem" Content="All cards" Tag="AllCards">
                     <NavigationViewItem.InfoBadge>
@@ -507,6 +507,11 @@
                 <NavigationViewItem x:Name="SettingsScannerItem" Content="{Binding [Main.Navigation.Scanner]}" Tag="Settings:Scanner" Visibility="Collapsed">
                     <NavigationViewItem.Icon>
                         <PathIcon Data="M19.75 4A2.25 2.25 0 0 1 22 6.25v11.505a2.25 2.25 0 0 1-2.25 2.25H4.25A2.25 2.25 0 0 1 2 17.755V6.25A2.25 2.25 0 0 1 4.25 4h15.5Zm0 1.5H4.25a.75.75 0 0 0-.75.75v11.505c0 .414.336.75.75.75h15.5a.75.75 0 0 0 .75-.75V6.25a.75.75 0 0 0-.75-.75Zm-10 7a.75.75 0 0 1 .75.75v.493l-.008.108c-.163 1.113-1.094 1.65-2.492 1.65s-2.33-.537-2.492-1.65l-.008-.11v-.491a.75.75 0 0 1 .75-.75h3.5Zm3.502.496h4.498a.75.75 0 0 1 .102 1.493l-.102.007h-4.498a.75.75 0 0 1-.102-1.493l.102-.007h4.498-4.498ZM8 8.502a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm5.252.998h4.498a.75.75 0 0 1 .102 1.493L17.75 11h-4.498a.75.75 0 0 1-.102-1.493l.102-.007h4.498-4.498Z"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem x:Name="SettingsCalibrationItem" Content="{Binding [Settings.Calibration.Title]}" Tag="Settings:Calibration" Visibility="Collapsed">
+                    <NavigationViewItem.Icon>
+                        <ImageIcon Source="ms-appx:///Assets/crosshair.svg"/>
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
                 <NavigationViewItem x:Name="SettingsLinkAppsItem" Content="{Binding [Main.Navigation.LinkApps]}" Tag="Settings:LinkApps" Visibility="Collapsed">
@@ -859,6 +864,57 @@
                         </StackPanel>
                     </Grid>
                 </Grid>
+            </Border>
+        </Grid>
+
+        <Grid x:Name="CalibrationOverlay" Grid.Row="0" Grid.RowSpan="2" Canvas.ZIndex="100"
+              Visibility="Collapsed"
+              Background="#990F172A" KeyDown="OnCalibrationKeyDown">
+            <Border MaxWidth="440" Margin="24" Padding="28"
+                    HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                    Style="{StaticResource SettingsCardStyle}">
+                <StackPanel Spacing="16" HorizontalAlignment="Stretch">
+                    <Button x:Name="CalibrationCloseButton"
+                            Command="{x:Bind CalibrationViewModel.CloseCommand}"
+                            Click="OnCalibrationCloseClicked"
+                            ToolTipService.ToolTip="{Binding [Settings.Calibration.Close]}"
+                            AutomationProperties.Name="{Binding [Settings.Calibration.Close]}"
+                            HorizontalAlignment="Right"
+                            Style="{StaticResource CalibrationCloseButtonStyle}"/>
+                    <StackPanel x:Name="CalibrationReadyPanel" Spacing="8">
+                        <TextBlock Text="{Binding [Settings.Calibration.Insert.Title]}" FontSize="21" FontWeight="SemiBold" TextAlignment="Center"/>
+                        <TextBlock Text="{Binding [Settings.Calibration.Insert.Description]}" FontSize="14"
+                                   TextWrapping="WrapWholeWords" TextAlignment="Center"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                    </StackPanel>
+                    <StackPanel x:Name="CalibrationWorkingPanel" Spacing="8" Visibility="Collapsed">
+                        <ProgressRing IsActive="True" Width="28" Height="28" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding [Settings.Calibration.Working.Title]}" FontSize="21" FontWeight="SemiBold" TextAlignment="Center"/>
+                        <TextBlock Text="{Binding [Settings.Calibration.Working.Description]}" FontSize="14"
+                                   TextWrapping="WrapWholeWords" TextAlignment="Center"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                    </StackPanel>
+                    <StackPanel x:Name="CalibrationSuccessPanel" Spacing="8" Visibility="Collapsed">
+                        <TextBlock Text="{Binding [Settings.Calibration.Success.Title]}" FontSize="21" FontWeight="SemiBold" TextAlignment="Center"/>
+                        <TextBlock Text="{Binding [Settings.Calibration.Success.Description]}" FontSize="14"
+                                   TextWrapping="WrapWholeWords" TextAlignment="Center"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                    </StackPanel>
+                    <StackPanel x:Name="CalibrationErrorPanel" Spacing="8" Visibility="Collapsed">
+                        <TextBlock Text="{Binding [Settings.Calibration.Error.Title]}" FontSize="21" FontWeight="SemiBold" TextAlignment="Center"/>
+                        <TextBlock Text="{x:Bind CalibrationViewModel.ErrorText, Mode=OneWay}" FontSize="14"
+                                   TextWrapping="WrapWholeWords" TextAlignment="Center"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                    </StackPanel>
+                    <Button x:Name="CalibrationStartButton" Content="{x:Bind CalibrationViewModel.StartText, Mode=OneWay}"
+                            Command="{x:Bind CalibrationViewModel.StartCommand}"
+                            HorizontalAlignment="Center" Style="{StaticResource AccentButtonStyle}"/>
+                    <Button x:Name="CalibrationDoneButton" Content="{Binding [Settings.Calibration.Done]}"
+                            Command="{x:Bind CalibrationViewModel.CloseCommand}"
+                            Click="OnCalibrationCloseClicked"
+                            Visibility="Collapsed"
+                            HorizontalAlignment="Center" Style="{StaticResource AccentButtonStyle}"/>
+                </StackPanel>
             </Border>
         </Grid>
     </Grid>

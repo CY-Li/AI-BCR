@@ -19,6 +19,7 @@ namespace PlustekBCR.Views
     public sealed partial class MainWindow : Window
     {
         public MainViewModel ViewModel { get; }
+        public CalibrationViewModel CalibrationViewModel { get; }
         public AllCardsViewModel CardsViewModel { get; }
         public ObservableCollection<TagFlowItem> AdvancedTagFlowItems { get; } = new();
         private bool _hasCheckedForUpdates;
@@ -39,11 +40,14 @@ namespace PlustekBCR.Views
         {
             // Assign ViewModel BEFORE InitializeComponent for x:Bind to work
             ViewModel = App.GetService<MainViewModel>();
+            CalibrationViewModel = App.GetService<CalibrationViewModel>();
             CardsViewModel = App.GetService<AllCardsViewModel>();
             _tagCatalogService = App.GetService<ITagCatalogService>();
             _localizationService = App.GetService<ILocalizationService>();
 
             this.InitializeComponent();
+            CalibrationViewModel.PropertyChanged += OnCalibrationPropertyChanged;
+            UpdateCalibrationView();
             ApplyWindowIcon();
             RootGrid.DataContext = App.GetService<LocalizedStrings>();
             UpdateLocalizedToolTips();
@@ -183,6 +187,8 @@ namespace PlustekBCR.Views
 
         private void OnWindowClosed(object sender, WindowEventArgs args)
         {
+            CalibrationViewModel.PropertyChanged -= OnCalibrationPropertyChanged;
+            CalibrationViewModel.Dispose();
             _searchDebounceCts?.Cancel();
             _searchDebounceCts?.Dispose();
             App.GetService<IImageViewerService>().Close();
@@ -192,6 +198,49 @@ namespace PlustekBCR.Views
             CardsViewModel.CompanyFiltersChanged -= OnCompanyFiltersChanged;
             ViewModel.SearchChanged -= OnSearchChanged;
             _localizationService.LanguageChanged -= OnLanguageChanged;
+        }
+
+        private void OnCalibrationPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName is nameof(CalibrationViewModel.IsDialogOpen) or nameof(CalibrationViewModel.State))
+                UpdateCalibrationView();
+        }
+
+        private void UpdateCalibrationView()
+        {
+            CalibrationOverlay.Visibility = CalibrationViewModel.IsDialogOpen ? Visibility.Visible : Visibility.Collapsed;
+            CalibrationReadyPanel.Visibility = CalibrationViewModel.IsReady ? Visibility.Visible : Visibility.Collapsed;
+            CalibrationWorkingPanel.Visibility = CalibrationViewModel.IsWorking ? Visibility.Visible : Visibility.Collapsed;
+            CalibrationSuccessPanel.Visibility = CalibrationViewModel.IsSuccess ? Visibility.Visible : Visibility.Collapsed;
+            CalibrationErrorPanel.Visibility = CalibrationViewModel.IsError ? Visibility.Visible : Visibility.Collapsed;
+            CalibrationStartButton.Visibility = CalibrationViewModel.ShowStartAction ? Visibility.Visible : Visibility.Collapsed;
+            CalibrationDoneButton.Visibility = CalibrationViewModel.IsSuccess ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        public void FocusCalibrationDialog()
+        {
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                if (CalibrationViewModel.IsDialogOpen)
+                    CalibrationCloseButton.Focus(FocusState.Programmatic);
+            });
+        }
+
+        private void OnCalibrationCloseClicked(object sender, RoutedEventArgs e)
+        {
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                if (ContentFrame.Content is SettingsPage page)
+                    page.FocusCalibrationEntry();
+            });
+        }
+
+        private void OnCalibrationKeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
+        {
+            if (e.Key != Windows.System.VirtualKey.Escape) return;
+            CalibrationViewModel.CloseCommand.Execute(null);
+            OnCalibrationCloseClicked(sender, e);
+            e.Handled = true;
         }
         private async Task EnsureUpdateCheckAsync()
         {
@@ -468,6 +517,7 @@ namespace PlustekBCR.Views
             SettingsImportItem.Visibility = Visibility.Collapsed;
             SettingsRecognitionItem.Visibility = Visibility.Collapsed;
             SettingsScannerItem.Visibility = Visibility.Collapsed;
+            SettingsCalibrationItem.Visibility = settingsVisibility;
             SettingsLinkAppsItem.Visibility = settingsVisibility;
             SettingsAboutItem.Visibility = settingsVisibility;
 
@@ -498,6 +548,7 @@ namespace PlustekBCR.Views
                 ["Import"] = SettingsImportItem,
                 ["RecognitionAi"] = SettingsRecognitionItem,
                 ["Scanner"] = SettingsScannerItem,
+                ["Calibration"] = SettingsCalibrationItem,
                 ["LinkApps"] = SettingsLinkAppsItem,
                 ["About"] = SettingsAboutItem
             };

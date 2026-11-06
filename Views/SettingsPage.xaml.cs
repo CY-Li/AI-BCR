@@ -19,6 +19,7 @@ namespace PlustekBCR.Views
         private readonly ILocalizationService _localizationService;
         public DuplicateSettingsViewModel DuplicateViewModel { get; }
         public ScanSettingsViewModel ScanViewModel { get; }
+        public CalibrationViewModel CalibrationViewModel { get; }
         public DefaultLinkAppsViewModel LinkAppsViewModel { get; }
         public string ApplicationVersion { get; } = GetApplicationVersion();
         public string FirmwareVersion { get; } = string.Empty;
@@ -41,6 +42,7 @@ namespace PlustekBCR.Views
             _localizationService = App.GetService<ILocalizationService>();
             DuplicateViewModel = App.GetService<DuplicateSettingsViewModel>();
             ScanViewModel = App.GetService<ScanSettingsViewModel>();
+            CalibrationViewModel = App.GetService<CalibrationViewModel>();
             LinkAppsViewModel = App.GetService<DefaultLinkAppsViewModel>();
             InitializeComponent();
             DataContext = App.GetService<LocalizedStrings>();
@@ -159,6 +161,7 @@ namespace PlustekBCR.Views
 
             var isGeneralSection = string.Equals(normalizedSection, GeneralSection, System.StringComparison.OrdinalIgnoreCase);
             var isScanSection = string.Equals(normalizedSection, "Scan", System.StringComparison.OrdinalIgnoreCase);
+            var isCalibrationSection = string.Equals(normalizedSection, "Calibration", System.StringComparison.OrdinalIgnoreCase);
             var isDuplicateDetectionSection = string.Equals(normalizedSection, "DuplicateDetection", System.StringComparison.OrdinalIgnoreCase);
             var isLinkAppsSection = string.Equals(normalizedSection, "LinkApps", System.StringComparison.OrdinalIgnoreCase);
             var isAboutSection = string.Equals(normalizedSection, "About", System.StringComparison.OrdinalIgnoreCase);
@@ -166,6 +169,7 @@ namespace PlustekBCR.Views
             SectionTitleTextBlock.Text = normalizedSection switch
             {
                 "Scan" => _localizationService.GetString("Main.Navigation.Scan"),
+                "Calibration" => _localizationService.GetString("Settings.Calibration.Title"),
                 "DuplicateDetection" => _localizationService.GetString("Main.Navigation.DuplicateDetection"),
                 "Import" => _localizationService.GetString("Main.Navigation.Import"),
                 "RecognitionAi" => _localizationService.GetString("Main.Navigation.RecognitionAi"),
@@ -177,6 +181,8 @@ namespace PlustekBCR.Views
 
             SectionDescriptionTextBlock.Text = isScanSection
                 ? _localizationService.GetString("Settings.Scan.Description")
+                : isCalibrationSection
+                    ? _localizationService.GetString("Settings.Calibration.Description")
                 : isDuplicateDetectionSection
                     ? _localizationService.GetString("Settings.Duplicate.Description")
                     : isLinkAppsSection
@@ -184,15 +190,16 @@ namespace PlustekBCR.Views
                     : isAboutSection
                         ? _localizationService.GetString("Settings.About.Description")
                         : _localizationService.GetString("Settings.General.Description");
-            SectionDescriptionTextBlock.Visibility = isGeneralSection || isScanSection || isDuplicateDetectionSection || isLinkAppsSection || isAboutSection ? Visibility.Visible : Visibility.Collapsed;
+            SectionDescriptionTextBlock.Visibility = isGeneralSection || isScanSection || isCalibrationSection || isDuplicateDetectionSection || isLinkAppsSection || isAboutSection ? Visibility.Visible : Visibility.Collapsed;
             GeneralContentPanel.Visibility = isGeneralSection || isDuplicateDetectionSection ? Visibility.Visible : Visibility.Collapsed;
             LanguageSettingsCard.Visibility = isGeneralSection ? Visibility.Visible : Visibility.Collapsed;
             DuplicateSettingsCard.Visibility = isDuplicateDetectionSection ? Visibility.Visible : Visibility.Collapsed;
             RegionSettingsCard.Visibility = isGeneralSection ? Visibility.Visible : Visibility.Collapsed;
             ScanContentPanel.Visibility = isScanSection ? Visibility.Visible : Visibility.Collapsed;
+            CalibrationContentPanel.Visibility = isCalibrationSection ? Visibility.Visible : Visibility.Collapsed;
             LinkAppsContentPanel.Visibility = isLinkAppsSection ? Visibility.Visible : Visibility.Collapsed;
             AboutContentPanel.Visibility = isAboutSection ? Visibility.Visible : Visibility.Collapsed;
-            SectionHintBorder.Visibility = isGeneralSection || isScanSection || isDuplicateDetectionSection || isLinkAppsSection || isAboutSection ? Visibility.Collapsed : Visibility.Visible;
+            SectionHintBorder.Visibility = isGeneralSection || isScanSection || isCalibrationSection || isDuplicateDetectionSection || isLinkAppsSection || isAboutSection ? Visibility.Collapsed : Visibility.Visible;
             SectionHintTextBlock.Text = normalizedSection switch
             {
                 "Import" => _localizationService.GetString("Settings.Import.Hint"),
@@ -361,6 +368,7 @@ namespace PlustekBCR.Views
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
+            CalibrationViewModel.CloseCommand.Execute(null);
             if (App.Window != null)
             {
                 App.Window.Activated -= OnAppWindowActivated;
@@ -368,6 +376,17 @@ namespace PlustekBCR.Views
 
             _localizationService.LanguageChanged -= OnLanguageChanged;
             Unloaded -= OnUnloaded;
+        }
+
+        private void OnCalibrationOpenClicked(object sender, RoutedEventArgs e)
+        {
+            if (App.Window is MainWindow mainWindow)
+                mainWindow.FocusCalibrationDialog();
+        }
+
+        public void FocusCalibrationEntry()
+        {
+            CalibrationEntryButton.Focus(FocusState.Programmatic);
         }
 
         private sealed class SelectionOption : INotifyPropertyChanged

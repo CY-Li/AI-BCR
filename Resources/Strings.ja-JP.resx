@@ -398,4 +398,24 @@
   <data name="Contact.Action.Website" xml:space="preserve"><value>Webサイトを開く</value></data>
   <data name="Contact.Action.Invalid" xml:space="preserve"><value>連絡先の値が正しくありません。</value></data>
   <data name="Contact.Action.Failed" xml:space="preserve"><value>この操作を開けるWindowsアプリがありません。</value></data>
+  <data name="Settings.Calibration.Title" xml:space="preserve"><value>キャリブレーション</value></data>
+  <data name="Settings.Calibration.Description" xml:space="preserve"><value>スキャナーを校正して色や画像のバランスを正確に整え、最適なスキャン品質を確保してください。</value></data>
+  <data name="Settings.Calibration.Card.Description" xml:space="preserve"><value>キャリブレーションシートを挿入すると、スキャナーが自動的にキャリブレーションを行います。</value></data>
+  <data name="Settings.Calibration.Start" xml:space="preserve"><value>校正を開始</value></data>
+  <data name="Settings.Calibration.MockNotice" xml:space="preserve"><value></value></data>
+  <data name="Settings.Calibration.Connected" xml:space="preserve"><value>スキャナー接続済み・校正可能</value></data>
+  <data name="Settings.Calibration.Disconnected" xml:space="preserve"><value>スキャナーが切断されています。再接続してください。</value></data>
+  <data name="Settings.Calibration.Busy" xml:space="preserve"><value>スキャン中です。終了後に校正してください。</value></data>
+  <data name="Settings.Calibration.Insert.Title" xml:space="preserve"><value>校正シートをセット</value></data>
+  <data name="Settings.Calibration.Insert.Description" xml:space="preserve"><value>キャリブレーションシートをスキャナーの給紙口にセットし、開始してください。スキャナーが自動的にキャリブレーションを行います。</value></data>
+  <data name="Settings.Calibration.Working.Title" xml:space="preserve"><value>校正中…</value></data>
+  <data name="Settings.Calibration.Working.Description" xml:space="preserve"><value>シートを所定の位置に保持してください。数秒かかります。</value></data>
+  <data name="Settings.Calibration.Success.Title" xml:space="preserve"><value>校正完了</value></data>
+  <data name="Settings.Calibration.Success.Description" xml:space="preserve"><value>お使いのスキャナーは、正確な色と位置合わせができるよう調整されています。</value></data>
+  <data name="Settings.Calibration.Error.Title" xml:space="preserve"><value>校正失敗</value></data>
+  <data name="Settings.Calibration.Error.Generic" xml:space="preserve"><value>スキャナーのキャリブレーションを完了できませんでした。キャリブレーションシートを再度挿入し、もう一度試してください。</value></data>
+  <data name="Settings.Calibration.Error.Disconnected" xml:space="preserve"><value>スキャナーが切断されました。再接続してからお試しください。</value></data>
+  <data name="Settings.Calibration.Error.Busy" xml:space="preserve"><value>スキャンが始まりました。終了後にお試しください。</value></data>
+  <data name="Settings.Calibration.Close" xml:space="preserve"><value>校正画面を閉じる</value></data>
+  <data name="Settings.Calibration.Done" xml:space="preserve"><value>完了</value></data>
 </root>
